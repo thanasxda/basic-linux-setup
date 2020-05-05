@@ -10,6 +10,9 @@
 ### DON'T RUN AS SU!!! DIRS ARE NOT /home/root/
 #########################################################
 ### optionally install "kde connect" app on your android
+#########################################################
+### script meant mainly as unattended if needed adjust
+#########################################################
 source="$(pwd)"
 basicsetup=$source/.basicsetup
 ### set bash colors
@@ -20,15 +23,14 @@ echo -e "${magenta}"
 echo ".::BASIC-LINUX-SETUP::. - mainly for (K)ubuntu focal/groovy"
 echo -e "${restore}"
 
-### whats your grub dir?
-GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
-
-### size of swap - 4.8gb in this case
+### size of swap - 4.8gb in this case. since low swappiness and mount on /swapfile
+### wont be of any harm to high spec systems neither in diskspace nor unwanted swap usage
 swap=5000000
 
-### setup dirs
+### set up dirs of git and prebuilt toolchain
 git=~/GIT
 tc=~/TOOLCHAIN
+mkdir -p $git && mkdir -p $tc
 
 ### your git name & email - unhash and set up for personal usage
 sudo apt -f install -y git curl 
@@ -71,7 +73,7 @@ yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocke
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-* 
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-* 
 
-### configure swap 5G - hash out if unwanted
+### configure swap 
 echo -e "${yellow}"
 echo CONFIGURE SWAP
 echo -e "${restore}"
@@ -86,15 +88,10 @@ sudo sysctl vm.swappiness=10
 ### LVM
 #/vgkubuntu-swap_1
 
-### setup dirs
-git=~/GIT
-tc=~/TOOLCHAIN
-mkdir -p $git && mkdir -p $tc
-
 ### add i386 architecture needed for env
 sudo dpkg --add-architecture i386
 
-### grub config
+### grub config & system optimization 
 echo -e "${yellow}"
 echo GRUB CONFIG
 echo -e "${restore}"
@@ -106,7 +103,8 @@ sudo sed -i '8s/.*/GRUB_TIMEOUT=2/' /etc/default/grub
 sudo sed -i '24s/.*/GRUB_GFXMODE=1024x768/' /etc/default/grub
 ### apply grub settings
 sudo update-grub
-### CAREFUL HERE TO CHOOSE CORRECT GRUB PARTITION!!!
+### grub auto detection
+GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 sudo grub-install $GRUB_PATH
 
 ### build env scripts
@@ -139,11 +137,10 @@ for i in ${!new_sources[@]}; do
         echo "Added ${new_sources[$i]} to source list"
     fi
 done
-### fetch keys
+### fetch keys ubuntu
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1378B444
-### fetch keys
+### fetch keys llvm git
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
-
 
 ### mesa drivers and extras
 sudo add-apt-repository -y ppa:oibaf/graphics-drivers 
@@ -176,7 +173,7 @@ sudo apt -f install -y aptitude
 sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash desktop-base dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gcc-10 gdebi gedit gettext git git-svn gnupg gparted gperf gstreamer1.0-qt5 help2man imagemagick intel-microcode java-propose-classpath kubuntu-restricted-extras kwrite lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openjdk-8-jdk openssh-client openssh-server optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev
 
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT!!! needs manual enabling from within settings
-sudo apt install plasma-workspace-wayland kwayland-integration wayland-protocols  
+sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols  
 ### allow root privilege under wayland and supress output
 sudo sed -i '4s/.*/xhost +si:localuser:root >/dev/null/' /etc/default/grub
 #####################################################################################################
@@ -187,7 +184,7 @@ sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-l
 ### extra packages
 sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools
 
-### extra packages
+### extra .deb packages
 wget https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
 sudo dpkg -i viber*
 sudo apt -f install -y && sudo apt --fix-broken install -y
@@ -221,7 +218,7 @@ sudo snap install gitkraken --edge
 sudo snap install telegram-desktop --edge
 sudo snap install anbox --edge --devmode
 
-### anbox - run android android/apps within linux
+### anbox modules fix - run android android/apps within linux
 sudo apt -f install linux-headers-generic
 cd $git
 git clone https://github.com/thanasxda/anbox-modules-fix.git
