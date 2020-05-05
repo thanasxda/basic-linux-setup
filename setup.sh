@@ -147,22 +147,27 @@ sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 sudo add-apt-repository -y ppa:git-core/ppa 
 sudo add-apt-repository -y ppa:team-xbmc/ppa
 ### fix groovy distro syncing for now
-file_4=/etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list
-source_4='deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main'
-file_5=/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list
-source_5='deb http://gr.archive.ubuntu.com/ubuntu/ bionic main'
+#file_4=/etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list
+#source_4='deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main'
+#file_5=/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list
+#source_5='deb http://gr.archive.ubuntu.com/ubuntu/ bionic main'
 
-if test -f "$file_4"; then
-    if ! grep -q "${source_4}" $file_4; then
-        echo "${source_4}" | sudo tee -a $file_4
-    fi
-fi
+#if test -f "$file_4"; then
+#    if ! grep -q "${source_4}" $file_4; then
+#        echo "${source_4}" | sudo tee -a $file_4
+#    fi
+#fi
+#
+#if test -f "$file_5"; then
+#    if ! grep -q "${source_5}" $file_5; then
+#        echo "${source_5}" | sudo tee -a $file_5
+#    fi
+#fi
 
-if test -f "$file_5"; then
-    if ! grep -q "${source_5}" $file_5; then
-        echo "${source_5}" | sudo tee -a $file_5
-    fi
-fi
+### fix groovy distro syncing for now (forceful method - for now must be overridden)
+sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
+sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
+
 
 ### thanas build env, vulkan drivers, codecs and extras
 echo -e "${yellow}"
