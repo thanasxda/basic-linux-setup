@@ -124,16 +124,23 @@ echo -e "${yellow}"
 echo SET UP REPOS
 echo -e "${restore}"
 ### repos needed to contain all packages - set underneath repos according to your distro if necessary 
-sudo bash -c 'echo "deb http://archive.canonical.com/ubuntu/ focal partner"  >> /etc/apt/sources.list'
-sudo bash -c 'echo "deb http://gr.archive.ubuntu.com/ubuntu/ bionic main"  >> /etc/apt/sources.list'
-sudo bash -c 'echo "deb http://gr.archive.ubuntu.com/ubuntu/ eoan main universe"  >> /etc/apt/sources.list'
+source_1='deb http://archive.canonical.com/ubuntu/ focal partner'
+source_2='deb http://gr.archive.ubuntu.com/ubuntu/ bionic main'
+source_3='deb http://gr.archive.ubuntu.com/ubuntu/ eoan main universe'
+### daily llvm git builds - not always support for lto
+llvm_1='deb http://apt.llvm.org/focal/ llvm-toolchain-focal main'
+llvm_2='deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main'
+
+new_sources=("$source_1" "$source_2" "$source_3" "$llvm_1" "$llvm_2")
+
+for i in ${!new_sources[@]}; do
+    if ! grep -q "${new_sources[$i]}" /etc/apt/sources.list; then
+        echo "${new_sources[$i]}" | sudo tee -a /etc/apt/sources.list
+        echo "Added ${new_sources[$i]} to source list"
+    fi
+done
 ### fetch keys
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1378B444
-#####################################################################################################
-
-### daily llvm git builds - not always support for lto
-sudo bash -c 'echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal main"  >> /etc/apt/sources.list'
-sudo bash -c 'echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main"  >> /etc/apt/sources.list'
 ### fetch keys
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
 
@@ -143,9 +150,22 @@ sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 sudo add-apt-repository -y ppa:git-core/ppa 
 sudo add-apt-repository -y ppa:team-xbmc/ppa
 ### fix groovy distro syncing for now
-sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
-sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
+file_4=/etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list
+source_4='deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main'
+file_5=/etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list
+source_5='deb http://gr.archive.ubuntu.com/ubuntu/ bionic main'
 
+if test -f "$file_4"; then
+    if ! grep -q "${source_4}" $file_4; then
+        echo "${source_4}" | sudo tee -a $file_4
+    fi
+fi
+
+if test -f "$file_5"; then
+    if ! grep -q "${source_5}" $file_5; then
+        echo "${source_5}" | sudo tee -a $file_5
+    fi
+fi
 
 ### thanas build env, vulkan drivers, codecs and extras
 echo -e "${yellow}"
