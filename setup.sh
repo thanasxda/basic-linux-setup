@@ -21,7 +21,7 @@ echo ".::BASIC-LINUX-SETUP::. - mainly for (K)ubuntu focal/groovy"
 echo -e "${restore}"
 
 ### whats your grub dir?
-grub=/dev/sda
+GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 
 ### size of swap - 4.8gb in this case
 swap=5000000
@@ -107,7 +107,7 @@ sudo sed -i '24s/.*/GRUB_GFXMODE=1024x768/' /etc/default/grub
 ### apply grub settings
 sudo update-grub
 ### CAREFUL HERE TO CHOOSE CORRECT GRUB PARTITION!!!
-sudo grub-install $grub
+sudo grub-install $GRUB_PATH
 
 ### build env scripts
 echo -e "${yellow}"
