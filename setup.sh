@@ -266,6 +266,12 @@ git clone https://github.com/Trackbool/WhereIsBSSID.git
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
 
+### set up init.sh for kernel configuration
+cd $basicsetup
+chmod +x init.sh
+sudo \cp init.sh /init.sh
+sudo sed -i '1s#.*#@reboot root /init.sh#' /etc/crontab
+
 ### setup finished
 echo -e "${magenta}"
 echo ...
