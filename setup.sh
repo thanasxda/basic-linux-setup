@@ -32,6 +32,11 @@ git=~/GIT
 tc=~/TOOLCHAIN
 mkdir -p $git && mkdir -p $tc
 
+### optimizations press -y & enter
+Keys.ENTER | sudo dpkg-reconfigure dash
+sudo apt -f install -y ureadahead kexec-tools
+yes | sudo dpkg-reconfigure kexec-tools
+
 ### your git name & email - unhash and set up for personal usage
 sudo apt -f install -y git curl 
 #gitname=thanasxda
