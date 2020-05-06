@@ -24,7 +24,7 @@ echo ".::BASIC-LINUX-SETUP::. - mainly for (K)ubuntu focal/groovy"
 echo -e "${restore}"
 
 ### size of swap - 4.8gb in this case. since low swappiness and mount on /swapfile
-### wont be of any harm to high spec systems neither in diskspace nor unwanted swap usage
+### wont be of any harm to high spec systems neither extra swap paritions nor unwanted swap usage
 swap=5000000
 
 ### set up dirs of git and prebuilt toolchain
