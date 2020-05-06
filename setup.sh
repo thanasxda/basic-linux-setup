@@ -267,6 +267,10 @@ git clone https://github.com/Trackbool/WhereIsBSSID.git
 sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
 
 ### set up init.sh for kernel configuration
+echo -e "${yellow}"
+echo setting up userspace kernel configuration
+echo on root filesystem /init.sh can be found, adjust it to your needs
+echo -e "${restore}"
 cd $basicsetup
 chmod +x init.sh
 sudo \cp init.sh /init.sh
