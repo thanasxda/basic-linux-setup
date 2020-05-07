@@ -3,7 +3,7 @@
 - mainly for (K)ubuntu focal/groovy. hash out script sections for compatibility if other distro. 
 - auto compiles&installs thanas-x86-64-kernel upon completion, based on latest modded fork of torvalds dev git.
 - built with latest daily llvm-11 for now.
-- every file comes with extensive instructions to make life easier in case of personlatization.
+- every file comes with extensive instructions to make life easier in case of personalization.
 - script mainly meant as an unattended script, minimal user input is needed right at the start only.
 - plugin devices which require exceptional driver support when running the script for kernel support.
 

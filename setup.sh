@@ -191,7 +191,6 @@ sudo add-apt-repository -y ppa:team-xbmc/ppa
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
 
-
 ### thanas build env, vulkan drivers, codecs and extras
 echo -e "${yellow}"
 echo THANAS PACKAGES
@@ -200,16 +199,16 @@ sudo apt update
 sudo apt -f install -y aptitude
 sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash desktop-base dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gcc-10 gdebi gedit gettext git git-svn gnupg gparted gperf gstreamer1.0-qt5 help2man imagemagick intel-microcode java-propose-classpath kubuntu-restricted-extras kwrite lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openjdk-8-jdk openssh-client openssh-server optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev
 
+### gcc arm
+sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
+
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT!!! needs manual enabling from within settings
 sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
 ### allow root privilege under wayland and supress output
 sudo sed -i '4s/.*/xhost +si:localuser:root >/dev/null/' /etc/default/grub
 #####################################################################################################
 
-### gcc arm
-sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
-
-### extra packages
+### extra thanas packages
 sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests youtube-dl uget net-tools aircrack-ng
 
 ### extra .deb packages
@@ -297,9 +296,10 @@ echo ...
 echo -e "${restore}"
 
 ### auto compile and install thanas x86-64 kernel on latest llvm
+### can be done isolated as well on any distro, use ./build.sh
 cd $git
 git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
 cd thanas-x86-64-kernel
 ./build.sh
 
-### DONE
+### END
