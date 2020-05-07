@@ -207,7 +207,7 @@ sudo sed -i '4s/.*/xhost +si:localuser:root >/dev/null/' /etc/default/grub
 sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
 
 ### extra packages
-sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests youtube-dl uget
+sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests youtube-dl uget net-tools aircrack-ng
 
 ### extra .deb packages
 wget https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
