@@ -247,7 +247,7 @@ sudo snap install telegram-desktop --edge
 sudo snap install anbox --edge --devmode
 
 ### anbox modules fix - run android android/apps within linux
-sudo apt -f install linux-headers-generic
+sudo apt -f install -y linux-headers-generic
 cd $git
 git clone https://github.com/thanasxda/anbox-modules-fix.git
 cd anbox-modules-fix
