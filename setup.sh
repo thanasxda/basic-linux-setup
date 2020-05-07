@@ -92,6 +92,7 @@ yes | firefox https://addons.mozilla.org/firefox/downloads/file/3560936/duckduck
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3502002/youtube_audio_only-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocker_for_youtubetm-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
+yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-*
 
 ### configure swap
