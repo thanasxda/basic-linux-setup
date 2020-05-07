@@ -69,8 +69,9 @@ sudo sed -i '1s#.*#@reboot root /init.sh#' /etc/crontab
 cd $basicsetup && mkdir -p tmp
 unzip -o basicsetup.zip -d $basicsetup/tmp
 cd $basicsetup/tmp
-### copy wallpaper
+### copy wallpaper & grub splash
 sudo mv malakas.jpg /malakas.jpg
+sudo mv splash.jpg /boot/grub
 ### copy kde optimal preconfiguration
 sudo \cp -rf .local/ ~/
 sudo \cp -rf .config/ ~/
@@ -121,6 +122,8 @@ sudo sed -i '10s/.*/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash noibrs noibpb nopti
 sudo sed -i '8s/.*/GRUB_TIMEOUT=2/' /etc/default/grub
 ### set grub min resolution
 sudo sed -i '24s/.*/GRUB_GFXMODE=1024x768/' /etc/default/grub
+### set grub wallpaper
+sudo sed -i '12s#.*#GRUB_BACKGROUND="/boot/grub/splash.jpg"#' /etc/default/grub
 ### apply grub settings
 sudo update-grub
 ### grub auto detection
