@@ -19,3 +19,4 @@ sudo apt update && sudo apt -f install -y git && git clone https://github.com/th
 
 ## Links
 - [Kubuntu daily build](http://cdimage.ubuntu.com/kubuntu/daily-live/current/)
+- [thanas-x86-64-kernel source](https://github.com/thanasxda/thanas-x86-64-kernel.git)
