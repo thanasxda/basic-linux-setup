@@ -251,7 +251,7 @@ sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-l
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
 sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
 ### allow root privilege under wayland and supress output
-sudo sed -i '4s/.*/xhost +si:localuser:root >/dev/null/' /etc/default/grub
+sudo sed -i '4s#.*#xhost +si:localuser:root >/dev/null#' ~/.bashrc
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ### extra thanas packages
