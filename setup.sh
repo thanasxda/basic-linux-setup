@@ -270,6 +270,11 @@ sudo dpkg -i viber*
 sudo apt -f install -y && sudo apt --fix-broken install -y
 rm -rf viber*
 
+wget https://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_9.6.0_all.deb
+sudo dpkg -i phoronix*
+sudo apt -f install -y && sudo apt --fix-broken install -y
+rm -rf phoronix*
+
 wget https://atom.io/download/deb
 sudo dpkg -i deb*
 sudo apt -f install -y && sudo apt --fix-broken install -y
