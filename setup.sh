@@ -255,9 +255,16 @@ sudo sed -i '4s#.*#xhost +si:localuser:root >/dev/null#' ~/.bashrc
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ### extra thanas packages
-sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests youtube-dl uget net-tools aircrack-ng
+sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine
+
+### .exe files for wine
+mkdir -p ~/wine && cd ~/wine
+wget https://winscp.net/download/files/202005080143368dd0551d11a66577d4727edb0182a2/WinSCP-5.17.5-Portable.zip
+unzip -o WinSCP*
+rm -rf license* readme* WinSCP*.zip
 
 ### extra .deb packages
+cd $source
 wget https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
 sudo dpkg -i viber*
 sudo apt -f install -y && sudo apt --fix-broken install -y
