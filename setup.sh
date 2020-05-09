@@ -247,6 +247,9 @@ sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb androi
 ### gcc arm
 sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
 
+### npm
+sudo apt -f install npm && sudo apt -f install && sudo npm cache clean -f && sudo npm cache clean -f && sudo npm install npm@latest -g
+
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
 sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
@@ -255,7 +258,7 @@ sudo sed -i '4s#.*#xhost +si:localuser:root >/dev/null#' ~/.bashrc
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ### extra thanas packages
-sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine
+sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine 
 
 ### .exe files for wine
 mkdir -p ~/wine && cd ~/wine
