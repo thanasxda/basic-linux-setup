@@ -45,7 +45,7 @@ mkdir -p $git && mkdir -p $tc
 ### optimizations press -y & enter
 printf 'y\n' | sudo dpkg-reconfigure dash
 sudo apt -f install -y ureadahead
-sudo apt -f install -y kexec-tools 
+sudo apt -f install -y kexec-tools
 sudo apt -f install -y && sudo apt --fix-missing install -y
 printf 'y\ny\n' | sudo dpkg-reconfigure kexec-tools
 
@@ -88,13 +88,15 @@ mkdir -p tmp
 unzip -o basicsetup.zip -d $basicsetup/tmp
 cd $basicsetup/tmp
 ### copy wallpaper & grub splash
-sudo mv MalakasUniverse /usr/share/wallpapers/
-sudo mv splash.jpg /boot/grub
+sudo \cp -rf  MalakasUniverse /usr/share/wallpapers/
+sudo \cp -rf  splash.jpg /boot/grub
 ### copy kde optimal preconfiguration
-sudo \cp -rf .local/ ~/
-sudo \cp -rf .config/ ~/
-sudo \cp -rf .gtkrc-2.0 ~/
-sudo \cp -rf .kde/ ~/
+sudo \cp -rf  .config ~/
+sudo \cp -rf  .kde ~/
+sudo \cp -rf  .local ~/
+sudo \cp -rf  .gtkrc-2.0 ~/
+### fix ownership preconfig - rare cases
+cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
 
 ####### FIREFOX CONFIGURATION
 ### installation firefox addons, install as firefox opens. close firefox and reclick on console
@@ -107,7 +109,7 @@ echo sorry for that firefox crash. part of setup...
 ### copy firefox advanced settings and enable hw acceleration
 cd $basicsetup/tmp/.mozilla/firefox/.default-release
 sudo \cp -rf prefs.js ~/.mozilla/firefox/*.default-release/prefs.js
-sudo rm -rf $basicsetup/tmp/*
+cd .. && sudo rm -rf tmp && mkdir -p tmp
 ### install firefox modules
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3539016/adblock_plus-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3560936/duckduckgo_privacy_essentials-*
@@ -267,7 +269,7 @@ sudo sed -i '4s#.*#xhost +si:localuser:root >/dev/null#' ~/.bashrc
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 ### extra thanas packages
-sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine 
+sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine
 
 ### .exe files for wine
 mkdir -p ~/wine && cd ~/wine
