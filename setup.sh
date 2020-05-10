@@ -1,8 +1,8 @@
 #!/bin/bash
 #########################################################
 #########################################################
-### basic personal setup ubuntu (kubuntu daily builds)
-### contains basic build env & extras
+### basic personal setup ubuntu v2 (kubuntu daily builds)
+### contains basic build env & plasma preconfig & extras
 ### http://cdimage.ubuntu.com/kubuntu/daily-live/current/
 #########################################################
 #########################################################
@@ -21,7 +21,7 @@ magenta="\033[05;1;95m"
 yellow="\033[1;93m"
 restore="\033[0m"
 echo -e "${magenta}"
-echo ".::BASIC-LINUX-SETUP::. - mainly for (K)ubuntu focal/groovy"
+echo ".::BASIC-LINUX-SETUP::. V2 - mainly for (K)ubuntu focal/groovy"
 echo -e "${restore}"
 #########################################################
 ###### START ############################################
