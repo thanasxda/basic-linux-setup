@@ -29,9 +29,9 @@ echo -e "${restore}"
 
 ####### SWAP SIZE CONFIGURATION #####################################################################
 #####################################################################################################
-### size of swap - 4.8gb in this case. since low swappiness and mount on /swapfile
+### size of swap - 7.5gb in this case. since low swappiness and mount on /swapfile
 ### wont be of any harm to high spec systems neither extra swap paritions nor unwanted swap usage
-swap=5000000
+swap=8000000
 
 ####### GENERAL DIRECTORIES #########################################################################
 #####################################################################################################
@@ -43,18 +43,18 @@ mkdir -p $git && mkdir -p $tc
 ####### MINOR LINUX OPTIMIZATIONS ###################################################################
 #####################################################################################################
 ### optimizations press -y & enter
-Keys.ENTER | sudo dpkg-reconfigure dash
-sudo apt -f install -y ureadahead kexec-tools
-yes | sudo dpkg-reconfigure kexec-tools
+printf 'y\n' | sudo dpkg-reconfigure dash
+sudo apt -f install -y ureadahead
+sudo apt -f install -y kexec-tools 
+sudo apt -f install -y && sudo apt --fix-missing install -y
+printf 'y\ny\n' | sudo dpkg-reconfigure kexec-tools
 
 ####### GIT CONFIGURATION ###########################################################################
 #####################################################################################################
 ### your git name & email - unhash and set up for personal usage
 sudo apt -f install -y git curl
-#git config --global user.name $gitname
-#git config --global user.email $gitmail
-#gitname=thanasxda
-#gitmail=15927885+thanasxda@users.noreply.github.com
+#git config --global user.name thanasxda
+#git config --global user.email 15927885+thanasxda@users.noreply.github.com
 
 ####### EULA LICENSE AGREEMENTS #####################################################################
 #####################################################################################################
@@ -84,15 +84,17 @@ chmod +x init.sh
 sudo \cp init.sh /init.sh
 sudo sed -i '1s#.*#@reboot root /init.sh#' /etc/crontab
 
-cd $basicsetup && mkdir -p tmp
+mkdir -p tmp
 unzip -o basicsetup.zip -d $basicsetup/tmp
 cd $basicsetup/tmp
 ### copy wallpaper & grub splash
-sudo mv malakas.jpg /malakas.jpg
+sudo mv MalakasUniverse /usr/share/wallpapers/
 sudo mv splash.jpg /boot/grub
 ### copy kde optimal preconfiguration
 sudo \cp -rf .local/ ~/
 sudo \cp -rf .config/ ~/
+sudo \cp -rf .gtkrc-2.0 ~/
+sudo \cp -rf .kde/ ~/
 
 ####### FIREFOX CONFIGURATION
 ### installation firefox addons, install as firefox opens. close firefox and reclick on console
@@ -102,19 +104,20 @@ echo -e "${restore}"
 ##################################
 sudo pkill firefox
 echo sorry for that firefox crash. part of setup...
-cd .mozilla/firefox/.default-release
 ### copy firefox advanced settings and enable hw acceleration
-sudo \cp -rf prefs.js ~/firefox/*.default-release/prefs.js
-sudo rm -rf $basicsetup/tmp
-cd $source
+cd $basicsetup/tmp/.mozilla/firefox/.default-release
+sudo \cp -rf prefs.js ~/.mozilla/firefox/*.default-release/prefs.js
+sudo rm -rf $basicsetup/tmp/*
 ### install firefox modules
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3539016/adblock_plus-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3560936/duckduckgo_privacy_essentials-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3502002/youtube_audio_only-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocker_for_youtubetm-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-*
+yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-*
+yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
+
+cd $source
 
 ####### SWAP CONFIGURATION ##########################################################################
 #####################################################################################################
@@ -153,7 +156,7 @@ sudo sed -i '24s/.*/GRUB_GFXMODE=1024x768/' /etc/default/grub
 ### set grub wallpaper
 sudo sed -i '12s#.*#GRUB_BACKGROUND="/boot/grub/splash.jpg"#' /etc/default/grub
 ### apply grub settings
-sudo update-grub
+sudo update-grub2
 ### grub auto detection
 GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 sudo grub-install $GRUB_PATH
@@ -223,15 +226,21 @@ wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
 #    fi
 #fi
 
-### fix groovy distro syncing for now (forceful method - for now must be overridden)
-sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
-sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
-
 ####### PPA'S
 ### mesa drivers and extras
 sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 sudo add-apt-repository -y ppa:git-core/ppa
 sudo add-apt-repository -y ppa:team-xbmc/ppa
+
+### fix focal/groovy distro syncing for now (forceful method - for now must be overridden)
+#sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-groovy.list'
+#sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-groovy.list'
+
+#sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-focal.list'
+#sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-focal.list'
+
+sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
+sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
 
 ####### THANAS PACKAGES #############################################################################
 #####################################################################################################
@@ -248,7 +257,7 @@ sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb androi
 sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
 
 ### npm
-sudo apt -f install npm && sudo apt -f install && sudo npm cache clean -f && sudo npm cache clean -f && sudo npm install npm@latest -g
+sudo apt -f install -y npm && sudo apt -f install -y && sudo npm cache clean -f && sudo npm cache clean -f && sudo npm install npm@latest -g
 
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
@@ -267,7 +276,7 @@ unzip -o WinSCP*
 rm -rf license* readme* WinSCP*.zip
 
 ### extra .deb packages
-cd $source
+cd $basicsetup/tmp
 wget https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
 sudo dpkg -i viber*
 sudo apt -f install -y && sudo apt --fix-broken install -y
