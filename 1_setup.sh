@@ -190,13 +190,14 @@ sudo update-grub2
 GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 sudo grub-install $GRUB_PATH
 
+#hash out tested unstable for now
 ### add noatime flag to fstab
-if grep -q "noatime" /etc/fstab
-then
-echo "Flag exists"
-else
-sudo sed -i 's/errors=remount-ro/noatime errors=remount-ro/g' /etc/fstab
-fi
+#if grep -q "noatime" /etc/fstab
+#then
+#echo "Flag exists"
+#else
+#sudo sed -i 's/errors=remount-ro/noatime errors=remount-ro/g' /etc/fstab
+#fi
 
 
 
