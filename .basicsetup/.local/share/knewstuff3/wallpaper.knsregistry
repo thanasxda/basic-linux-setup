@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="299">
+  <name>KDE Plasma QATAR SKIES 02 HD</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>charlie-henson</author>
+  <homepage>https://store.kde.org/p/1310882</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>67</rating>
+  <downloads>145499</downloads>
+  <installedfile>/home/x/.local/share/wallpapers//KDE Plasma QATAR SKIES 02.png</installedfile>
+  <id>1310882</id>
+  <releasedate>2019-06-21</releasedate>
+  <summary>1920 X 1080&lt;br />
+No Logo option&lt;br />
+Like these? Click on the "impress" tag and you should see many of my KDE Plasma wallpapers.&lt;br />
+Big thanks and shout out to supporting creators and tech support :)&lt;br />
+mrcuve0 https://www.pling.com/u/mrcuve0/&lt;br />
+FreeFreeno https://www.opendesktop.org/u/freefreeno/&lt;br />
+l4K1 https://www.opendesktop.org/u/l4k1/ &lt;br />
+Shareorlikeit https://www.opendesktop.org/u/shareorlikeit/&lt;br />
+Please visit my profile page for more than 4000 custom wallpapers.</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/7/7/2/6/aeedd06f508bf6f8ba4c70710b7adb2eb8a5.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/7/7/2/6/aeedd06f508bf6f8ba4c70710b7adb2eb8a5.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NjExMzQyNDIiLCJvIjoiMSIsInMiOiIwMmE3YTI1ZTNmMjlkNGRkYjc3OWFiZGQ4M2U0MzM5MDFhMzY3ZWIzNGM1YjNmNDIzZjg3NGQ3M2FkNzVhMDAwYTQyNGJjYTQ0YjQ5YTRhZmFiMTMwZmE0MjdjZTJkZmY2MTQ0NTAzOGI1ZTUzNmY1OGUxNTEyYWFkMzUzMjA0ZCIsInQiOjE1ODkxMjYwOTYsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.T4irTkh5oO0ZDgWGN5iLYEtcnngJo80KZCfBEEJfvkU/KDE Plasma QATAR SKIES 02.png</payload>
+  <tags>night,original-product,plasma,kde,desert,impress,artwork,cc-by,wallpaper</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

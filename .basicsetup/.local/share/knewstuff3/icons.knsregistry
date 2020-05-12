@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="132">
+  <name>Papirus</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>x-varlesh-x</author>
+  <homepage>https://store.kde.org/p/1166289</homepage>
+  <licence></licence>
+  <version>20200430</version>
+  <rating>89</rating>
+  <downloads>736831</downloads>
+  <installedfile>/home/x/.local/share/icons//papirus-folders-master/*</installedfile>
+  <installedfile>/home/x/.local/share/icons//</installedfile>
+  <id>1166289</id>
+  <releasedate>2020-05-01</releasedate>
+  <summary>Papirus - it's free and open source SVG-based icon theme for Linux with material and flat style.&lt;br />
+All elements have clear distinction and outlines. Also main feature - it's jucy colors tone.&lt;br />
+&lt;br />
+Papirus support hardcode-tray script:&lt;br...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/8/1/7/2/017b5ab37ec7309285f12e61770f38244d68.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/8/1/7/2/017b5ab37ec7309285f12e61770f38244d68.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1MTE1MDM0MzEiLCJvIjoiMSIsInMiOiI5ODQ5NzI2YmU4OTljY2YwMzcwZjljNTJjMjZmNGJiZTg2MTRiZDVlYWJlNjkyMmRjMTM1Y2YyMmNiMDc3OTc4YTVkOGQ2ZTgwMDMxYzBiOWJhODUwYWYzYzk2YWIxZjU1ZmUwOTE0OGY4ZGRmMzllYzI2ZTNmM2RmZDg4MzhmMyIsInQiOjE1ODkxMjYwOTMsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.6jtdP32ma9XrY9mOtc022dcYmMu4lRluW587cc2-K7U/1511503431-master.tar.gz</payload>
+  <tags>unix,original-product,papirus,gplv3,icon-theme,icons,linux,material</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="132">
+  <name>Materia Manjaro Breeze Dark</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>freefreeno</author>
+  <homepage>https://store.kde.org/p/1328981</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>64</rating>
+  <downloads>12587</downloads>
+  <installedfile>/home/x/.local/share/icons//Materia-Manjaro-Breeze-Dark/*</installedfile>
+  <installedfile>/home/x/.local/share/icons//</installedfile>
+  <id>1328981</id>
+  <releasedate>2020-04-07</releasedate>
+  <summary>&lt;span style="color: #00C8B5;">Breeze style icons with color changes for the Materia Manjaro theme.&lt;/span>&lt;br />
+&lt;br />
+If you want to see the best screenshots without the blurriness then click and enlarge so and you will have a much better view.&lt;br />
+&lt;br />
+You can still download just the...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/e/9/d/b/6d682f6029867d8ba85823d402335b19518b.jpg</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/e/9/d/b/6d682f6029867d8ba85823d402335b19518b.jpg</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODYyNDQ0NDAiLCJvIjoiMSIsInMiOiIyZDkwYjg0NjQyNTdiNzg5Y2Q4MTcyZjMzNmM2MGJiMTJkNWIwZWZlYjc3YjFmMWMyMWQ4ZmQyMzA2NzRmOTg5ZTAwM2NiNmNiMTVkMWI4ZjcxYzEyODFkZTg5ZjRjMTBkNmJmMDhlMjg5NGNmMGU4OTBmNTFhNWRlMjU5ZjVlNSIsInQiOjE1ODkxMjY0NDQsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.9i3xpMkNCPM9Cl1WCZ3oIYdez4miVIebXf7sh__OSuU/Materia-Manjaro-Breeze-Dark.tar.gz</payload>
+  <tags>breeze,linux,gplv2-later,green,icon-theme,modification-product,kde,kdeplasma,unix,plasma</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

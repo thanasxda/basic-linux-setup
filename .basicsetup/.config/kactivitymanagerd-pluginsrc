@@ -1,0 +1,4 @@
+[Plugin-org.kde.ActivityManager.Resources.Scoring]
+allowed-applications=dolphin,org.kde.dolphin,org.kde.konsole,org.kde.krunner,org.kde.plasma.kicker,org.kde.systemsettings
+blocked-applications=
+keep-history-for=1

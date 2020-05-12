@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="114">
+  <name>Glassy</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>pr0cella</author>
+  <homepage>https://store.kde.org/p/1355991</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>50</rating>
+  <downloads>30681</downloads>
+  <installedfile>/home/x/.local/share/aurorae/themes//Glassy/*</installedfile>
+  <installedfile>/home/x/.local/share/aurorae/themes//</installedfile>
+  <id>1355991</id>
+  <releasedate>2020-02-01</releasedate>
+  <summary>Glassy - A transparent Aurorae theme&lt;br />
+&lt;br />
+Requires Kvantum with Glassy theme for matching Qt backgrounds&lt;br />
+&lt;br />
+Full repo with all themes: https://github.com/Pr0cella/glassy-kde&lt;br />
+&lt;br />
+Suggested Settings:&lt;br />
+&lt;br />
+Kvantum theme: Glassy&lt;br />
+Colors: Glassy&lt;br />
+Aurorae theme (window decorations): Glassy&lt;br />
+Konsole colors: Glassy&lt;br />
+Icons: Papirus&lt;br />
+&lt;br />
+&amp;gt; Enable slight background blur in desktop effects to improve readability&lt;br />
+&lt;br />
+Button placement mod of theme 'Freeze' by MirceaKitsune (https://store.kde.org/p/1002663/)</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODA1ODc4NTciLCJvIjoiMSIsInMiOiJkMzRhM2FkZWQ3OWNiZGFlZmNkNjc1ODE5N2QwM2FhMmFhNWFkZjBiM2MxMmEzZDNhZWM0ODMxNGNiZTYxMGRjMjkxYzYyM2VhOWJmZWM4MjRlZjM4OGQxODhlMjUwODMzZDQ4MTFhYWQwNjE3ZWFkOGEzZTEyOWJhNmFhY2M2MSIsInQiOjE1ODkxMjYwOTEsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.nl-j9zxIRy-VdBnZOasQ6g6UHs0782jPy7KA_9yrk_M/Glassy.tar.gz</payload>
+  <tags>modification-product,linux,kde,unix,plasma,theme,windowdeco,cc-by-sa,aurorae</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

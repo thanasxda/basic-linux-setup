@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="104">
+  <name>Glassy</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>pr0cella</author>
+  <homepage>https://store.kde.org/p/1355685</homepage>
+  <licence></licence>
+  <version>1.3</version>
+  <rating>62</rating>
+  <downloads>32118</downloads>
+  <installedfile>/tmp/glassy-plasma.tar.gz</installedfile>
+  <id>1355685</id>
+  <releasedate>2020-02-02</releasedate>
+  <summary>Glassy - A minimalistic Plasma Theme &lt;br />
+Full repo with all themes: https://github.com/Pr0cella/glassy-kde&lt;br />
+&lt;br />
+Suggested Settings:&lt;br />
+&lt;br />
+Kvantum theme: Glassy&lt;br />
+Colors: Glassy&lt;br />
+Aurorae theme (window decorations): Glassy&lt;br />
+Konsole colors: Glassy&lt;br />
+Icons: Papirus&lt;br />
+&lt;br />
+&amp;gt; Enable slight background blur in desktop effects to improve readability&lt;br />
+&lt;br />
+Based on theme 'Sweet' by Eliverlara (https://store.kde.org/p/1294174)&lt;br />
+&lt;br />
+Contains icons from the theme 'Nilium' by mcder3 (https://www.pling.com/p/1226329/)&lt;br />
+&lt;br />
+Contains rounded backgrounds from 'varlesh' (https://github.com/varlesh/rounded)</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODA2NDY4OTgiLCJvIjoiMSIsInMiOiI0ZTFhNjhiZjFiOTZkM2JhMmU5YTgxYmFhMTkxZDBiMzE1MGM0MzgzYjMzOTdhMmE0YjkyNThjNDQ2ZDlhN2FjNThkNzU0YjYxNTA2YzU0MDg2NWNhZTUxOTkwYWIzZjY2OTM1NGQ0OTBhNjJlN2UyNGJmNDI2NGJlNmI4MTk0OCIsInQiOjE1ODkxMjYwODcsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.eO4ZbyiaB91skOS4Oy47OweTWK8g_LAFXIn3sg4mrIw/glassy-plasma.tar.gz</payload>
+  <tags>plasma,unix,theme,translucent,transparent,plasma##majorversion=5,cc-by-sa,kde,modification-product,linux</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

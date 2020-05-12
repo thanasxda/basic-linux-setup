@@ -1,11 +1,13 @@
-### STOCK UBUNTU REPOS - adjust to your distro if needed
+### STOCK UBUNTU REPOS - adjust to your distro if needed.
 deb http://gr.archive.ubuntu.com/ubuntu/ groovy main restricted universe multiverse
 deb http://gr.archive.ubuntu.com/ubuntu/ groovy-security main restricted universe multiverse
 deb http://gr.archive.ubuntu.com/ubuntu/ groovy-updates main restricted universe multiverse
 deb http://gr.archive.ubuntu.com/ubuntu/ groovy-backports main restricted universe multiverse
 
 ### enable this one if youre prepared to mess around with aptitude...
-### deb http://gr.archive.ubuntu.com/ubuntu/ groovy-proposed main restricted universe multiverse 
+### on the other hand sometimes when you experience issues with (k)ubuntu enable this and apt upgrade.
+### remain careful with apt full-upgrade.
+deb http://gr.archive.ubuntu.com/ubuntu/ groovy-proposed main restricted universe multiverse
 
 ### extras
 deb http://archive.canonical.com/ubuntu/ focal partner

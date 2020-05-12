@@ -1,0 +1,18 @@
+gtk-theme-name="Breeze-Dark"
+
+gtk-enable-animations=0
+
+gtk-primary-button-warps-slider=0
+
+gtk-toolbar-style=GTK_TOOLBAR_BOTH_HORIZ
+
+gtk-menu-images=1
+
+gtk-button-images=1
+
+gtk-cursor-theme-name="OSX-ElCap"
+
+gtk-icon-theme-name="Materia-Manjaro-Breeze-Dark"
+
+gtk-font-name="Noto Sans,  10"
+

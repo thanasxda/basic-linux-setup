@@ -1,0 +1,14 @@
+[KFileDialog Settings]
+Recent Files[$e]=3840x2400.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg
+Recent URLs[$e]=file:///usr/share/wallpapers/MalakasUniverse/contents/images/
+detailViewIconSize=0
+
+[MainWindow]
+Height 1200=700
+MenuBar=Disabled
+State=AAAA/wAAAAD9AAAAAAAABAAAAAK8AAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgAAAAAA/////wAAAAAAAAAA
+ToolBarsMovable=Disabled
+Width 1920=1024
+
+[PlasmaRunnerManager]
+LaunchCounts=

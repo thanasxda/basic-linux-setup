@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="101">
+  <name>McMojave sddm</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>vinceliuice</author>
+  <homepage>https://store.kde.org/p/1312086</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>60</rating>
+  <downloads>189803</downloads>
+  <installedfile>/tmp/McMojave.tar.xz</installedfile>
+  <id>1312086</id>
+  <releasedate>2019-10-07</releasedate>
+  <summary>McMojave sddm</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/a/6/9/e/3a19d47bca4563dc50d3c61b96bb89e6ba54.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/a/6/9/e/3a19d47bca4563dc50d3c61b96bb89e6ba54.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NzA0NDc3MjMiLCJvIjoiMSIsInMiOiI4ZWM3YzFkYTA0NTEwY2NkOTA0ZDJkMzQxZjRiNzNiNWNhM2EyZmI5NGU5ZDdlMDUxZDBmYWZkZTU3OWRmOGYwYjM1MjRiZmViOTY3MDQ4MTMyMTUyODMwY2MxYmUxNzJlOGMzY2ZmYzJkMDYyYWNhMjZhMjI3MTllMjdkZjE3YyIsInQiOjE1ODkxMjYxMDIsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.i6pZKynLmwEehpyPk1Sn1Txr_u_nws9-rUBSV81TJH0/McMojave.tar.xz</payload>
+  <tags>gplv3,linux,unix</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

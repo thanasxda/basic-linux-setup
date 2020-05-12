@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="121">
+  <name>Glassy</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>pr0cella</author>
+  <homepage>https://store.kde.org/p/1355997</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>50</rating>
+  <downloads>28830</downloads>
+  <installedfile>/tmp/Glassy.tar.gz</installedfile>
+  <id>1355997</id>
+  <releasedate>2020-02-02</releasedate>
+  <summary>Glassy - A minimalistic and transparent desktop theme&lt;br />
+&lt;br />
+Requires Kvantum with Glassy theme for matching Qt backgrounds&lt;br />
+&lt;br />
+Full repo with all themes: https://github.com/Pr0cella/glassy-kde&lt;br />
+&lt;br />
+Suggested Settings:&lt;br />
+&lt;br />
+Kvantum theme: Glassy&lt;br />
+Colors:...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODA2ODIxNTAiLCJvIjoiMSIsInMiOiIyNjMyNjQxYzMxNjRiNWM0OWExYmVjNTRlZTIyZjY2MzIyNTY2ZjcwYTI5OTQyMDk3OGVhN2UzNGViYjFkZjEzZDdiNzc0NDVjZWU5YjcwN2Y3YmEzZDZiMTk4OThkZTc3OTRjNzEzOTEzODRmMDFiZTYxNjIxZDkzY2NjYWZhNyIsInQiOjE1ODkxMjYwODIsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.6bqBsL2LQflMVhUIufs1qmwgi0TNq8y6OtwMEYZaEQs/Glassy.tar.gz</payload>
+  <tags>global,kde,layout,linux,look-and-feel,original-product,plasma,unix,theme,cc-by-sa</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

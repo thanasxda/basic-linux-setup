@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="112">
+  <name>Black Velvet</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>dbaker</author>
+  <homepage>https://store.kde.org/p/1001284</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>58</rating>
+  <downloads>2219</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//160221-BlackVelvet.colors</installedfile>
+  <id>1001284</id>
+  <releasedate>2013-08-09</releasedate>
+  <summary>Dark monochrome color scheme for KDE, shown here with Iceglass icon theme. &lt;br />
+Some applications (such as firefox) don't inherit dark schemes very well, please be aware of this.</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/160221-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/160221-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzc5NTkiLCJvIjoiMSIsInMiOiIxMGRjNTJjOWEzNDEzMWIzOTY0MjgzMmU2N2Y5Y2U1NzdhM2MxMDgwM2JlNmRjNzUyZjI0MzkzMGEzZTgwYTlmYzRlZmFkM2FkMmY2YWIzOWQyZTAwMGRkN2MzZWI1ZDg4NTRkYzY2YTg1NTI1NWM5NzE3ZTIyZTI0YTVlNmY3NCIsInQiOjE1ODkxMjk3MjgsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.B1lMMUqnF6LPXGDArEwnvQ7Z0jvvcntjUvdzCaQR_XU/160221-BlackVelvet.colors</payload>
+  <tags>colorscheme,kde,linux,unix,plasma,theme</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Black Beauty </name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>Ghost7</author>
+  <homepage>https://store.kde.org/p/1001255</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>58</rating>
+  <downloads>620</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//155866-BlackWithBlue.colors</installedfile>
+  <id>1001255</id>
+  <releasedate>2012-12-15</releasedate>
+  <summary>Its a tweak of Overstated</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/155866-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/155866-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzc5MDUiLCJvIjoiMSIsInMiOiIwOTc4MWFmOGEwZWVhYTJlMjc3OTc0YTU2MDYzZWQ2ZGE2ZjdkYmRiYTM3MTJiMmY2YzYwZmYxYjVmNzk2YjZiM2Y1MDJkYjc0NTAxYjAwYzMwMWZmYjE0NTcyMzg1Zjg5NmI4NGRhNjlmYmViMGE3MzFiOWExY2MyODNlNzg5YyIsInQiOjE1ODkxMjk2NDEsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.adQ_yH1GagjmNm4CN6X59IfKVhbfvMUKeXhzwT-kvfM/155866-BlackWithBlue.colors</payload>
+  <tags>theme,plasma,unix,linux,colorscheme,kde</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Neon Color Scheme by FRUiT</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>FRUIT94</author>
+  <homepage>https://store.kde.org/p/1001797</homepage>
+  <licence></licence>
+  <version>0.1</version>
+  <rating>62</rating>
+  <downloads>22557</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//111205-neon-color-scheme-black-by-FRUiT.colors</installedfile>
+  <id>1001797</id>
+  <releasedate>2009-08-30</releasedate>
+  <summary>Neon Color Scheme is part of the Neon Suite by FRUiT. A basic black-background scheme to fit the Neon Suite.</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/111205-1.jpg</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/111205-1.jpg</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzg5NjMiLCJvIjoiMSIsInMiOiJkYjMzOTdlNzNhNmExODcwMDdmM2VmODY5ODllNjYxZGUxNDcxYTBmMWYxNGM2NDZlMTcyNDNkNTIwZmFjZjFhMTM1MzgwMzRkOGUxYWJiMjgwZmU5YmY2YmEwYWRhZTFhNzdkMGQwMGFhYjQ3ZmM4MGVhOTU3MTQxMzg3Mjk3OSIsInQiOjE1ODkxMjk1NTMsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.JY1nLhOEQrNqK1lcaTZ6B4FzvKodAJ1EJZ4-Lm-hYKc/111205-neon-color-scheme-black-by-FRUiT.colors</payload>
+  <tags>plasma,theme,unix,kde,linux,colorscheme</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Aritim-Dark</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>mrcuve0</author>
+  <homepage>https://store.kde.org/p/1280295</homepage>
+  <licence></licence>
+  <version>0.5</version>
+  <rating>75</rating>
+  <downloads>129062</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//AritimDark.colors</installedfile>
+  <id>1280295</id>
+  <releasedate>2019-06-09</releasedate>
+  <summary>&lt;h2>Aritim-Dark Theme&lt;/h2>&lt;br />
+&lt;span style="color: #D21010;">&lt;strong>Click on the "Homepage" link for additional infos&lt;/strong>&lt;/span>&lt;br />
+&lt;br />
+&lt;span style="color: #2E4669;">&lt;strong>RELATED PRODUCTS:&lt;/strong>&lt;/span>&lt;br />
+&lt;ul>&lt;li> &lt;a href="https://www.pling.com/p/1281836/" target="_blank"...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/3/4/1/d/13df64e8d8b4d2477dfab18575e0d70fbad1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/3/4/1/d/13df64e8d8b4d2477dfab18575e0d70fbad1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NjAwODg0OTciLCJvIjoiMSIsInMiOiJjY2M2NzBlZjU3OTAwZGFiYjNkM2FjYTk1MTQwZGRhMjY2OWFmNzQzZGEyZjk2ZmUyOGRkMDI2NDllMDRmZThjNGFjOTNhN2QxYmY5MGYyYTcxMjE0MDIxMWM1ZjZhZTllOTFlNTk0NzBmODczOTIxYzQ5OGE0MjY0NTljYzA1MCIsInQiOjE1ODkxMzA0ODUsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.F2B0VfhTtiL_uTNezSWWi1gyL8SEdByKvXAiZOp93u0/AritimDark.colors</payload>
+  <tags>linux,gplv3,kde,kdeplasma,color,colorscheme,dark,dark-theme,theme,unix,plasma,aritim</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>DarkColdCyan</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>aparaatti</author>
+  <homepage>https://store.kde.org/p/1001421</homepage>
+  <licence></licence>
+  <version>0.1</version>
+  <rating>63</rating>
+  <downloads>1804</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//151276-ColdCyan.colors</installedfile>
+  <id>1001421</id>
+  <releasedate>2012-05-31</releasedate>
+  <summary>A cyanish version of depressing niko (which is derived from tragedy black).</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/151276-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/151276-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3MzgyMzIiLCJvIjoiMSIsInMiOiI0OGI4MDY4OGI2MmNmMzNiOGRlZjczMzI2YTAzMjQ5NTI1NzQzNTAxNDc1NWRkMGZkNDMxNzYzZTMzYjRkYTkzOTcxMDU1ZTcyYTRiNTY3MDFhOWNlMzI5NDc3MTRlYWNlM2JjZmI1ZjI1NWQxYTRhMTM4YzE1MzNlOTk5YmNkZCIsInQiOjE1ODkxMjk1NzMsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.FyucbiUaJkZjVccxFCmL_igXaMAaqUF6WaZhRSTpM4w/151276-ColdCyan.colors</payload>
+  <tags>kde,colorscheme,linux,plasma,unix,theme</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Black-cherry</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>9000tools</author>
+  <homepage>https://store.kde.org/p/1000944</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>50</rating>
+  <downloads>1281</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//155442-Blackness.colors</installedfile>
+  <id>1000944</id>
+  <releasedate>2012-11-24</releasedate>
+  <summary>black and red color theme. move the file to : /home/YOURNAME/.kde/share/apps/color-schemes</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/155442-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/155442-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3MzczNDciLCJvIjoiMSIsInMiOiIwZDY2YjZkNGVmZDEwNzg3MGM4ZTdhOWE3MTRmYzZhODhhZGE5MjZjODlmMzg2NjBmOTkyMDE1ODljZmEwMTM2MzcwOWM5NjU5YTUyZTNkNGZmZTkyNzZhMmY3YjQ5MmQxYzI1YWVhMDZjNDExYTNlNzU0OWE5M2Y2YmFjY2YyOSIsInQiOjE1ODkxMjk3MzIsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.Kgf0Lay2MdZja-VeIkm0ynQ3_busu4Ge1sUbKBY9f-g/155442-Blackness.colors</payload>
+  <tags>plasma,theme,unix,kde,colorscheme,linux</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Friendly Dark</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>KladionicaCity</author>
+  <homepage>https://store.kde.org/p/1001145</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>59</rating>
+  <downloads>676</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//143025-FriendlyDark.colors</installedfile>
+  <id>1001145</id>
+  <releasedate>2011-06-25</releasedate>
+  <summary>The most common issues with dark themes are that makes input boxes on Firefox ,like captchas and youtube comment unput boxes,unreadable due they make the text black as also the background.With this theme you're gonna have black text and grey backgrobd ,which should make fairly visible the text...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/143025-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/143025-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzc3MTEiLCJvIjoiMSIsInMiOiJmODYwYTU1M2QzOGI1MzA2OGE5MTJiOTIxMTE4MTI5Yzk4NWNlZDZhM2U5MGUyMGJlZjNlYTBjOGMyMDQwMjMxYzgyNDZhMDZkZGMxMWMyZWQ0NTA2ODZkYzAxYjFhODBkMjQyNmE3YmFkYjM5MWM5ZDA0MDI3MjYyZmNlNWM1NiIsInQiOjE1ODkxMjk2ODIsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.uUcXSa8TiCE58EQvrQ4w5iFeumVSOyySKeld-geGEIU/143025-FriendlyDark.colors</payload>
+  <tags>theme,plasma,unix,kde,colorscheme,linux</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Depressing niko</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>aparaatti</author>
+  <homepage>https://store.kde.org/p/1001504</homepage>
+  <licence></licence>
+  <version>0.2</version>
+  <rating>67</rating>
+  <downloads>1740</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//151014-DepressingNiko.colors</installedfile>
+  <id>1001504</id>
+  <releasedate>2012-05-27</releasedate>
+  <summary>A little edited Tragedy Black. Looks and works pretty nicely to me.&lt;br />
+&lt;br />
+No problems with standard icons.&lt;br />
+Goes well with the amazing faenza icons (kfaenza, though could use the faenza black version for keys in kate etc.)..  The application appearance is plastic on the sceen shot.</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/151014-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/151014-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzg0MDAiLCJvIjoiMSIsInMiOiI3ZDllM2QyMDQ3ZmMwYjgyZDM2ZGVlMWIwNDMxNDhhMTkzMjU4ZDI5ZTFiNjk1ZjQyODE3ZTkyZWE4ZTAwNDQ0ZWUxMWViMTkyNGIzMzZjZjliMjI2NDgwMDJmMmUxMDg1NDhjZjFiODM4OWZiMDRhYWU5ZjM0NjViMDU5MTk4YyIsInQiOjE1ODkxMjk2NjQsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.P88q2NaYxWNQ855KuCDDwwFhTrfXMVKnz6bq6arcmjU/151014-DepressingNiko.colors</payload>
+  <tags>kde,colorscheme,linux,theme,unix,plasma</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>NBlack</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>Localizator</author>
+  <homepage>https://store.kde.org/p/1001272</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>58</rating>
+  <downloads>534</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//159122-NBlack.colors</installedfile>
+  <id>1001272</id>
+  <releasedate>2013-06-13</releasedate>
+  <summary></summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/159122-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/159122-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzc5MzciLCJvIjoiMSIsInMiOiI0Y2I3MzhjOGRhNjYwODJkODBlMmJjYzlkZmU4Yjk1MjdjNjIzNGI3OWNhZjQ3NWFkZDRiNGE0NzA0NDg2ODc5Yjk4NDQzOGRhNTRhYThiNzNhYWRiNzU2MzNjNzI2ZGQ1MDg3ODdiODIyZDJlM2JlMDZjZGYxODc1ZDdlNTMzMCIsInQiOjE1ODkxMjk3MzAsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.ZG4XHMnxm6w1qrR1hsFCo--oNJ-KCAXf1HWseV3PV-8/159122-NBlack.colors</payload>
+  <tags>colorscheme,kde,linux,unix,plasma,theme</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Fading To Black</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>cant-get-right</author>
+  <homepage>https://store.kde.org/p/1341094</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>50</rating>
+  <downloads>291</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//FadingToBlack.colors</installedfile>
+  <id>1341094</id>
+  <releasedate>2019-12-03</releasedate>
+  <summary>Dark but not quite black.&lt;br />
+&lt;br />
+This is a modification of the blackstone-oxygen theme.</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/c/e/5/f/ffe7898bda40683a3d8a3b753efe9c85a66f.jpg</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/c/e/5/f/ffe7898bda40683a3d8a3b753efe9c85a66f.jpg</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NzUzOTAyMDMiLCJvIjoiMSIsInMiOiJmNWY2OTYwMTkwMjMxMWY0YmU4YjFjYjRjM2UyOTRmZWM5ZmZjY2QxOThkMzU5YWQwYWI2MTE3Y2MxMGE2OTBmNGVkY2ZlM2E1MmRmZGIzNWVlOWNkYWM5Yzc2NjQ4M2FmZGY2YTM1MzAzZmEwOTRjYTZhOTgzMDJmMGMyMTk5ZiIsInQiOjE1ODkxMjk3MjYsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.VUbdSsCw8Al0YgC1ugHXF5f9ooinOlnod4DZsjuZDf8/FadingToBlack.colors</payload>
+  <tags>modification-product,kde,colorscheme,dark,gray,linux,cc0,black,unix,steam,theme,plasma</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Black Rock Shoot*r (BRS_BLUE)</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>Youmu42</author>
+  <homepage>https://store.kde.org/p/1001118</homepage>
+  <licence></licence>
+  <version>1.1</version>
+  <rating>67</rating>
+  <downloads>2497</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//138427-brs_blue.colors</installedfile>
+  <id>1001118</id>
+  <releasedate>2011-02-08</releasedate>
+  <summary>BRS Blue is a Black and Blue color theme inspired by the art direction of a music video of similar name.&lt;br />
+&lt;br />
+This is a re-upload of the original theme with a few minor modifications. &lt;br />
+&lt;br />
+Screenshots taken using Ghost Window Decoration for KDE 4</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/138427-1.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/138427-1.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzc2NjgiLCJvIjoiMSIsInMiOiI4ZjNiNTg2ZDE4Y2YwZTIyNGVhODgzODNhNWExYjYyZTlmODBiNjg5MjI1NjliMWVlYjNiZjgyNDNjNDhkMDU0NzQzZGY2OTliNzk2NGE3ZjI3NDQxMDAyZWIwMzk0YWQ1MzUwYTU0MTNjOGE1NWRhN2JkMTBmZjM5ODgyZjE0OSIsInQiOjE1ODkxMjk2MTMsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.hrSOpWv92HkJ9GppqunMxFjoxT57Zl8JGv7e85a5Xzg/138427-brs_blue.colors</payload>
+  <tags>kde,colorscheme,linux,unix,plasma,theme</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Black Night</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>Belousov-Evgeniy</author>
+  <homepage>https://store.kde.org/p/1001210</homepage>
+  <licence></licence>
+  <version>0.1</version>
+  <rating>58</rating>
+  <downloads>563</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//150998-BlackNight.colors</installedfile>
+  <id>1001210</id>
+  <releasedate>2012-05-20</releasedate>
+  <summary></summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre2/150998-2.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre2/150998-2.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzc4MjUiLCJvIjoiMSIsInMiOiJmNTQ4OWI4MjY2NjkxY2Q1NjU4NDAzM2Y2MGYwNjc5NjdhY2U0NDljMjMxMmQxNGMxOGEyNGIxMzk4MDNkZDZhZmVlYzA0NDY5OTg1MjhhYTYwZjFiYjE4ODlmZTI2OTIwNmM1NDJhOGEyYzk0NmY1ZWUyY2M1NWFmNTYyNmQ3NCIsInQiOjE1ODkxMjk3MzQsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.llW1caMA2uCFxnE5pXyQCiEGdONdX1noesRgl_R4Yj8/150998-BlackNight.colors</payload>
+  <tags>theme,plasma,unix,kde,linux,colorscheme</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Glassy</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>pr0cella</author>
+  <homepage>https://store.kde.org/p/1355989</homepage>
+  <licence></licence>
+  <version>1.0</version>
+  <rating>50</rating>
+  <downloads>28382</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//Glassy.colors</installedfile>
+  <installedfile>/home/x/.local/share/color-schemes//</installedfile>
+  <id>1355989</id>
+  <releasedate>2020-01-31</releasedate>
+  <summary>Glassy - A minimalistic color scheme&lt;br />
+&lt;br />
+Full repo with all themes: https://github.com/Pr0cella/glassy-kde&lt;br />
+&lt;br />
+Suggested Settings:&lt;br />
+&lt;br />
+Kvantum theme: Glassy&lt;br />
+Colors: Glassy&lt;br />
+Aurorae theme (window decorations): Glassy&lt;br />
+Konsole colors: Glassy&lt;br />
+Icons:...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/e/3/6/7/e6444c9e15585592491c22c0e0c985a356a6.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODA1MTgwNDEiLCJvIjoiMSIsInMiOiJkZmI3ZDNjNjZmZjE1MTkzZjllZmU0YzYwZjU1MzhlZThhNTdlZGRkNzYyNzEyMGUzYTIxYzBmNjA1NTZiOGQ4ZjI3M2FhY2RjM2YzMWU4ZTU3MjlkNTQ4Y2Q5ZjRkN2U1YWRhOTc3NjA0YWNmMjNkMjAzY2EzMzc3YzM2NDAxMyIsInQiOjE1ODkxMjYwODUsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.Hu-GKYxISPhWxgrrri6Javeyp-1di5l9yE9FLFtK59Y/Glassy.colors.tar.gz</payload>
+  <tags>gplv3,kde,linux,colorscheme,theme,unix,plasma</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Tragedy Black</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>jmtodaro</author>
+  <homepage>https://store.kde.org/p/1001779</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>70</rating>
+  <downloads>9714</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//103332-TragedyBlack.colors</installedfile>
+  <id>1001779</id>
+  <releasedate>2009-04-23</releasedate>
+  <summary>A dark, mostly grayscale color scheme designed to compliment the Tragedy plasma theme. &lt;br />
+&lt;br />
+To install, go to System Settings&amp;gt; Appearance&amp;gt; Colors. Select "Import Scheme" and choose TragedyBlack.colors. &lt;br />
+&lt;br />
+Tragedy plasma theme - &lt;a...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/103332-1.jpg</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/103332-1.jpg</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzg5MjEiLCJvIjoiMSIsInMiOiJkMzhlOWIzYmY3OGY0M2Y1ZjcxNTNlYjRmY2U1YjZlYmRjNTllOTFiMmEzMDMyZTU5MTIzYzE3NWE4N2VhMDAyYjExNzM1ZjUxMTg2MWI5NmZlYzNiMjJhOTgwY2FkMTI1ZDE0ODU4M2M3YzU2YjQyNWEyNDk4NDlmYWM0NjVjZiIsInQiOjE1ODkxMjk1OTUsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.UJRZFJ3WnJOYmO4Tt0_9_pK-Balm_TGKkeXLwqUK-3M/103332-TragedyBlack.colors</payload>
+  <tags>kde,linux,colorscheme,theme,unix,plasma</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Obsidian Black Green</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>Shokyto</author>
+  <homepage>https://store.kde.org/p/1001601</homepage>
+  <licence></licence>
+  <version>0.1</version>
+  <rating>50</rating>
+  <downloads>2671</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//86341-ObsidianDarkGreen.colors</installedfile>
+  <id>1001601</id>
+  <releasedate>2008-07-31</releasedate>
+  <summary>I use this by default in my OpenSuse 11 + Kde4 + Aya (Desktop theme) + Ozone (Windows) + Default Wallpaper.&lt;br />
+&lt;br />
+Just like the Obsidian theme but instead blue, this one is in a beautiful darker green.&lt;br />
+&lt;br />
+Please RATE IT...critic what do you like or not, and POST!! :p&lt;br />
+&lt;br...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img//hive/content-pre1/86341-1.jpg</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img//hive/content-pre1/86341-1.jpg</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NjA3Mzg1NzYiLCJvIjoiMSIsInMiOiI0NjdiZjY3YzcxZTdmZDJjNzE4MTkxZDdjMjczMTBjNjZmM2YwNjVhNDBiZGZhZTM3ZjlhMmY0ODI3OTBkMmY3NjJkMDY1NWFkNDgzNGNjM2JhNTAyZmNlY2RiZWY0OTgzZDBlNTA1OWFiZDBlZTA0MTFkN2UwZDg4ZWFlZjQwNyIsInQiOjE1ODkxMjk3MTMsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.mD-N4mNHjbbt9qsBzlYGV_-gbMujiPqUPS3LNHKugqk/86341-ObsidianDarkGreen.colors</payload>
+  <tags>linux,kde,colorscheme,unix,theme,plasma</tags>
+  <status>installed</status>
+ </stuff>
+ <stuff category="112">
+  <name>Sweet KDE</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>eliverlara</author>
+  <homepage>https://store.kde.org/p/1294011</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>79</rating>
+  <downloads>276957</downloads>
+  <installedfile>/home/x/.local/share/color-schemes//Sweet.colors</installedfile>
+  <installedfile>/home/x/.local/share/color-schemes//</installedfile>
+  <id>1294011</id>
+  <releasedate>2019-05-04</releasedate>
+  <summary>Color scheme for &lt;a href="https://www.opendesktop.org/p/1294013/" target="_blank" rel="nofollow">Sweet&lt;/a> theme&lt;br />
+&lt;br />
+Settings in screenshot:&lt;br />
+&lt;br />
+&lt;a href="https://store.kde.org/p/1294013/" target="_blank" rel="nofollow">Sweet Kvantum theme &lt;/a>&lt;br />
+&lt;br />
+&lt;a...</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/3/1/b/e/a319d50cbeb1186fd04564bf38b43bfbc834.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/3/1/b/e/a319d50cbeb1186fd04564bf38b43bfbc834.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NTcwMDQzNTYiLCJvIjoiMSIsInMiOiIxYzg2N2UxMWM4NmViMDQ3YmZlMjMyMjUzYTU1ZDA3NTdkOTE5MThjN2IwZDFiYjcyNzRkODg0MmM0MzZmNzA5OTVjNzkwOTM5YTRhZTNkZDBmMTY0OTNhYWM0YTE1NGRlMDY5MGNlMGNkNDQ4MzVjMWIyMjc1OGEyNjUzYmRkMCIsInQiOjE1ODkxMzA0ODQsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.SAh3TG-wK4xsspyxJoEBWiNiAS6IJbL-8Awk_sd9bI4/Sweet.tar.xz</payload>
+  <tags>unix,plasma,theme,linux,gplv3,kde,colorscheme</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>

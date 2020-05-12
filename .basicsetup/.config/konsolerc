@@ -1,0 +1,14 @@
+[Desktop Entry]
+DefaultProfile=basic.profile
+
+[Favorite Profiles]
+Favorites=basic.profile
+
+[KFileDialog Settings]
+Recent Files[$e]=3840x2400.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg
+Recent URLs[$e]=file:///usr/share/wallpapers/MalakasUniverse/contents/images/
+detailViewIconSize=0
+
+[MainWindow]
+State=AAAA/wAAAAD9AAAAAAAAAoAAAAHCAAAABAAAAAQAAAAIAAAACPwAAAAA
+ToolBarsMovable=Disabled

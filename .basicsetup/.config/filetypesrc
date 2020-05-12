@@ -1,0 +1,5 @@
+[EmbedSettings]
+embed-application/x-shellscript=false
+embed-application/x-trash=false
+embed-text/plain=false
+embed-text/x-matlab=false
