@@ -190,6 +190,14 @@ sudo update-grub2
 GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 sudo grub-install $GRUB_PATH
 
+### add noatime flag to fstab
+if grep -q "noatime" /etc/fstab
+then
+echo "Flag exists"
+else
+sudo sed -i 's/errors=remount-ro/noatime errors=remount-ro/g' /etc/fstab
+fi
+
 
 
 
@@ -313,7 +321,7 @@ sudo sed -i '4s#.*#xhost +si:localuser:root >/dev/null#' ~/.bashrc
 
 ### extra thanas packages
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
-sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine
+sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine shellcheck
 
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
