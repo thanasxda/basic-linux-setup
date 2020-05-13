@@ -190,6 +190,18 @@ sudo update-grub2
 GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 sudo grub-install $GRUB_PATH
 
+### preconfigure ccache and mute output
+if grep -q "USE_CCACHE=1" ~/.bashrc
+then
+echo "Flag exists"
+else
+sudo sed -i "\$aexport USE_CCACHE=1" ~/.bashrc
+sudo sed -i "\$aexport USE_PREBUILT_CACHE=1" ~/.bashrc
+sudo sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.bashrc
+sudo sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
+sudo sed -i "\$acache -M 30G >/dev/null" ~/.bashrc
+fi
+
 #hash out tested unstable for now
 ### add noatime flag to fstab
 #if grep -q "noatime" /etc/fstab
