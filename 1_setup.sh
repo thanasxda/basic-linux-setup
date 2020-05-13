@@ -337,7 +337,7 @@ sudo sed -i '4s#.*#xhost +si:localuser:root >/dev/null#' ~/.bashrc
 
 ### extra thanas packages
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
-sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine shellcheck
+sudo apt -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine shellcheck gnome-disk-utility
 
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
