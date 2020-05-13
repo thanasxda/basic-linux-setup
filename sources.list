@@ -9,6 +9,14 @@ deb http://gr.archive.ubuntu.com/ubuntu/ groovy-backports main restricted univer
 ### remain careful with apt full-upgrade.
 deb http://gr.archive.ubuntu.com/ubuntu/ groovy-proposed main restricted universe multiverse
 
+### all stock source repos
+deb-src http://gr.archive.ubuntu.com/ubuntu/ groovy main restricted universe multiverse
+deb-src http://gr.archive.ubuntu.com/ubuntu/ groovy-security main restricted universe multiverse
+deb-src http://gr.archive.ubuntu.com/ubuntu/ groovy-updates main restricted universe multiverse
+deb-src http://gr.archive.ubuntu.com/ubuntu/ groovy-backports main restricted universe multiverse
+deb-src http://gr.archive.ubuntu.com/ubuntu/ groovy-proposed main restricted universe multiverse
+deb-src http://archive.canonical.com/ubuntu/ focal partner
+
 ### extras
 deb http://archive.canonical.com/ubuntu/ focal partner
 deb http://gr.archive.ubuntu.com/ubuntu/ bionic main
