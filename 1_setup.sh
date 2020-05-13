@@ -322,6 +322,9 @@ sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb androi
 ### gcc arm
 sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
 
+### ram cache stuff
+sudo apt install zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
+
 ### npm
 sudo apt -f install -y npm && sudo apt -f install -y && sudo npm cache clean -f && sudo npm cache clean -f && sudo npm install npm@latest -g
 
