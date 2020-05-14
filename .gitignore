@@ -1,3 +1,5 @@
 .basicsetup/tmp
 *test.sh
 backup.sources.list
+backup.kali.sources.list
+backup.ubuntu.sources.list

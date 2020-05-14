@@ -1,15 +1,16 @@
-# created by KDE Plasma, Κυρ Μαΐ 10 19:08:12 2020
+# created by KDE Plasma, Fri May 15 21:36:48 2020
 #
-include "/usr/share/themes/Breeze/gtk-2.0/gtkrc"
-
-gtk-theme-name="Breeze"
-
+# If you do not want Plasma to override your GTK settings, select
+# Colors in the System Settings and disable the checkbox
+# "Apply colors to non-Qt applications"
+#
+#
 style "default"
 {
   bg[NORMAL] = { 0.078, 0.102, 0.129 }
   bg[SELECTED] = { 0.169, 0.322, 0.471 }
   bg[INSENSITIVE] = { 0.078, 0.102, 0.129 }
-  bg[ACTIVE] = { 0.071, 0.090, 0.118 }
+  bg[ACTIVE] = { 0.067, 0.090, 0.114 }
   bg[PRELIGHT] = { 0.078, 0.102, 0.129 }
 
   base[NORMAL] = { 0.063, 0.082, 0.102 }
@@ -20,13 +21,13 @@ style "default"
 
   text[NORMAL] = { 0.827, 0.855, 0.890 }
   text[SELECTED] = { 0.827, 0.855, 0.890 }
-  text[INSENSITIVE] = { 0.071, 0.090, 0.118 }
+  text[INSENSITIVE] = { 0.067, 0.090, 0.114 }
   text[ACTIVE] = { 0.827, 0.855, 0.890 }
   text[PRELIGHT] = { 0.827, 0.855, 0.890 }
 
   fg[NORMAL] = { 0.827, 0.855, 0.890 }
   fg[SELECTED] = { 0.827, 0.855, 0.890 }
-  fg[INSENSITIVE] = { 0.071, 0.090, 0.118 }
+  fg[INSENSITIVE] = { 0.067, 0.090, 0.114 }
   fg[ACTIVE] = { 0.827, 0.855, 0.890 }
   fg[PRELIGHT] = { 0.827, 0.855, 0.890 }
 }

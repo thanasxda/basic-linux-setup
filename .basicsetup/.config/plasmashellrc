@@ -1,8 +1,65 @@
 [KFileDialog Settings]
 detailViewIconSize=0
 
+[Notification Messages]
+really_clear_history=true
+
+[PlasmaRunnerManager]
+LaunchCounts=
+pluginWhiteList=services,shell,bookmarks,baloosearch,locations
+
+[PlasmaViews][Panel 111][Defaults]
+thickness=36
+
+[PlasmaViews][Panel 111][Horizontal1920]
+thickness=36
+
+[PlasmaViews][Panel 127][Defaults]
+thickness=40
+
+[PlasmaViews][Panel 127][Horizontal1920]
+thickness=40
+
 [PlasmaViews][Panel 2][Defaults]
 thickness=36
 
 [PlasmaViews][Panel 2][Horizontal1920]
 thickness=36
+
+[PlasmaViews][Panel 41][Defaults]
+thickness=36
+
+[PlasmaViews][Panel 41][Horizontal1920]
+thickness=36
+
+[PlasmaViews][Panel 57][Defaults]
+thickness=36
+
+[PlasmaViews][Panel 57][Horizontal1920]
+thickness=36
+
+[PlasmaViews][Panel 76]
+alignment=132
+
+[PlasmaViews][Panel 76][Defaults]
+maxLength=1920
+minLength=1920
+offset=0
+thickness=22
+
+[PlasmaViews][Panel 76][Horizontal1920]
+alignment=132
+panelVisibility=0
+thickness=22
+
+[PlasmaViews][Panel 94][Defaults]
+thickness=36
+
+[PlasmaViews][Panel 94][Horizontal1920]
+thickness=36
+
+[ScreenConnectors]
+0=VGA-1
+
+[Updates]
+performed=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/move_desktop_layout_config.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/obsolete_kickoffrc.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/desktop-base.js

@@ -2,4 +2,7 @@
 update_info=kscreenlocker.upd:0.1-autolock
 
 [Greeter]
-Theme=Glassy
+Theme=Kali-Dark
+
+[Greeter][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/desktop-base/kali-theme/wallpaper/contents/images/1920x1200.png

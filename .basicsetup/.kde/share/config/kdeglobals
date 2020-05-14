@@ -103,18 +103,29 @@ ForegroundPositive=39,174,96
 ForegroundVisited=76,99,125
 
 [General]
+BrowserApplication[$e]=firefox-esr.desktop
 ColorScheme=Aritim-Dark
 Name=Aritim-Dark
+dbfile=~/.mozilla/firefox/71t0glrs.default/places.sqlite
+font=Noto Sans,10,-1,5,50,0,0,0,0,0
+menuFont=Noto Sans,10,-1,5,50,0,0,0,0,0
 shadeSortColumn=true
-widgetStyle=Breeze
+smallestReadableFont=Noto Sans,8,-1,5,50,0,0,0,0,0
+toolBarFont=Noto Sans,10,-1,5,50,0,0,0,0,0
+widgetStyle=kvantum
 
 [Icons]
 Theme=Materia-Manjaro-Breeze-Dark
 
 [KDE]
+AnimationDurationFactor=0
+ColorScheme=Breeze
+LookAndFeelPackage=Kali-Dark
 ShowIconsInMenuItems=true
 ShowIconsOnPushButtons=true
-contrast=0
+SingleClick=false
+contrast=4
+widgetStyle=kvantum
 
 [Toolbar style]
 ToolButtonStyle=TextBesideIcon

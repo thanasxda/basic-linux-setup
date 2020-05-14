@@ -1,0 +1,120 @@
+<!DOCTYPE Menu PUBLIC '-//freedesktop//DTD Menu 1.0//EN' 'http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd'>
+<Menu>
+ <Layout>
+  <Merge type="menus"/>
+  <Menuname>Usual Applications</Menuname>
+  <Menuname>Information Gathering</Menuname>
+  <Menuname>Vulnerability Analysis</Menuname>
+  <Menuname>Web Application Analysis</Menuname>
+  <Menuname>Database Assessment</Menuname>
+  <Menuname>Password Attacks</Menuname>
+  <Menuname>Wireless Attacks</Menuname>
+  <Menuname>Reverse Engineering</Menuname>
+  <Menuname>Exploit Frameworks</Menuname>
+  <Menuname>Sniffing - Spoofing</Menuname>
+  <Menuname>Maintaining Access</Menuname>
+  <Menuname>Forensic Tools</Menuname>
+  <Menuname>Reporting Tools</Menuname>
+  <Menuname>Social Engineering Tools</Menuname>
+  <Menuname>System Services</Menuname>
+  <Menuname>Kali and OffSec Links</Menuname>
+  <Menuname>Development</Menuname>
+  <Menuname>Education</Menuname>
+  <Menuname>Games</Menuname>
+  <Menuname>Graphics</Menuname>
+  <Menuname>Internet</Menuname>
+  <Menuname>Multimedia</Menuname>
+  <Menuname>Office</Menuname>
+  <Menuname>Science</Menuname>
+  <Menuname>System</Menuname>
+  <Menuname>Utilities</Menuname>
+  <Merge type="files"/>
+  <Filename>org.kde.Help.desktop</Filename>
+  <Menuname>Applications</Menuname>
+  <Menuname>Settingsmenu</Menuname>
+ </Layout>
+ <Menu>
+  <Name>Development</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Development</Old>
+  <New>Development</New>
+ </Move>
+ <Menu>
+  <Name>Education</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Education</Old>
+  <New>Education</New>
+ </Move>
+ <Menu>
+  <Name>Games</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Games</Old>
+  <New>Games</New>
+ </Move>
+ <Menu>
+  <Name>Graphics</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Graphics</Old>
+  <New>Graphics</New>
+ </Move>
+ <Menu>
+  <Name>Internet</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Internet</Old>
+  <New>Internet</New>
+ </Move>
+ <Menu>
+  <Name>Multimedia</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Multimedia</Old>
+  <New>Multimedia</New>
+ </Move>
+ <Menu>
+  <Name>Office</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Office</Old>
+  <New>Office</New>
+ </Move>
+ <Menu>
+  <Name>Science</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Science</Old>
+  <New>Science</New>
+ </Move>
+ <Menu>
+  <Name>System</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/System</Old>
+  <New>System</New>
+ </Move>
+ <Menu>
+  <Name>Utilities</Name>
+  <NotDeleted/>
+ </Menu>
+ <Move>
+  <Old>Usual Applications/Utilities</Old>
+  <New>Utilities</New>
+ </Move>
+ <Menu>
+  <Name>Usual Applications</Name>
+  <NotDeleted/>
+ </Menu>
+</Menu>

@@ -3,7 +3,7 @@
 ### note this script only reverts visual customizations.
 ### if you want to remove the kernel + linux tweaks + kernel configuration
 ### head over to thanas-x86-64-kernel source
-### boot on stock kernel & run "2_uninstall-kernel.sh"
+### boot on stock kernel & run "uninstall-kernel.sh"
 ### this will not only remove kernel but all mentioned above
 ### if you want to re-enable customizations,
 ### run setup.sh till firefox pops up close and reboot after
@@ -11,7 +11,7 @@
 
 ###### SET DIR VARIABLES
 source="$(pwd)"
-stock=$source/.kubuntu
+stock=$source/.backup
 
 ###### SET BASH COLORS
 magenta="\033[05;1;95m"
@@ -21,7 +21,7 @@ restore="\033[0m"
 ###### START
 cd $stock
 mkdir -p $stock/temp
-sudo unzip -o kubuntu.zip -d $stock/temp
+sudo unzip -o backup.zip -d $stock/temp
 sudo rsync -v -K -a --force --include=".*" $stock/temp/.* ~/
 cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
 sudo rm -rf $stock/temp && cd $source
