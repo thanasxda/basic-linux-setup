@@ -293,9 +293,13 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
 sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 sudo add-apt-repository -y ppa:git-core/ppa
 sudo add-apt-repository -y ppa:team-xbmc/ppa
+sudo add-apt-repository -y ppa:team-xbmc/unstable
+sudo add-apt-repository -y ppa:team-xbmc/xbmc-nightly
 #sudo add-apt-repository -y ppa:appimagelauncher-team/stable
 
 ### fix distro syncing for now (forceful method - for now must be overridden)
+sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu disco main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-xbmc-nightly-*.list'
+sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-unstable-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
 
