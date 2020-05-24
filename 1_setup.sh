@@ -516,7 +516,18 @@ echo -e "${restore}"                                                            
 cd $git
 git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
 cd thanas-x86-64-kernel && sudo chmod 755 *.sh
-./2*
+###### MANUALLY INSTALL LLVM/CLANG-11 POLLY SUPPORT FOR NOW
+### do this prior to clang-11 installation so that if support will officially come
+### it will be overridden by the official latest clang libraries
+echo -e "${yellow}"
+echo "Adding support for clang-11 polly..."
+echo ""
+polly=/usr/lib/llvm-11/lib
+sudo mkdir -p $polly
+sudo \cp -rf THANAS/LLVMPolly.so $polly/
+echo "done!"
+echo -e "${restore}"
+./1*
 
 
 
