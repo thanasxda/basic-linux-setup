@@ -21,7 +21,7 @@ Note: **<font color='red'>DO NOT run the script as SU!</font> (unless root is yo
 **copy & paste underneath line in console to start:**
 
 ```
-sudo apt update && sudo apt -f install -y git && git clone --depth=1 https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout kali && chmod 755 *.sh && ./1*
+sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout kali && chmod 755 *.sh && ./1*
 ```
 
 ## Links
