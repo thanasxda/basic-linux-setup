@@ -19,12 +19,11 @@ yellow="\033[1;93m"
 restore="\033[0m"
 
 ###### START
-cd $stock
-mkdir -p $stock/temp
-sudo unzip -o backup.zip -d $stock/temp
-sudo rsync -v -K -a --force --include=".*" $stock/temp/.* ~/
-cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
-sudo rm -rf $stock/temp && cd $source
+cd ~/
+sudo rm -rf .config
+sudo rm -rf .kde
+sudo rm -rf .local
+cd $source && ./5*
 sudo rm -rf /boot/grub/splash.jpg
 sudo update-grub2
 echo -e "${yellow}"
