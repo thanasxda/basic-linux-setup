@@ -214,14 +214,14 @@ sudo sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
 sudo sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
 fi
 
-#hash out tested unstable for now
+### storage flags
 ### add noatime flag to fstab
-#if grep -q "noatime" /etc/fstab
-#then
-#echo "Flag exists"
-#else
-#sudo sed -i 's/errors=remount-ro/noatime errors=remount-ro/g' /etc/fstab
-#fi
+if grep -q "noatime" /etc/fstab
+then
+echo "Flag exists"
+else
+sudo sed -i 's/errors=remount-ro/noatime,errors=remount-ro/g' /etc/fstab
+fi
 
 
 
