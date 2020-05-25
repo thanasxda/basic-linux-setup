@@ -496,7 +496,9 @@ git clone --depth=1 https://github.com/TwistedPrime/twisted-clang.git
 mv twisted-clang clang
 cd $source
 
-
+### microcode
+sudo apt remove -y intel-microcode
+sudo apt remove -y amd-microcode
 
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && sudo apt -f upgrade --with-new-pkgs -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
