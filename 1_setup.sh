@@ -359,6 +359,7 @@ sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && su
 #sudo aptitude -f install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
 sudo aptitude -f install -y gcc-multilib
 sudo aptitude -f install -y gcc-10-multilib
+sudo aptitude -f install -y gcc-10-x86-64-linux-gnu-base gcc-9-x86-64-linux-gnu-base
 
 ### ensure full clang
 sudo aptitude -f install -y llvm-11
