@@ -220,7 +220,7 @@ if grep -q "noatime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/errors=remount-ro/quota,lazytime,noatime,nodiratime,nodev,barrier=1,noauto_da_alloc,errors=remount-ro/g' /etc/fstab
+sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,noatime,nodiratime,nodev,noauto_da_alloc,errors=remount-ro/g' /etc/fstab
 fi
 
 
