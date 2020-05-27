@@ -150,12 +150,7 @@ yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_i
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3534334/video_downloadhelper-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
 
-### install brave
-sudo aptitude -f install -y apt-transport-https curl
-curl -s https://brave-browser-apt-release.s3.brave.com/brave-core.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-release.gpg add -
-echo "deb [arch=amd64] https://brave-browser-apt-release.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-release.list
-sudo apt update
-sudo aptitude -f install -y brave-browser
+
 
 ####### SWAP CONFIGURATION ##########################################################################
 #####################################################################################################
