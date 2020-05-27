@@ -178,6 +178,16 @@ sudo free -h
 sudo sysctl vm.swappiness=$swappiness
 ### LVM
 #/vgkubuntu-swap_1
+### tmpfs
+if grep -q "tmpfs" /etc/fstab
+then
+echo "Flag exists"
+else
+  sudo sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
+fi
+
 
 
 
