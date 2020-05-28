@@ -13,6 +13,7 @@
 sleep 10
 
 #### extras
+echo 1 > /proc/sys/vm/overcommit_memory
 /etc/init.d/irqbalance start
 echo fq_codel > /proc/sys/net/core/default_qdisc
 sysctl net.ipv4.tcp_fastopen=3
