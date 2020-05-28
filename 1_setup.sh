@@ -148,6 +148,7 @@ yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocke
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3534334/video_downloadhelper-*
+yes | firefox https://addons.mozilla.org/firefox/downloads/file/805784/kde_connect-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
 
 
