@@ -516,7 +516,7 @@ sudo apt remove -y amd-microcode
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && sudo apt -f upgrade --with-new-pkgs -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
 sudo apt autoclean
-sudo apt install prelink irqbalance && sudo prelink -amR
+sudo aptitude install -y prelink irqbalance && sudo prelink -amR
 
 ####### SETUP FINISHED ##############################################################################
 #####################################################################################################
