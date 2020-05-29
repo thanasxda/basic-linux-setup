@@ -105,6 +105,8 @@ sudo aptitude -f install -y rsync
 
 chmod +x init.sh
 sudo \cp init.sh /init.sh
+cd / && sudo ./init.sh
+cd $basicsetup
 if grep -q "@reboot root /init.sh" /etc/crontab
 then
 echo "Flag exists"
@@ -386,7 +388,7 @@ sudo aptitude -f install -y llvm
 sudo aptitude -f install -y clang-11 lld-11
 sudo aptitude -f install -y clang-10 lld-10
 sudo aptitude -f install -y gcc-10
-sudo aptitude -f install -y gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default
+sudo aptitude -f install -y gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default binutils-multiarch
 
 ### ram cache stuff
 sudo aptitude -f install -y zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
