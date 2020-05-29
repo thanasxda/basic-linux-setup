@@ -179,15 +179,6 @@ sudo free -h
 sudo sysctl vm.swappiness=$swappiness
 ### LVM
 #/vgkubuntu-swap_1
-### tmpfs
-if grep -q "tmpfs" /etc/fstab
-then
-echo "Flag exists"
-else
-  sudo sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
-  sudo sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
-  sudo sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
-fi
 
 
 
@@ -226,13 +217,29 @@ sudo sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
 sudo sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
 fi
 
-### storage flags
-### add noatime flag to fstab
+### fstab flags
+### ext4
 if grep -q "noatime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,noatime,nodiratime,nodev,noauto_da_alloc,errors=remount-ro/g' /etc/fstab
+sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,nodiratime,errors=remount-ro/g' /etc/fstab
+fi
+### xfs
+if grep -q "noatime" /etc/fstab
+then
+echo "Flag exists"
+else
+sudo sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime,nodiratime/g' /etc/fstab
+fi
+### tmpfs
+if grep -q "tmpfs" /etc/fstab
+then
+echo "Flag exists"
+else
+  sudo sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
 fi
 
 
