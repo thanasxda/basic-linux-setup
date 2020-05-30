@@ -107,7 +107,7 @@ chmod +x init.sh
 sudo \cp init.sh /init.sh
 cd / && sudo ./init.sh
 cd $basicsetup
-if grep -q "@reboot root /init.sh" /etc/crontab
+if grep -q "@reboot root -l /init.sh" /etc/crontab
 then
 echo "Flag exists"
 else
@@ -364,7 +364,7 @@ sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb androi
 sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload
 
 ### list mesa drivers seperately
-sudo aptitude -f install -y libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils
+sudo aptitude -f install -y vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils
 
 ### openwrt toolchain
 sudo aptitude -f install -y subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath
@@ -548,14 +548,14 @@ cd thanas-x86-64-kernel && sudo chmod 755 *.sh
 ###### MANUALLY INSTALL LLVM/CLANG-11 POLLY SUPPORT FOR NOW
 ### do this prior to clang-11 installation so that if support will officially come
 ### it will be overridden by the official latest clang libraries
-echo -e "${yellow}"
-echo "Adding support for clang-11 polly..."
-echo ""
-polly=/usr/lib/llvm-11/lib
-sudo mkdir -p $polly
-sudo \cp -rf THANAS/LLVMPolly.so $polly/
-echo "done!"
-echo -e "${restore}"
+#echo -e "${yellow}"
+#echo "Adding support for clang-11 polly..."
+#echo ""
+#polly=/usr/lib/llvm-11/lib
+#sudo mkdir -p $polly
+#sudo \cp -rf LLVMPolly.so $polly/
+#echo "done!"
+#echo -e "${restore}"
 ./1*
 
 
