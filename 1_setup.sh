@@ -497,6 +497,12 @@ sudo apt update && sudo apt -f install -y && sudo apt --fix-broken install -y
 ### enable snap
 sudo aptitude apt -f install -y snap snapd
 sudo systemctl enable --now snapd.socket
+if grep -q "export PATH" ~/.bashrc
+then
+echo "Flag exists"
+else
+sudo sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
+fi
 sleep 5
 
 ###### GITHUB REPOSITORIES ##########################################################################
