@@ -35,8 +35,12 @@ echo -e "${restore}"                                                    ###
 # all underneath setup parts marked with many "!!!" need to be set according to your distro
 # for transposable compatibility in case it is not used for KDE Kali
 
+
 ### first of all install aptitude to ease out package conflicts
 sudo apt -f install -y aptitude
+
+
+
 
 ####### GENERAL DIRECTORIES #########################################################################
 #####################################################################################################
@@ -44,6 +48,7 @@ sudo apt -f install -y aptitude
 git=~/GIT
 tc=~/TOOLCHAIN
 mkdir -p $git && mkdir -p $tc
+
 
 
 
@@ -57,12 +62,14 @@ printf 'y\ny\n' | sudo dpkg-reconfigure kexec-tools
 
 
 
+
 ####### GIT CONFIGURATION ###########################################################################
 #####################################################################################################
 ### your git name & email - unhash and set up for personal usage
 sudo aptitude -f install -y git curl
 #git config --global user.name thanasxda
 #git config --global user.email 15927885+thanasxda@users.noreply.github.com
+
 
 
 
@@ -76,6 +83,7 @@ echo -e "${restore}"             #
 ##################################
 echo ttf-mscorefonts-installer ttf-mscorefonts-installer/accepted-ttf-mscorefonts-installer-eula select true | sudo debconf-set-selections
 sudo aptitude -f install -y ttf-mscorefonts-installer
+
 
 
 
@@ -152,6 +160,7 @@ yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_i
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3534334/video_downloadhelper-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/805784/kde_connect-*
 yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
+
 
 
 
@@ -269,6 +278,7 @@ sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo ap
 
 
 
+
 ####### LINUX REPOSITORY SOURCES SETUP ##############################################################
 ### setup repos !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -347,6 +357,7 @@ sudo echo 'deb-src http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee
 #sudo echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal main' | sudo tee -a /etc/apt/sources.list
 #sudo echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main' | sudo tee -a /etc/apt/sources.list
 fi
+
 
 
 ####### THANAS PACKAGES #############################################################################
@@ -505,6 +516,7 @@ sudo sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/
 fi
 sleep 5
 
+
 ###### GITHUB REPOSITORIES ##########################################################################
 #####################################################################################################
 ### git stuff                    #
@@ -533,6 +545,9 @@ sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && su
 sudo apt autoclean
 sudo aptitude install -y prelink irqbalance && sudo prelink -amR
 
+
+
+
 ####### SETUP FINISHED ##############################################################################
 #####################################################################################################
 echo -e "${magenta}"                                                                                #
@@ -541,6 +556,7 @@ echo DONE WITH BASIC SETUP! COMPILING AND AUTO INSTALLING THANAS-x86-64-KERNEL  
 echo ...                                                                                            #
 echo -e "${restore}"                                                                                #
 #####################################################################################################
+
 
 
 
@@ -563,6 +579,7 @@ cd thanas-x86-64-kernel && sudo chmod 755 *.sh
 #echo "done!"
 #echo -e "${restore}"
 ./1*
+
 
 
 
