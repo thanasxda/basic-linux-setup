@@ -316,6 +316,8 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys a1715d88e1df1f24
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
 ### appimage
 #sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys4af9b16f75ef2fca
+### multimedia
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
 
 
 
@@ -334,6 +336,14 @@ sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu disco main
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-unstable-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
+
+### add debian multimedia
+if grep -q "www.deb-multimedia.org sid main non-free" /etc/apt/sources.list
+then
+echo "Flag exists"
+else
+sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free/g' /etc/apt/sources.list
+fi
 
 ### add debian unstable repos
 #if grep -q 'deb http://deb.debian.org/debian/ unstable main contrib non-free' /etc/apt/sources.list
