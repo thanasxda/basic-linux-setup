@@ -36,6 +36,8 @@ echo -e "${restore}"                                                    ###
 # for transposable compatibility in case it is not used for KDE Kali
 
 
+systemctl enable --now apparmor.service
+
 ### first of all install aptitude to ease out package conflicts
 sudo apt -f install -y aptitude
 
@@ -516,7 +518,7 @@ rm -rf GitHubDesktop*
 sudo apt update && sudo apt -f install -y && sudo apt --fix-broken install -y
 
 ### enable snap
-sudo aptitude apt -f install -y snap snapd
+sudo apt purge -y snapd snap-confine && sudo apt install -y snapd
 sudo systemctl enable --now snapd.socket
 if grep -q "export PATH" ~/.bashrc
 then
@@ -525,6 +527,8 @@ else
 sudo sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
 fi
 sleep 5
+sudo apparmor_parser -r /etc/apparmor.d/*snap-confine*
+sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
 
 
 ###### GITHUB REPOSITORIES ##########################################################################
