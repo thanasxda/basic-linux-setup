@@ -325,6 +325,8 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys a1715d88e1df1f24
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
 ### appimage
 #sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys4af9b16f75ef2fca
+### multimedia
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
 
 ##################################
 ### fix groovy distro syncing for now
@@ -359,6 +361,13 @@ sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/appimagelauncher-team/stable/ubuntu focal main" > /etc/apt/sources.list.d/appimagelauncher-team-ubuntu-stable-*.list'
 
+### add debian multimedia
+if grep -q "www.deb-multimedia.org sid main non-free" /etc/apt/sources.list
+then
+echo "Flag exists"
+else
+sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free/g' /etc/apt/sources.list
+fi
 
 
 
