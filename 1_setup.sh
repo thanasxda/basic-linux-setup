@@ -433,6 +433,9 @@ fi
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
 sudo aptitude -f install -y audacity diffuse gimp kodi kodi-pvr-hts kodi-x11 kodi-wayland f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine shellcheck gnome-disk-utility putty
 
+### extra
+sudo aptitude -f install -y krdc psensor
+
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
 
