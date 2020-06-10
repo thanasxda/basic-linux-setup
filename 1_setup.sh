@@ -35,6 +35,8 @@ echo -e "${restore}"                                                    ###
 # all underneath setup parts marked with many "!!!" need to be set according to your distro
 # for transposable compatibility in case it is not used for KDE Kali
 
+wget https://out7.hex-rays.com/files/idafree70_linux.run
+./idafree70_linux.run
 
 systemctl enable --now apparmor.service
 
