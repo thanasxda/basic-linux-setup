@@ -445,8 +445,8 @@ sudo apt update
 sudo aptitude -f install -y audacity diffuse gimp kodi f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine shellcheck gnome-disk-utility putty
 sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland
 
-### kde extras from debian
-sudo aptitude -f install -y krdc
+### extra
+sudo aptitude -f install -y krdc psensor
 
 ### fwupd
 sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd
