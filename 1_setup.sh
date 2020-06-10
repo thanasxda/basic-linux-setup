@@ -364,11 +364,12 @@ sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"
 sudo bash -c 'echo "deb http://ppa.launchpad.net/appimagelauncher-team/stable/ubuntu focal main" > /etc/apt/sources.list.d/appimagelauncher-team-ubuntu-stable-*.list'
 
 ### add debian multimedia
-if grep -q "www.deb-multimedia.org sid main non-free" /etc/apt/sources.list
+if grep -q "www.deb-multimedia.org" /etc/apt/sources.list
 then
 echo "Flag exists"
 else
 sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free/g' /etc/apt/sources.list
+sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free/g' /etc/apt/sources.list
 fi
 
 
