@@ -350,6 +350,14 @@ sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-
 sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free/g' /etc/apt/sources.list
 fi
 
+### add debian experimental
+if grep -q "debian experimental main" /etc/apt/sources.list
+then
+echo "Flag exists"
+else
+sudo sed -i 's/#deb http://http.debian.net/debian experimental main/g' /etc/apt/sources.list
+fi
+
 ### add debian unstable repos
 #if grep -q 'deb http://deb.debian.org/debian/ unstable main contrib non-free' /etc/apt/sources.list
 #then
