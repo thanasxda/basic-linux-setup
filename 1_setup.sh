@@ -407,14 +407,16 @@ sudo aptitude -f install -y subversion g++ zlib1g-dev build-essential git python
 sudo aptitude -f install -y kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources
 sudo apt remove -y lime-forensics-dkms
 sudo aptitude -f install -y routersploit
+
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
 
-### gcc arm
+### ...
 #sudo aptitude -f install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
 sudo aptitude -f install -y gcc-multilib
 sudo aptitude -f install -y gcc-10-multilib
 sudo aptitude -f install -y gcc-10-x86-64-linux-gnu-base gcc-9-x86-64-linux-gnu-base
+sudo aptitude -f install -y binutils-mips-linux-gnu
 
 ### ensure full clang
 sudo aptitude -f install -y llvm-11
