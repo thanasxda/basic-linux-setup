@@ -6,6 +6,9 @@ deb-src http://http.kali.org/kali kali-rolling main non-free contrib
 # only use for rare individual packages
 #deb http://deb.debian.org/debian/ unstable main contrib non-free
 #deb-src http://deb.debian.org/debian/ unstable main contrib non-free
+#deb http://http.debian.net/debian experimental main
+deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free
+deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free
 
 # llvm git repos
 deb http://apt.llvm.org/unstable/ llvm-toolchain main

@@ -36,7 +36,9 @@ echo -e "${restore}"                                                    ###
 # for transposable compatibility in case it is not used for KDE Kali
 
 wget https://out7.hex-rays.com/files/idafree70_linux.run
+sudo chmod 755 *
 ./idafree70_linux.run
+sudo rm -rf idafree70_linux.run
 
 systemctl enable --now apparmor.service
 
@@ -449,15 +451,17 @@ fi
 ### TEMPORARILY ADD DEBIAN USNTABLE REPOS TO GET SOME PACKAGES!!!
 sudo echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
 sudo echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
+sleep 5
 sudo apt update
 
 ### extra thanas packages
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
-sudo aptitude -f install -y audacity diffuse gimp kodi f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine shellcheck gnome-disk-utility putty
-sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland
+sudo aptitude -f install -y diffuse f2fs-tools rt-tests uget net-tools aircrack-ng wine32 wine
+sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland kodi
+sudo aptitude -f install -y shellcheck gnome-disk-utility putty gimp audacity
 
 ### extra
-sudo aptitude -f install -y krdc psensor
+sudo aptitude -f install -y krdc psensor firefox flatpak
 
 ### fwupd
 sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd
