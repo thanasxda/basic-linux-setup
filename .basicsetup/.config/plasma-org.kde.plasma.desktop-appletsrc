@@ -115,8 +115,14 @@ DialogHeight=540
 DialogWidth=720
 
 [Containments][127][Applets][142][Configuration][General]
+alphaSort=true
+appNameFormat=2
 customButtonImage=kali-www
 favoritesPortedToKAstats=true
+recentOrdering=1
+showIconsRootLevel=true
+showRecentApps=false
+showRecentDocs=false
 useCustomButtonImage=true
 
 [Containments][127][Applets][143]
