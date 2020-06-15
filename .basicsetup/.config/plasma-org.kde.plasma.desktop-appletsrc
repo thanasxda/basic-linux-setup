@@ -143,6 +143,17 @@ PreloadWeight=0
 localPath=~/.local/share/plasma_icons/github-desktop (2).desktop
 url=file:///usr/share/applications/github-desktop.desktop
 
+[Containments][127][Applets][142][Configuration][General]
+alphaSort=true
+appNameFormat=2
+customButtonImage=kali-www
+favoritesPortedToKAstats=true
+recentOrdering=1
+showIconsRootLevel=true
+showRecentApps=false
+showRecentDocs=false
+useCustomButtonImage=true
+
 [Containments][2][Applets][28]
 immutability=1
 plugin=org.kde.plasma.icon
