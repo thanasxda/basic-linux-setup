@@ -324,6 +324,8 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
 #sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys4af9b16f75ef2fca
 ### multimedia
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
+### google
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
 
 
 
