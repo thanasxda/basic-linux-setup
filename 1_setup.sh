@@ -462,7 +462,7 @@ sudo aptitude -f install -y diffuse f2fs-tools rt-tests uget net-tools aircrack-
 sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland kodi
 sudo aptitude -f install -y shellcheck gnome-disk-utility putty gimp audacity
 
-sudo aptitude -f install -y alien
+sudo aptitude -f install -y alien bleachbit
 
 ### extra
 sudo aptitude -f install -y krdc psensor firefox flatpak
