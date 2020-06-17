@@ -457,18 +457,29 @@ rm -rf license* readme* WinSCP*.zip WinSCP*.com
 ### extra .deb packages
 cd $source
 #
-wget https://github.com/balena-io/etcher/releases/download/v1.5.89/balena-etcher-electron_1.5.89_amd64.deb
-sudo dpkg -i balena-etcher*
-sudo apt -f install -y && sudo apt --fix-broken install -y
-rm -rf balena-etcher*
+#wget https://github.com/balena-io/etcher/releases/download/v1.5.89/balena-etcher-electron_1.5.89_amd64.deb
+#sudo dpkg -i balena-etcher*
+#sudo apt -f install -y && sudo apt --fix-broken install -y
+#rm -rf balena-etcher*
 
 wget https://download.cdn.viber.com/cdn/desktop/Linux/viber.deb
 sudo dpkg -i viber*
 sudo apt -f install -y && sudo apt --fix-broken install -y
 rm -rf viber*
 
-wget https://phoronix-test-suite.com/releases/repo/pts.debian/files/phoronix-test-suite_9.6.0_all.deb
-sudo dpkg -i phoronix*
+### google
+wget https://dl.google.com/dl/earth/client/current/google-earth-pro-stable_current_amd64.deb
+sudo dpkg -i google-earth-pro*
+sudo apt -f install -y && sudo apt --fix-broken install -y
+rm -rf google-earth-pro*
+
+#wget http://archive.ubuntu.com/ubuntu/pool/main/u/usb-creator/usb-creator-gtk_0.3.7_amd64.deb
+#sudo dpkg -i usb-creator*
+#sudo apt -f install -y && sudo apt --fix-broken install -y
+#rm -rf usb-creator*
+
+wget http://ftp.br.debian.org/debian/pool/main/d/diffuse/diffuse_0.4.8-4_all.deb
+sudo dpkg -i diffuse*
 sudo apt -f install -y && sudo apt --fix-broken install -y
 rm -rf phoronix*
 
