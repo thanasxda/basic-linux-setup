@@ -484,7 +484,6 @@ wget https://winscp.net/download/files/202005080143368dd0551d11a66577d4727edb018
 unzip -o WinSCP*
 rm -rf license* readme* WinSCP*.zip WinSCP*.com
 
-
 ### usb stuff
 sudo add-apt-repository -y ppa:mkusb/ppa
 sudo apt update
@@ -493,15 +492,21 @@ sudo apt -f install --install-recommends -y mkusb mkusb-nox usb-pack-efi
 ### extra .deb packages
 cd $source
 #
-wget https://github.com/balena-io/etcher/releases/download/v1.5.89/balena-etcher-electron_1.5.89_amd64.deb
-sudo dpkg -i balena-etcher*
-sudo apt -f install -y && sudo apt --fix-broken install -y
-rm -rf balena-etcher*
+#wget https://github.com/balena-io/etcher/releases/download/v1.5.89/balena-etcher-electron_1.5.89_amd64.deb
+#sudo dpkg -i balena-etcher*
+#sudo apt -f install -y && sudo apt --fix-broken install -y
+#rm -rf balena-etcher*
 
 wget https://release.gitkraken.com/linux/gitkraken-amd64.deb
 sudo dpkg -i gitkraken*
 sudo apt -f install -y && sudo apt --fix-broken install -y
 rm -rf gitkraken*
+
+### google
+wget https://dl.google.com/dl/earth/client/current/google-earth-pro-stable_current_amd64.deb
+sudo dpkg -i google-earth-pro*
+sudo apt -f install -y && sudo apt --fix-broken install -y
+rm -rf google-earth-pro*
 
 #wget http://archive.ubuntu.com/ubuntu/pool/main/u/usb-creator/usb-creator-gtk_0.3.7_amd64.deb
 #sudo dpkg -i usb-creator*
