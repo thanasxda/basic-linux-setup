@@ -401,6 +401,7 @@ sudo aptitude -f install -y subversion g++ zlib1g-dev build-essential git python
 sudo aptitude -f install -y gcc-multilib
 sudo aptitude -f install -y gcc-10-multilib
 sudo aptitude -f install -y gcc-10-x86-64-linux-gnu-base gcc-9-x86-64-linux-gnu-base
+sudo aptitude -f install -y binutils-mips-linux-gnu
 
 ### ensure full clang
 sudo aptitude -f install -y llvm-11
