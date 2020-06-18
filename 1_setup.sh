@@ -310,6 +310,8 @@ echo -e "${restore}"             #
 
 ### fetch keys ubuntu
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1378B444
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
 ### fetch keys llvm git
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
 ### obaif
