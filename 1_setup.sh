@@ -137,6 +137,7 @@ sudo rsync -v -K -a --force --include=".*" .config ~/
 sudo rsync -v -K -a --force --include=".*" .kde ~/
 sudo rsync -v -K -a --force --include=".*" .local ~/
 sudo rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
+sudo rsync -v -K -a --force --include=".*" .kodi ~/
 
 ### fix ownership preconfig - rare cases
 cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
