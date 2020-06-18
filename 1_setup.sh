@@ -457,7 +457,7 @@ fi
 sudo echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
 sudo echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
 sleep 5
-sudo apt update
+sudo apt update --allow-insecure-repositories
 
 ### extra thanas packages
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
