@@ -329,7 +329,10 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
 ### google
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
-
+### tvheadend
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 89942AAE5CEAA174
+sudo apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
+sudo wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | sudo apt-key add -
 
 
 ##################################
@@ -347,6 +350,8 @@ sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu disco main
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-unstable-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
+sudo sh -c 'echo "deb https://apt.tvheadend.org/stable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
+sudo sh -c 'echo "deb https://apt.tvheadend.org/unstablestable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
 
 ### add debian multimedia
 if grep -q "www.deb-multimedia.org" /etc/apt/sources.list
