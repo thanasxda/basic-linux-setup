@@ -434,6 +434,7 @@ else
 sudo sed -i "\$axhost +si:localuser:root >/dev/null" ~/.bashrc
 fi
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+sudo apt update --allow-insecure-repositories
 
 ### extra thanas packages
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
