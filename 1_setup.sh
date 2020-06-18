@@ -334,6 +334,10 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
 ### google
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
+### tvheadend
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 89942AAE5CEAA174
+sudo apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
+sudo wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | sudo apt-key add -
 
 ##################################
 ### fix groovy distro syncing for now
@@ -365,8 +369,9 @@ sudo add-apt-repository -y ppa:appimagelauncher-team/stable
 ### fix focal/groovy distro syncing for now (forceful method - for now must be overridden)
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
-sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/appimagelauncher-team/stable/ubuntu focal main" > /etc/apt/sources.list.d/appimagelauncher-team-ubuntu-stable-*.list'
+sudo sh -c 'echo "deb https://apt.tvheadend.org/stable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
+sudo sh -c 'echo "deb https://apt.tvheadend.org/unstable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
 
 ### add debian multimedia
 if grep -q "www.deb-multimedia.org sid main non-free" /etc/apt/sources.list
@@ -391,7 +396,7 @@ sudo apt update
 sudo aptitude -f install -y amd64-microcode android-sdk android-tools-adb android-tools-adbd android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash desktop-base dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gcc-10 gdebi gedit gettext git git-svn gnupg gparted gperf gstreamer1.0-qt5 help2man imagemagick intel-microcode java-propose-classpath kubuntu-restricted-extras kwrite lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openjdk-8-jdk openssh-client openssh-server optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc
 
 ### extras
-sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg 
+sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg
 
 ### list mesa drivers seperately
 sudo aptitude -f install -y vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils mesa-opencl-icd
