@@ -466,6 +466,8 @@ sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland kodi
 sudo aptitude -f install -y shellcheck gnome-disk-utility putty gimp audacity
 
 sudo aptitude -f install -y alien bleachbit
+sudo aptitude -f install -y libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2
+sudo aptitude -f install -y libavcodec-extra58 libavcodec-extra
 
 ### extra
 sudo aptitude -f install -y krdc psensor firefox flatpak
