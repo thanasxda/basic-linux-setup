@@ -381,7 +381,7 @@ if grep -q "debian experimental main" /etc/apt/sources.list
 then
 echo "Flag exists"
 else
-sudo sed -i 's/#deb http://http.debian.net/debian experimental main/g' /etc/apt/sources.list
+sudo sed -i 's/#deb http://http.debian.net/debian experimental main contrib non-free/g' /etc/apt/sources.list
 fi
 
 ### add debian unstable repos
