@@ -108,12 +108,12 @@ ForegroundPositive=39,174,96
 ForegroundVisited=76,99,125
 
 [General]
-BrowserApplication[$e]=firefox-esr.desktop
+BrowserApplication[$e]=brave-browser-beta.desktop
 ColorScheme=AritimDark
-Name=Kali-Dark
+Name=Glassy
 XftHintStyle=hintslight
 XftSubPixel=rgb
-dbfile=/home/x/.mozilla/firefox/njgsg8tb.default/places.sqlite
+dbfile=/home/x/.mozilla/firefox/zk1bmsw3.default/places.sqlite
 fixed=Hack,9,-1,5,50,0,0,0,0,0
 font=Noto Sans,10,-1,5,50,0,0,0,0,0
 menuFont=Noto Sans,10,-1,5,50,0,0,0,0,0

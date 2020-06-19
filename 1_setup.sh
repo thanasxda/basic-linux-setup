@@ -67,6 +67,12 @@ sudo apt -f install -y && sudo apt --fix-missing install -y
 printf 'y\ny\n' | sudo dpkg-reconfigure kexec-tools
 
 
+### brave
+sudo apt install apt-transport-https curl
+curl -s https://brave-browser-apt-beta.s3.brave.com/brave-core-nightly.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
+echo "deb [arch=amd64] https://brave-browser-apt-beta.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-beta.list
+sudo apt update
+sudo aptitude -f install -y brave-browser-beta
 
 
 ####### GIT CONFIGURATION ###########################################################################
@@ -157,18 +163,21 @@ cd $basicsetup/.mozilla/firefox/.default-release
 sudo \cp -rf prefs.js ~/.mozilla/firefox/*.default-esr/prefs.js
 cd $source
 
-### install firefox modules
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3539016/adblock_plus-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3560936/duckduckgo_privacy_essentials-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3502002/youtube_audio_only-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocker_for_youtubetm-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3534334/video_downloadhelper-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/805784/kde_connect-*
-yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
+### install browser modules
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3539016/adblock_plus-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3560936/duckduckgo_privacy_essentials-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3502002/youtube_audio_only-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocker_for_youtubetm-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3534334/video_downloadhelper-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/805784/kde_connect-*
+#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
 
-
+#yes | brave-browser-beta https://chrome.google.com/webstore/detail/duckduckgo-privacy-essent/bkdgflcldnnnapblkhphbgpggdiikppg
+#yes | brave-browser-beta https://chrome.google.com/webstore/detail/adblock-%E2%80%94-best-ad-blocker/gighmmpiobklfepjocnamgkkbiglidom
+yes | brave-browser-beta https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
+yes | brave-browser-beta https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
 
 
 ####### SWAP CONFIGURATION ##########################################################################
