@@ -362,6 +362,20 @@ sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-
 sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free/g' /etc/apt/sources.list
 fi
 
+### kali
+if grep -q "kali-dev" /etc/apt/sources.list
+then
+echo "Flag exists"
+else
+sudo echo '
+deb http://http.kali.org/kali kali-debian-picks main non-free contrib
+deb http://http.kali.org/kali debian-testing main non-free contrib
+deb http://http.kali.org/kali kali-dev main non-free contrib
+deb http://http.kali.org/kali kali-experimental main non-free contrib
+deb http://http.kali.org/kali kali-last-snapshot main non-free contrib
+' | sudo tee -a /etc/apt/sources.list
+fi
+
 ### add debian experimental
 if grep -q "debian experimental main" /etc/apt/sources.list
 then
