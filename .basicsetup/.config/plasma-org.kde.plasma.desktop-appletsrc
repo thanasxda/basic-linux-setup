@@ -76,8 +76,8 @@ plugin=org.kde.plasma.taskmanager
 
 [Containments][2][Applets][22][Configuration]
 PreloadWeight=0
-localPath=~/.local/share/plasma_icons/brave-browser-beta (1).desktop
-url=file:///usr/share/applications/brave-browser-beta.desktop
+localPath=~/.local/share/plasma_icons/brave-browser-nightly (1).desktop
+url=file:///usr/share/applications/brave-browser-nightly.desktop
 
 [Containments][127][Applets][130][Configuration][ConfigDialog]
 DialogHeight=540
@@ -225,8 +225,8 @@ PreloadWeight=18
 AppletOrder=142;129;144;143;145;154;156;155;146;147;148;149;130;131;133;134
 
 [Containments][23][Applets][47][Configuration]
-localPath=~/.local/share/plasma_icons/brave-browser-beta (1).desktop
-url=file:///usr/share/applications/brave-browser-beta.desktop
+localPath=~/.local/share/plasma_icons/brave-browser-nightly (1).desktop
+url=file:///usr/share/applications/brave-browser-nightly.desktop
 
 [Containments][132]
 activityId=

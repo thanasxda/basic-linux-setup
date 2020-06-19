@@ -108,7 +108,7 @@ ForegroundPositive=39,174,96
 ForegroundVisited=76,99,125
 
 [General]
-BrowserApplication[$e]=brave-browser-beta.desktop
+BrowserApplication[$e]=brave-browser-nightly.desktop
 ColorScheme=AritimDark
 Name=Glassy
 XftHintStyle=hintslight

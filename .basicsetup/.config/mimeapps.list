@@ -1,4 +1,4 @@
-[Added Associations]
+ve[Added Associations]
 application/x-shellscript=atom.desktop;
 application/x-trash=atom.desktop;
 text/plain=atom-2.desktop;atom.desktop;
@@ -9,7 +9,7 @@ application/x-shellscript=atom.desktop;
 application/x-trash=atom.desktop;
 text/plain=atom-2.desktop;
 text/x-matlab=atom.desktop;
-x-scheme-handler/http=brave-browser-beta.desktop;
-x-scheme-handler/https=brave-browser-beta.desktop;
+x-scheme-handler/http=brave-browser-nightly.desktop;
+x-scheme-handler/https=brave-browser-nightly.desktop;
 x-scheme-handler/x-github-client=github-desktop.desktop
 x-scheme-handler/x-github-desktop-auth=github-desktop.desktop
