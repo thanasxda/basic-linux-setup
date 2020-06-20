@@ -10,7 +10,7 @@ GLPreferBufferSwap=c
 GLTextureFilter=2
 HiddenPreviews=5
 OpenGLIsUnsafe=false
-WindowsBlockCompositing=false
+WindowsBlockCompositing=true
 XRenderSmoothScale=false
 
 [Desktops]
