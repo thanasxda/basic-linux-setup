@@ -23,6 +23,48 @@ Note: **<font color='red'>DO NOT run the script as SU!</font> (unless root is yo
 ```
 sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout kali && chmod 755 *.sh && ./1*
 ```
+## f2fs rootfs on kali
+
+there is an easy method to get f2fs on distro's which doesn't involve taking a backup image and manually restoring and adjusting it.
+goes as follows.
+
+as opposed to a regular installation you will need to download the [kali-linux-2020-*-live-amd64.iso](https://cdimage.kali.org/kali-images/kali-weekly/) this time.
+flash on usb using underneath command, or just pick your own method of flashing the image onto any medium.
+```
+sudo dd if=/path/to/image of=/path/to/bootablemedia bs=10M
+```
+once done boot it, if possible set bios to uefi only mode.
+after the live usb is booted run. (remember if you reboot you need to redo these steps since the live usb will reset all upon reboot)
+```
+sudo apt update && sudo apt install -y f2fs-tools calamares calamares-settings-debian
+```
+now check on which medium the iso installation is mounted using:
+```
+sudo fdisk -l
+```
+then proceed on mounting the usb installation on root so calamares installer can detect it. (sdXX for ex sdb2, path to installation iso)
+```
+sudo mount /dev/sdXX /mnt
+```
+now finally run the calamares installer.
+```
+sudo ./calamares
+```
+proceed with the setup, however choose manual partitioning.
+format first partition with a size of 512mb as FAT32. set it's mountpoint to '/boot/efi' and pick 'boot' from flags.
+for the second partition pick F2FS and make it whatever size you wish to run your distro on select mountpoint '/' no bootalble flags required.
+proceed with the installation and reboot once done.
+once  rebooted into the f2fs installed system run.
+```
+sudo apt update && sudo apt install -y tasksel && sudo tasksel
+```
+now clear selection of xfce desktop, pick kde and proceed.
+calamares will also overwrite sources.list so in this case recover it like this:
+```
+sudo bash -c 'echo "deb http://http.kali.org/kali kali-rolling main non-free contrib
+"  > /etc/apt/sources.list'
+```
+you can now move on to running the basic-linux-setup while on f2fs.
 
 ## Links
 - [kubuntu branch: Kubuntu daily build - KDE/plasma desktop (groovy-desktop-amd64.iso)](http://cdimage.ubuntu.com/kubuntu/daily-live/current/)
