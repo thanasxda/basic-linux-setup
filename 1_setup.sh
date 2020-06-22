@@ -260,7 +260,8 @@ else
 sudo sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime,nodiratime/g' /etc/fstab
 fi
 ### tmpfs
-if grep -q "tmpfs" /etc/fstab
+sudo sed -i 's+/tmp           tmpfs   defaults,noatime,mode=1777 0 0++g' /etc/fstab
+if grep -q "/run/shm" /etc/fstab
 then
 echo "Flag exists"
 else
