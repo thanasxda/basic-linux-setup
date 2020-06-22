@@ -139,6 +139,8 @@ sudo rsync -v -K -a --force  MalakasUniverse /usr/share/wallpapers
 sudo \cp -rf  splash.jpg /boot/grub
 
 ### copy kde optimal preconfiguration
+sudo pkill brave-browser-nightly
+sudo pkill brave-browser-beta
 sudo rsync -v -K -a --force --include=".*" .config ~/
 sudo rsync -v -K -a --force --include=".*" .kde ~/
 sudo rsync -v -K -a --force --include=".*" .local ~/
