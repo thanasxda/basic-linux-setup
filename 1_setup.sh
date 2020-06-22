@@ -151,16 +151,16 @@ cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
 
 ####### FIREFOX CONFIGURATION
 ### installation firefox addons, install as firefox opens. close firefox and reclick on console ###############
-echo -e "${magenta}"                                                                                          #
-echo INSTALL FIREFOX ADDONS ONE BY ONE, AFTER CLOSE FIREFOX AND CLICK ON CLI TILL ALL ADDONS ARE INSTALLED!!! #
-echo -e "${restore}"                                                                                          #
+#echo -e "${magenta}"                                                                                          #
+#echo INSTALL FIREFOX ADDONS ONE BY ONE, AFTER CLOSE FIREFOX AND CLICK ON CLI TILL ALL ADDONS ARE INSTALLED!!! #
+#echo -e "${restore}"                                                                                          #
 ###############################################################################################################
-sudo pkill firefox
-echo sorry for that firefox crash. part of setup...
+#sudo pkill firefox
+#echo sorry for that firefox crash. part of setup...
 
 ### copy firefox advanced settings and enable hw acceleration
-cd $basicsetup/.mozilla/firefox/.default-release
-sudo \cp -rf prefs.js ~/.mozilla/firefox/*.default-esr/prefs.js
+#cd $basicsetup/.mozilla/firefox/.default-release
+#sudo \cp -rf prefs.js ~/.mozilla/firefox/*.default-esr/prefs.js
 cd $source
 
 ### install browser modules
