@@ -246,18 +246,25 @@ fi
 
 ### fstab flags
 ### ext4
-if grep -q "noatime" /etc/fstab
+if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
 sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,nodiratime,errors=remount-ro/g' /etc/fstab
 fi
 ### xfs
-if grep -q "noatime" /etc/fstab
+if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
 sudo sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime,nodiratime/g' /etc/fstab
+fi
+### f2fs
+if grep -q "f2fs     rw,noatime,lazytime" /etc/fstab
+then
+echo "Flag exists"
+else
+sudo sed -i 's/f2fs    defaults,noatime/f2fs     rw,noatime,lazytime,background_gc=on,discard,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota/g' /etc/fstab
 fi
 ### tmpfs
 sudo sed -i 's+/tmp           tmpfs   defaults,noatime,mode=1777 0 0++g' /etc/fstab
