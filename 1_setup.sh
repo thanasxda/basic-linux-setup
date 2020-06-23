@@ -370,7 +370,7 @@ sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic mai
 sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
 sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
 sudo sh -c 'echo "deb https://apt.tvheadend.org/stable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
-sudo sh -c 'echo "deb https://apt.tvheadend.org/unstablestable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
+sudo sh -c 'echo "deb https://apt.tvheadend.org/unstable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
 
 ### add debian multimedia
 if grep -q "www.deb-multimedia.org" /etc/apt/sources.list
@@ -508,7 +508,7 @@ sudo aptitude -f install -y libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2
 sudo aptitude -f install -y libavcodec-extra58 libavcodec-extra
 
 ### extra
-sudo aptitude -f install -y krdc psensor firefox flatpak
+sudo aptitude -f install -y psensor firefox flatpak
 
 ### fwupd
 sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd
@@ -562,6 +562,11 @@ rm -rf google-earth-pro*
 #sudo dpkg -i usb-creator*
 #sudo apt -f install -y && sudo apt --fix-broken install -y
 #rm -rf usb-creator*
+
+wget https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.529-Linux-x64.deb
+sudo dpkg -i VNC-V*
+sudo apt -f install -y && sudo apt --fix-broken install -y
+rm -rf VNC-V*
 
 wget http://ftp.br.debian.org/debian/pool/main/d/diffuse/diffuse_0.4.8-4_all.deb
 sudo dpkg -i diffuse*
@@ -629,8 +634,9 @@ sudo apt remove -y intel-microcode
 sudo apt remove -y amd-microcode
 
 ### make sure all is set up right
-sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && sudo apt -f upgrade --with-new-pkgs -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
-sudo apt autoclean
+sudo dpkg --configure -a && sudo apt update && sudo apt -f full-upgrade -y && sudo apt -f upgrade --with-new-pkgs -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
+sudo apt --purge autoremove -y && sudo apt purge
+sudo apt autoclean && sudo apt clean
 sudo aptitude install -y prelink irqbalance && sudo prelink -amR
 
 
