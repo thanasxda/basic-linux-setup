@@ -8,6 +8,9 @@ really_clear_history=true
 LaunchCounts=
 pluginWhiteList=services,shell,bookmarks,baloosearch,locations
 
+[PlasmaTransientsConfig]
+PreloadWeight=10
+
 [PlasmaViews][Panel 111][Defaults]
 thickness=36
 

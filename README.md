@@ -1,6 +1,6 @@
 ## About
 
-- different branches for different distros, as of right now (kde) kali and (k)ubuntu groovy 20.10. (don't forget to checkout to distro branch)
+- different branches for different distros, as of right now (kde) debian-clean (kde) kali and (k)ubuntu groovy 20.10. (don't forget to checkout to distro branch)
 - hash out script sections for compatibility if other distro.
 - auto compiles&installs thanas-x86-64-kernel upon completion, based on latest modded fork of torvalds dev git.
 - built with latest daily llvm-11 for now.

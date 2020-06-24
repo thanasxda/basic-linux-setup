@@ -4,7 +4,7 @@
 
 ###### SET VARIABLES
 source="$(pwd)"
-distro=kali
+distro=debian
 
 ###### SET BASH COLORS
 magenta="\033[05;1;95m"
