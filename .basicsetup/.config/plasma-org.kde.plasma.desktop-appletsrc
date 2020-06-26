@@ -21,24 +21,59 @@ wallpaperplugin=org.kde.image
 
 [Containments][126][Applets][150]
 immutability=1
-plugin=org.kde.plasma.systemmonitor.cpu
+plugin=org.kde.plasma.systemmonitor
 
 [Containments][126][Applets][150][Configuration]
 PreloadWeight=10
 
+[Containments][126][Applets][150][Configuration][Appearance]
+chartFace=org.kde.ksysguard.piechart
+title=Total CPU Use
+
+[Containments][126][Applets][150][Configuration][SensorColors]
+cpu/system/TotalLoad=43,82,120
+
+[Containments][126][Applets][150][Configuration][Sensors]
+highPrioritySensorIds=["cpu/system/TotalLoad"]
+totalSensors=["cpu/system/TotalLoad"]
+
 [Containments][126][Applets][152]
 immutability=1
-plugin=org.kde.plasma.systemmonitor.memory
+plugin=org.kde.plasma.systemmonitor
 
 [Containments][126][Applets][152][Configuration]
 PreloadWeight=10
 
+[Containments][126][Applets][152][Configuration][Appearance]
+chartFace=org.kde.ksysguard.piechart
+title=Memory Usage
+
+[Containments][126][Applets][152][Configuration][SensorColors]
+mem/physical/allocated=43,82,120
+mem/physical/allocatedlevel=120,81,43
+
+[Containments][126][Applets][152][Configuration][Sensors]
+highPrioritySensorIds=["mem/physical/allocated","mem/physical/allocatedlevel"]
+lowPrioritySensorIds=["mem/physical/total"]
+totalSensors=["mem/physical/allocatedlevel"]
+
 [Containments][126][Applets][153]
 immutability=1
-plugin=org.kde.plasma.systemmonitor.net
+plugin=org.kde.plasma.systemmonitor
 
 [Containments][126][Applets][153][Configuration]
 PreloadWeight=10
+
+[Containments][126][Applets][153][Configuration][Appearance]
+chartFace=org.kde.ksysguard.linechart
+title=Network speed
+
+[Containments][126][Applets][153][Configuration][SensorColors]
+network/all/receivedDataRate=43,82,120
+network/all/sentDataRate=120,81,43
+
+[Containments][126][Applets][153][Configuration][Sensors]
+highPrioritySensorIds=["network/all/receivedDataRate","network/all/sentDataRate"]
 
 [Containments][126][ConfigDialog]
 DialogHeight=540
@@ -48,6 +83,8 @@ DialogWidth=720
 PreloadWeight=0
 
 [Containments][126][General]
+ToolBoxButtonState=topcenter
+ToolBoxButtonX=728
 alignment=1
 sortMode=6
 
@@ -117,7 +154,7 @@ DialogWidth=720
 [Containments][127][Applets][142][Configuration][General]
 alphaSort=true
 appNameFormat=2
-customButtonImage=kali-www
+customButtonImage=fedora-logo-icon
 favoritesPortedToKAstats=true
 recentOrdering=1
 showIconsRootLevel=true
@@ -143,24 +180,6 @@ PreloadWeight=10
 localPath=~/.local/share/plasma_icons/org.kde.dolphin (3).desktop
 url=file:///usr/share/applications/org.kde.dolphin.desktop
 
-[Containments][127][Applets][146]
-immutability=1
-plugin=org.kde.plasma.icon
-
-[Containments][127][Applets][146][Configuration]
-PreloadWeight=10
-localPath=~/.local/share/plasma_icons/diffuse (3).desktop
-url=file:///usr/share/applications/diffuse.desktop
-
-[Containments][127][Applets][147]
-immutability=1
-plugin=org.kde.plasma.icon
-
-[Containments][127][Applets][147][Configuration]
-PreloadWeight=10
-localPath=~/.local/share/plasma_icons/atom (3).desktop
-url=file:///usr/share/applications/atom.desktop
-
 [Containments][127][Applets][148]
 immutability=1
 plugin=org.kde.plasma.icon
@@ -184,18 +203,18 @@ immutability=1
 plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][157][Configuration]
-localPath=~/.local/share/plasma_icons/brave-browser-nightly.desktop
+localPath=~/.local/share/plasma_icons/brave-browser-nightly (1).desktop
 url=file:///usr/share/applications/brave-browser-nightly.desktop
 
 [Containments][127][ConfigDialog]
-DialogHeight=84
+DialogHeight=91
 DialogWidth=1920
 
 [Containments][127][Configuration]
 PreloadWeight=0
 
 [Containments][127][General]
-AppletOrder=142;129;157;144;143;154;146;147;148;130;131;133;134
+AppletOrder=142;129;157;144;143;154;148;130;131;133;134
 
 [Containments][132]
 activityId=
@@ -259,12 +278,28 @@ plugin=org.kde.plasma.networkmanagement
 [Containments][132][Applets][141][Configuration]
 PreloadWeight=5
 
+[Containments][132][Applets][158]
+immutability=1
+plugin=org.kde.plasma.keyboardindicator
+
+[Containments][132][Applets][159]
+immutability=1
+plugin=org.kde.plasma.nightcolorcontrol
+
+[Containments][132][Applets][160]
+immutability=1
+plugin=org.kde.plasma.printmanager
+
+[Containments][132][Applets][161]
+immutability=1
+plugin=org.kde.plasma.pkupdates
+
 [Containments][132][Configuration]
 PreloadWeight=0
 
 [Containments][132][General]
-extraItems=org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications
-knownItems=org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications
+extraItems=org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.nightcolorcontrol,org.kde.plasma.pkupdates,org.kde.plasma.printmanager
+knownItems=org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.nightcolorcontrol,org.kde.plasma.pkupdates,org.kde.plasma.printmanager
 
 [Containments][2][Applets][22][Configuration]
 PreloadWeight=0
