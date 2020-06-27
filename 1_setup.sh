@@ -41,6 +41,11 @@ systemctl enable --now apparmor.service
 ### first of all install aptitude to ease out package conflicts
 sudo apt -f install -y aptitude
 
+cd $source
+sudo cp *.list /etc/apt/sources.list.d/
+sudo rm -rf /etc/apt/sources.list.d/*sources.list
+sudo cp preferences /etc/apt/
+sudo cp preferences /etc/apt/preferences.d/
 
 
 
@@ -118,12 +123,9 @@ echo -e "${restore}"                                                            
 cd $basicsetup
 #
 sudo aptitude -f install -y rsync
-
 chmod +x init.sh
 sudo \cp init.sh /init.sh
-cd / && sudo ./init.sh
-cd $basicsetup
-if grep -q "@reboot root -l /init.sh" /etc/crontab
+if grep -q "@reboot root /init.sh" /etc/crontab
 then
 echo "Flag exists"
 else
@@ -216,8 +218,8 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-sudo sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash udev.log_priority=3 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0"' /etc/default/grub
-sudo sed -i '/GRUB_CMDLINE_LINUX/c\GRUB_CMDLINE_LINUX="quiet splash udev.log_priority=3 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0"' /etc/default/grub
+sudo sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+sudo sed -i '/GRUB_CMDLINE_LINUX/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
 ### set grub timeout
 sudo sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### set grub min resolution
@@ -227,8 +229,8 @@ sudo sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### apply grub settings
 sudo update-grub2
 ### grub auto detection
-GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
-sudo grub-install $GRUB_PATH
+#GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
+#sudo grub-install $GRUB_PATH
 
 ### preconfigure ccache and mute output
 if grep -q "USE_CCACHE=1" ~/.bashrc
@@ -248,14 +250,14 @@ if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,nodiratime,errors=remount-ro/g' /etc/fstab
+sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,errors=remount-ro/g' /etc/fstab
 fi
 ### xfs
 if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime,nodiratime/g' /etc/fstab
+sudo sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime/g' /etc/fstab
 fi
 ### f2fs
 if grep -q "f2fs     rw,noatime,lazytime" /etc/fstab
@@ -270,9 +272,9 @@ if grep -q "/run/shm" /etc/fstab
 then
 echo "Flag exists"
 else
-  sudo sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
-  sudo sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
-  sudo sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,nodiratime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
+  sudo sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
 fi
 
 
@@ -338,8 +340,6 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6d975c4791e7ee5e
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys a1715d88e1df1f24
 ### usb stuff
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
-### appimage
-#sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys4af9b16f75ef2fca
 ### multimedia
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
 ### google
@@ -362,14 +362,20 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 2836cb0a8ac93f7a
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B8AC39B0876D807E
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A2F33E359F038ED9
 
-
+cd $source
+sudo cp *.list /etc/apt/sources.list.d/
+sudo rm -rf /etc/apt/sources.list.d/*sources.list
+sudo cp preferences /etc/apt/
+sudo cp preferences /etc/apt/preferences.d/
 
 
 ##################################
 ####### PPA'S
 ### mesa drivers and extras
-sudo add-apt-repository -y ppa:oibaf/graphics-drivers
+#sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 #sudo add-apt-repository -y ppa:git-core/ppa
 #sudo add-apt-repository -y ppa:team-xbmc/ppa
 #sudo add-apt-repository -y ppa:team-xbmc/unstable
@@ -427,16 +433,16 @@ sudo add-apt-repository -y ppa:oibaf/graphics-drivers
 #fi
 
 ### add llvm repos
-if grep -q 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' /etc/apt/sources.list
-then
-echo "Flag exists"
-else
-sudo echo '### llvm git repos' | sudo tee -a /etc/apt/sources.list
-sudo echo 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee -a /etc/apt/sources.list
-sudo echo 'deb-src http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee -a /etc/apt/sources.list
+#if grep -q 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' /etc/apt/sources.list
+#then
+#echo "Flag exists"
+#else
+#sudo echo '### llvm git repos' | sudo tee -a /etc/apt/sources.list
+#sudo echo 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee -a /etc/apt/sources.list
+#sudo echo 'deb-src http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee -a /etc/apt/sources.list
 #sudo echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal main' | sudo tee -a /etc/apt/sources.list
 #sudo echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main' | sudo tee -a /etc/apt/sources.list
-fi
+#fi
 
 
 
@@ -448,17 +454,18 @@ echo THANAS PACKAGES             #
 echo -e "${restore}"             #
 ##################################
 sudo apt update
+sudo aptitude update
 
 sudo aptitude -f install -y android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man imagemagick java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms
 
 ### extras
-sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg apt-listbugs apt-listchanges
+sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg
 
 ### list mesa drivers seperately
 sudo aptitude -f install -y vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils mesa-opencl-icd
 
 ### openwrt toolchain
-#sudo aptitude -f install -y subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath
+sudo aptitude -f install -y subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath
 
 ### kali full packages
 #sudo aptitude -f install -y kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources
@@ -473,18 +480,13 @@ sudo aptitude -f install -y vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa
 #sudo aptitude -f install -y binutils-mips-linux-gnu
 
 ### ensure full clang
-sudo aptitude -f install -y llvm-11
-sudo aptitude -f install -y llvm
-sudo aptitude -f install -y clang-11 lld-11
-#sudo aptitude -f install -y clang-10 lld-10
-#sudo aptitude -f install -y gcc-10
-sudo aptitude -f install -y gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default binutils-multiarch
+sudo aptitude -f install -y libomp-11-dev llvm-11 llvm clang-11 lld-11 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-11-dev
 
 ### ram cache stuff
 #sudo aptitude -f install -y zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
 
 ### kde kali
-sudo aptitude install -y muon kde-baseapps kde-plasma-desktop plasma-browser-integration
+#sudo aptitude install -y muon kde-baseapps kde-plasma-desktop plasma-browser-integration
 
 ### npm
 sudo apt -f install -y npm && sudo apt -f install -y && sudo npm cache clean -f && sudo npm cache clean -f && sudo npm install npm@latest -g
@@ -508,7 +510,8 @@ fi
 
 ### extra thanas packages
 ### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
-sudo aptitude -f install -y f2fs-tools rt-tests uget net-tools wine32 wine
+sudo aptitude -f install -y f2fs-tools xfsprogs rt-tests net-tools
+sudo aptitude -f install -y wine wine32
 sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland kodi
 sudo aptitude -f install -y gimp audacity
 
@@ -543,9 +546,9 @@ apt update
 #rm -rf license* readme* WinSCP*.zip WinSCP*.com
 
 ### usb stuff
-sudo add-apt-repository -y ppa:mkusb/ppa
-sudo apt update
-sudo apt -f install --install-recommends -y mkusb mkusb-nox usb-pack-efi
+#sudo add-apt-repository -y ppa:mkusb/ppa
+#sudo apt update
+#sudo apt -f install --install-recommends -y mkusb mkusb-nox usb-pack-efi
 
 ### extra .deb packages
 cd $source
@@ -628,14 +631,20 @@ echo -e "${restore}"             #
 #mv twisted-clang clang
 #cd $source
 
+sudo aptitude -f install -y kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
+
+sudo apt full-upgrade -y
+
 ### microcode
 sudo apt remove -y intel-microcode
 sudo apt remove -y amd-microcode
 
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
+sudo apt upgrade --with-new-pkgs -y
 sudo apt --purge autoremove -y && sudo apt purge
 sudo apt autoclean && sudo apt clean
+sudo aptitude -f install -y apt-listbugs apt-listchanges
 sudo aptitude install -y prelink irqbalance && sudo prelink -amR
 
 

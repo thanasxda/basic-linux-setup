@@ -25,7 +25,7 @@ RC_KERNEL="${VERSION}.${PATCHLEVEL}.${SUBLEVEL}"-rc*
 ### input kernelname into one of the "manual='name_here*'" underneath
 ### note that the usage of * will remove any kernel starting with that name
 ###### INPUT KERNEL NAME HERE!
-manual=5.7.0-rc4*
+#manual=5.7.0-rc4*
 
 echo -e "${magenta}"
 echo ALL MANUALLY SPECIFIED KERNELS WITHIN THIS SCRIPT WILL BE REMOVED!
@@ -58,8 +58,8 @@ sudo rm -rf /init.sh
 ###### SYSTEM OPTIMIZATION REVERSAL TO STOCK
 sudo sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"' /etc/default/grub
 sudo update-grub2
-GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
-sudo grub-install $GRUB_PATH
+#GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
+#sudo grub-install $GRUB_PATH
 
 ###### COMPLETION
 echo -e "${yellow}"

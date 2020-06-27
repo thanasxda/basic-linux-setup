@@ -1,6 +1,8 @@
+Note: **DROPPED FUTURE SUPPORT FOR ALL BRANCHES EXCEPT OF 'debian-thanas', furthermore the setup is meant for personal use. adjust if necessary. ALL distros use kde desktop**
+
 ## About
 
-- different branches for different distros, as of right now (kde) debian-clean (kde) kali and (k)ubuntu groovy 20.10. (don't forget to checkout to distro branch)
+- different branches for different distros, as of right now debian, ubuntu, fedora and kali (don't forget to checkout to distro branch)
 - hash out script sections for compatibility if other distro.
 - auto compiles&installs thanas-x86-64-kernel upon completion, based on latest modded fork of torvalds dev git.
 - built with latest daily llvm-11 for now.
@@ -21,8 +23,18 @@ Note: **<font color='red'>DO NOT run the script as SU!</font> (unless root is yo
 **copy & paste underneath line in console to start:**
 
 ```
-sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout kali && chmod 755 *.sh && ./1*
+sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout debian-thanas && chmod 755 *.sh && ./1*
 ```
+## alternative filesystems on distros like debian
+
+download [debian-live-testing-amd64-kde.iso](https://cdimage.debian.org/cdimage/weekly-live-builds/amd64/iso-hybrid/debian-live-testing-amd64-kde.iso) and flash it on usb.
+boot up and for example for f2fs and xfs support run underneath command:
+```
+sudo apt update && sudo apt install xfsprogs f2fs-tools
+```
+
+proceed with installation and choose your filesystem through the live usb installation.
+
 ## f2fs rootfs on kali
 
 there is an easy method to get f2fs on distro's which doesn't involve taking a backup image, manually restoring and adjusting it after.
@@ -32,7 +44,7 @@ as opposed to a regular installation you will need to download the [kali-linux-2
 flash on usb using underneath command, or just pick your own method of flashing the image onto any medium.
 example of underneath command: 'sudo dd if=~/Downloads/kali-linux-2020-W26-live-amd64.iso of=/dev/sdb bs=10M'
 ```
-sudo dd if=/path/to/image of=/path/to/bootablemedia bs=10M conv=fsync
+sudo dd if=/path/to/image of=/path/to/bootablemedia bs=10M conv=fsync status=progress
 ```
 once done boot it on live usb mode, if possible set bios to uefi only mode.
 after the live usb is booted run. (remember if you reboot you need to redo these steps since the live usb will reset all upon reboot)
@@ -77,6 +89,7 @@ sudo apt -f remove xfce*
 ```
 
 ## Links
-- [kubuntu branch: Kubuntu daily build - KDE/plasma desktop (groovy-desktop-amd64.iso)](http://cdimage.ubuntu.com/kubuntu/daily-live/current/)
-- [kali branch: Kali weekly build - KDE/plasma desktop (kali-linux-*-installer-netinst-amd64.iso)](https://cdimage.kali.org/kali-images/kali-weekly/)
+- [debian-live-testing-amd64-kde.iso](https://cdimage.debian.org/cdimage/weekly-live-builds/amd64/iso-hybrid/debian-live-testing-amd64-kde.iso)
+- [groovy-desktop-amd64.iso](http://cdimage.ubuntu.com/kubuntu/daily-live/current/)
+- [kali-linux-*-installer-netinst-amd64.iso](https://cdimage.kali.org/kali-images/kali-weekly/)
 - [thanas-x86-64-kernel source](https://github.com/thanasxda/thanas-x86-64-kernel.git)

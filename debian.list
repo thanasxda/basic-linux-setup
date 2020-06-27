@@ -1,0 +1,2 @@
+deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
+deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
