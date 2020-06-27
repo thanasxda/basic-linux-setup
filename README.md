@@ -41,7 +41,7 @@ there is an easy method to get f2fs on distro's which doesn't involve taking a b
 goes as follows...
 
 as opposed to a regular installation you will need to download the [kali-linux-2020-W*-live-amd64.iso](https://cdimage.kali.org/kali-images/kali-weekly/) this time.
-flash on usb using underneath command, or just pick your own method of flashing the image onto any medium.
+flash on usb using underneath command after using 'fdisk -l' command to get to know the partitioning, or just pick your own method of flashing the image onto any medium.
 example of underneath command: 'sudo dd if=~/Downloads/kali-linux-2020-W26-live-amd64.iso of=/dev/sdb bs=10M'
 ```
 sudo dd if=/path/to/image of=/path/to/bootablemedia bs=10M conv=fsync status=progress
@@ -79,7 +79,7 @@ sudo bash -c 'echo "deb http://http.kali.org/kali kali-rolling main non-free con
 ```
 also make sure to install kde's display manager, set is as default and switch to plasma-desktop on login screen after reboot.
 ```
-sudo apt install -y sddm
+sudo apt install -y sddm && sudo dpkg-reconfigure sddm
 ```
 remember that the f2fs filesystem will fsck upon every kernel change on boot.
 you can now move on to running the basic-linux-setup while on f2fs.
@@ -87,6 +87,21 @@ to fully uninstall all usb live kali apps run following command while being logg
 ```
 sudo apt -f remove xfce*
 ```
+note that you can do this trick on several distro's making it possible to directly install a specific unsupported filesystem.
+keep in mind by doing so worst case sometimes depending on distro it would be necessary to mount the distro as chroot  and after installing specific fs support drivers on the system, next to that you would also need to be on grub 2.04 at least to have full support on rootfs (not needing a seperate bootfs), which you also could install from chroot. IF necessary at all following this guide on other distro's the correct way to mount chroot and work on the system would be:
+```
+sudo fdisk -l                         ### check partition layout
+sudo mkdir /mnt/boot
+sudo mkdir /mnt/boot/efi
+sudo mount /dev/sdXX /mnt/boot/efi    ### sdXX example /dev/sda1 bootfs
+sudo mount /dev/sdXX /mnt             ### sdXX example /dev/sda2 rootfs
+sudo mount -t proc none /mnt/proc
+sudo mount --rbind /sys /mnt/sys
+sudo mount --rbind /dev /mnt/dev
+sudo ln -s /etc/resolv.conf /mnt/etc/resolv.conf
+sudo chroot /mnt /bin/bash            ### you are now running the system in chroot
+```
+from there on you can manually get the drivers and update grub to make it work in stubborn cases.
 
 ## Links
 - [debian-live-testing-amd64-kde.iso](https://cdimage.debian.org/cdimage/weekly-live-builds/amd64/iso-hybrid/debian-live-testing-amd64-kde.iso)

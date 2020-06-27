@@ -1,2 +1,2 @@
-deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
-deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
