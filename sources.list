@@ -1,30 +1,59 @@
 ### debian 
 deb http://deb.debian.org/debian/ sid main contrib non-free
 deb http://deb.debian.org/debian/ unstable main contrib non-free
-deb http://http.debian.net/debian experimental main contrib non-free
+deb http://http.debian.net/debian/ experimental main contrib non-free
 
 ### debian-multimedia
-deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free
-deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free
+deb [arch=amd64,i386] http://www.deb-multimedia.org/ unstable main non-free
+deb [arch=amd64,i386] http://www.deb-multimedia.org/ sid main non-free
 
 ### llvm
 deb http://apt.llvm.org/unstable/ llvm-toolchain main
 deb-src http://apt.llvm.org/unstable/ llvm-toolchain main
 
 ###
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Unstable/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma/Debian_Unstable/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps/Debian_Unstable/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Unstable/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Unstable/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma/Debian_Unstable/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps/Debian_Unstable/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Unstable/ ./
 
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Testing/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Testing/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma/Debian_Testing/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps/Debian_Testing/ ./
-#deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Testing/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Testing/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Testing/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma/Debian_Testing/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps/Debian_Testing/ ./
+deb https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Testing/ ./
 
 ###
-#deb http://archive.neon.kde.org/dev/stable focal main
-#deb http://archive.neon.kde.org/dev/unstable focal main
+deb http://archive.neon.kde.org/dev/stable/ focal main
+deb http://archive.neon.kde.org/dev/unstable/ focal main
+
+### default kali
+deb http://http.kali.org/kali/ kali-rolling main non-free contrib
+deb-src http://http.kali.org/kali/ kali-rolling main non-free contrib
+
+### kali extra
+deb http://http.kali.org/kali/ kali-debian-picks main non-free contrib
+deb http://http.kali.org/kali/ debian-testing main non-free contrib
+deb http://http.kali.org/kali/ kali-dev main non-free contrib
+deb http://http.kali.org/kali/ kali-experimental main non-free contrib
+deb http://http.kali.org/kali/ kali-last-snapshot main non-free contrib
+
+###
+deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_10/ ./
+deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
+deb https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
+
+
+
+
+
+
+
+
+
+
+
+
+
 

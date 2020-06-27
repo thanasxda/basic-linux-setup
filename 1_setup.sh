@@ -350,10 +350,18 @@ sudo apt-get -y install coreutils wget apt-transport-https lsb-release ca-certif
 sudo wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | sudo apt-key add -
 ### llvm
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-### 
+### opensuse
 sudo wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | sudo apt-key add -
-### 
- sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E6D4736255751E5D
+sudo wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | sudo apt-key add -
+###
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E6D4736255751E5D
+### kali
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6
+###
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 2836cb0a8ac93f7a
 
 
 
@@ -444,7 +452,7 @@ sudo apt update
 sudo aptitude -f install -y android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man imagemagick java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms
 
 ### extras
-sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg
+sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg apt-listbugs apt-listchanges
 
 ### list mesa drivers seperately
 sudo aptitude -f install -y vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils mesa-opencl-icd
@@ -470,7 +478,7 @@ sudo aptitude -f install -y llvm
 sudo aptitude -f install -y clang-11 lld-11
 #sudo aptitude -f install -y clang-10 lld-10
 #sudo aptitude -f install -y gcc-10
-sudo aptitude -f install -y gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default binutils-multiarch 
+sudo aptitude -f install -y gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default binutils-multiarch
 
 ### ram cache stuff
 #sudo aptitude -f install -y zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
@@ -625,7 +633,7 @@ sudo apt remove -y intel-microcode
 sudo apt remove -y amd-microcode
 
 ### make sure all is set up right
-sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -t experimental --with-new-pkgs -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
+sudo dpkg --configure -a && sudo apt update && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
 sudo apt --purge autoremove -y && sudo apt purge
 sudo apt autoclean && sudo apt clean
 sudo aptitude install -y prelink irqbalance && sudo prelink -amR
