@@ -23,7 +23,7 @@ Note: **<font color='red'>DO NOT run the script as SU!</font> (unless root is yo
 **copy & paste underneath line in console to start:**
 
 ```
-sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout debian-thanas && chmod 755 *.sh && ./1*
+sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && chmod 755 *.sh && ./1*
 ```
 ## alternative filesystems on distros like debian
 

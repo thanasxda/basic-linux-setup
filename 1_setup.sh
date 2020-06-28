@@ -259,7 +259,7 @@ sudo dpkg --add-architecture i386
 sudo aptitude update
 git clone https://github.com/akhilnarang/scripts.git
 cd scripts/setup
-#Keys.ENTER | ./android_build_env.sh
+Keys.ENTER | ./android_build_env.sh
 Keys.ENTER | ./ccache.sh
 
 ### make sure all is set up right
