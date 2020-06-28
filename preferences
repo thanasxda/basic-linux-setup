@@ -2,7 +2,7 @@ Package: *
 Pin: origin deb.debian.org
 Pin-Priority: 990
 
-Package: plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 plasma-framework kio plasma-nm
+Package: plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 plasma-framework kio plasma-nm plasma-desktop lasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
 Pin: origin download.opensuse.org
 Pin-Priority: 990
 
@@ -45,3 +45,8 @@ Pin-Priority: 500
 Package: *
 Pin: origin archive.neon.kde.org
 Pin-Priority: 200
+
+Package: *
+Pin: origin download.opensuse.org
+Pin: release a=Debian_Unstable
+Pin-Priority: 990
