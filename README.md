@@ -1,4 +1,4 @@
-Note: **DROPPED FUTURE SUPPORT FOR ALL BRANCHES EXCEPT OF 'debian-thanas', furthermore the setup is meant for personal use. adjust if necessary. ALL distros use kde desktop**
+Note: **DROPPED FUTURE SUPPORT FOR ALL BRANCHES EXCEPT OF 'debian-minimal', furthermore the setup is meant for personal use. adjust if necessary. ALL distros use kde desktop**
 
 ## About
 

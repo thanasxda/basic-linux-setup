@@ -364,6 +364,7 @@ sudo aptitude -f install -y gimp audacity
 sudo aptitude -f install -y alien bleachbit atom
 sudo aptitude -f install -y libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2
 sudo aptitude -f install -y libavcodec-extra58 libavcodec-extra
+sudo aptitude -f install -y muon
 
 ### extra
 sudo aptitude -f install -y psensor flatpak
