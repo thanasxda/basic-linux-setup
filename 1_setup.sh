@@ -144,6 +144,11 @@ wget https://atom-installer.github.com/v1.48.0/atom.x86_64.rpm?s=1591786015&ext=
 sudo rpm -i atom.x86_64*
 sudo rm -rf atom.x86_64*
 
+mkdir ~/GIT && cd ~/GIT
+git clone https://github.com/akhilnarang/scripts.git
+cd scripts/setup
+Keys.ENTER | ./fedora.sh
+
 ### llvm
 sudo touch /etc/yum.repos.d/che-llvm.repo
 sudo sh -c 'echo "[che-llvm]
