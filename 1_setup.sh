@@ -59,7 +59,18 @@ sudo sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 
 sudo grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
 
-### fstab
+if grep -q "fancy-bash-promt.sh" ~/.bashrc
+then
+echo "Flag exists"
+else
+cd $source
+sudo mkdir /root/.config
+sudo cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
+sudo cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
+bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
+sudo bash -c 'echo "source /root/.config/fancy-bash-promt2.sh" >> /root/.bashrc'
+fi
+
 ### ext4
 if grep -q "lazytime" /etc/fstab
 then
