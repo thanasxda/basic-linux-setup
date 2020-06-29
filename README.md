@@ -1,6 +1,8 @@
+Note: **only the default branch might be updated. scripts are for personal usage. use at own risk.**
+
 ## About
 
-- different branches for different distros, as of right now (kde) kali and (k)ubuntu groovy 20.10. (don't forget to checkout to distro branch)
+- different branches for different distros, as of right now debian, ubuntu, fedora and kali (don't forget to checkout to distro branch)
 - hash out script sections for compatibility if other distro.
 - auto compiles&installs thanas-x86-64-kernel upon completion, based on latest modded fork of torvalds dev git.
 - built with latest daily llvm-11 for now.
@@ -21,18 +23,28 @@ Note: **<font color='red'>DO NOT run the script as SU!</font> (unless root is yo
 **copy & paste underneath line in console to start:**
 
 ```
-sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout kali && chmod 755 *.sh && ./1*
+sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout <ENTER_BRANCH_HERE> && chmod 755 *.sh && ./1*
 ```
+## alternative filesystems on distros like debian
+
+download [debian-live-testing-amd64-kde.iso](https://cdimage.debian.org/cdimage/weekly-live-builds/amd64/iso-hybrid/debian-live-testing-amd64-kde.iso) and flash it on usb.
+boot up and for example for f2fs and xfs support run underneath command:
+```
+sudo apt update && sudo apt install xfsprogs f2fs-tools
+```
+
+proceed with installation and choose your filesystem through the live usb installation.
+
 ## f2fs rootfs on kali
 
 there is an easy method to get f2fs on distro's which doesn't involve taking a backup image, manually restoring and adjusting it after.
 goes as follows...
 
 as opposed to a regular installation you will need to download the [kali-linux-2020-W*-live-amd64.iso](https://cdimage.kali.org/kali-images/kali-weekly/) this time.
-flash on usb using underneath command, or just pick your own method of flashing the image onto any medium.
+flash on usb using underneath command after using 'fdisk -l' command to get to know the partitioning, or just pick your own method of flashing the image onto any medium.
 example of underneath command: 'sudo dd if=~/Downloads/kali-linux-2020-W26-live-amd64.iso of=/dev/sdb bs=10M'
 ```
-sudo dd if=/path/to/image of=/path/to/bootablemedia bs=10M conv=fsync
+sudo dd if=/path/to/image of=/path/to/bootablemedia bs=10M conv=fsync status=progress
 ```
 once done boot it on live usb mode, if possible set bios to uefi only mode.
 after the live usb is booted run. (remember if you reboot you need to redo these steps since the live usb will reset all upon reboot)
@@ -67,7 +79,7 @@ sudo bash -c 'echo "deb http://http.kali.org/kali kali-rolling main non-free con
 ```
 also make sure to install kde's display manager, set is as default and switch to plasma-desktop on login screen after reboot.
 ```
-sudo apt install -y sddm
+sudo apt install -y sddm && sudo dpkg-reconfigure sddm
 ```
 remember that the f2fs filesystem will fsck upon every kernel change on boot.
 you can now move on to running the basic-linux-setup while on f2fs.
@@ -75,8 +87,23 @@ to fully uninstall all usb live kali apps run following command while being logg
 ```
 sudo apt -f remove xfce*
 ```
+note that you can do this trick on several distro's making it possible to directly install a specific unsupported filesystem.
+keep in mind by doing so worst case sometimes depending on distro it would be necessary to mount the distro as chroot  and after installing specific fs support drivers on the system, next to that you would also need to be on grub 2.04 at least to have full support on rootfs (not needing a seperate bootfs), which you also could install from chroot. IF necessary at all following this guide on other distro's the correct way to mount chroot and work on the system would be:
+```
+sudo fdisk -l                         ### check partition layout
+sudo mkdir /mnt/boot /mnt/boot/efi
+sudo mount /dev/sdXX /mnt/boot/efi    ### sdXX example /dev/sda1 bootfs
+sudo mount /dev/sdXX /mnt             ### sdXX example /dev/sda2 rootfs
+sudo mount -t proc none /mnt/proc
+sudo mount --rbind /sys /mnt/sys
+sudo mount --rbind /dev /mnt/dev
+sudo ln -s /etc/resolv.conf /mnt/etc/resolv.conf
+sudo chroot /mnt /bin/bash            ### you are now running the system in chroot
+```
+from there on you can manually get the drivers and update grub to make it work in stubborn cases.
 
 ## Links
-- [kubuntu branch: Kubuntu daily build - KDE/plasma desktop (groovy-desktop-amd64.iso)](http://cdimage.ubuntu.com/kubuntu/daily-live/current/)
-- [kali branch: Kali weekly build - KDE/plasma desktop (kali-linux-*-installer-netinst-amd64.iso)](https://cdimage.kali.org/kali-images/kali-weekly/)
+- [debian-live-testing-amd64-kde.iso](https://cdimage.debian.org/cdimage/weekly-live-builds/amd64/iso-hybrid/debian-live-testing-amd64-kde.iso)
+- [groovy-desktop-amd64.iso](http://cdimage.ubuntu.com/kubuntu/daily-live/current/)
+- [kali-linux-*-installer-netinst-amd64.iso](https://cdimage.kali.org/kali-images/kali-weekly/)
 - [thanas-x86-64-kernel source](https://github.com/thanasxda/thanas-x86-64-kernel.git)
