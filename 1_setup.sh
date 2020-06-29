@@ -507,7 +507,7 @@ sudo apt -f install -y npm && sudo apt -f install -y && sudo npm cache clean -f 
 
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
-sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
+sudo aptitude install -y plasma-workspace-wayland kwayland-integration wayland-protocols
 ### allow root privilege under wayland and supress output
 if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
 then
@@ -535,7 +535,7 @@ sudo aptitude -f install -y libavcodec-extra58 libavcodec-extra
 sudo aptitude -f install -y muon
 
 ### extra
-sudo aptitude -f install -y psensor flatpak
+sudo aptitude -f install -y psensor flatpak plasma-discover-backend-flatpak
 
 ### fwupd
 sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd
