@@ -250,6 +250,7 @@ then
 echo "Flag exists"
 else
 cd $source
+sudo mkdir /root/.config
 sudo cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
 sudo cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
 bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
