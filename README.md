@@ -1,4 +1,4 @@
-Note: **DROPPED FUTURE SUPPORT FOR ALL BRANCHES EXCEPT OF 'debian-minimal', furthermore the setup is meant for personal use. adjust if necessary. ALL distros use kde desktop**
+Note: **only the default branch might be updated. scripts are for personal usage. use at own risk.**
 
 ## About
 
@@ -23,7 +23,7 @@ Note: **<font color='red'>DO NOT run the script as SU!</font> (unless root is yo
 **copy & paste underneath line in console to start:**
 
 ```
-sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && chmod 755 *.sh && ./1*
+sudo apt update && sudo apt -f install -y git && git clone https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout <ENTER_BRANCH_HERE> && chmod 755 *.sh && ./1*
 ```
 ## alternative filesystems on distros like debian
 
