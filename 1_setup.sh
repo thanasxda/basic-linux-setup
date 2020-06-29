@@ -1,7 +1,7 @@
 #!/bin/bash
 ###############################################################
 ###############################################################
-### basic personal setup debian                        ###
+### basic personal setup kali                               ###
 ###############################################################
 ###             https://github.com/thanasxda                ###
 ###############################################################
@@ -22,7 +22,7 @@ restore="\033[0m"                                           ##########
 ###########################################################################
 ### display header                                                      ###
 echo -e "${magenta}"                                                    ###
-echo ".::BASIC-LINUX-SETUP::. - mainly for debian"                      ###
+echo ".::BASIC-LINUX-SETUP::. - mainly for kali"                        ###
 echo -e "${restore}"                                                    ###
 ###########################################################################
 ####### START #############################################################
@@ -34,7 +34,7 @@ sudo chmod 755 *
 #./idafree70_linux.run
 #sudo rm -rf idafree70_linux.run
 
-sudo ./2_restore-debian-sources.sh
+sudo ./2*
 
 systemctl enable --now apparmor.service
 
@@ -660,11 +660,12 @@ sudo apt remove -y amd-microcode
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
 sudo apt upgrade --with-new-pkgs -y
-sudo apt --purge autoremove -y && sudo apt purge
-sudo apt autoclean && sudo apt clean
 sudo aptitude -f install -y apt-listbugs apt-listchanges
 sudo aptitude install -y prelink irqbalance && sudo prelink -amR
 
+cd $basiclinuxsetup
+sudo cp McMojave.tar.xz /tmp/
+sudo cp -a .local ~/
 
 
 

@@ -1,21 +1,14 @@
 Package: *
-Pin: origin deb.debian.org
-Pin-Priority: 990
-
-Package: plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 plasma-framework kio plasma-nm plasma-desktop lasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
-Pin: origin download.opensuse.org
-Pin-Priority: 990
-
-#Package: kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-#resources kali-menu wpscan sbd faraday
-#Pin: origin http.kali.org
-#Pin-Priority: 990
-
-Package: *
 Pin: origin http.kali.org
-Pin-Priority: 500
+Pin-Priority: 990
+
+Package: lsb-release base-files sddm grub* kali-themes kali-menu desktop-base
+Pin: origin http.kali.org
+Pin-Priority: 991
 
 Package: *
-Pin: origin www.deb-multimedia.org
+Pin: origin download.opensuse.org
+Pin: release a=Debian_Unstable
 Pin-Priority: 990
 
 Package: *
@@ -29,14 +22,22 @@ Pin: origin apt.llvm.org
 Pin-Priority: 990
 
 Package: *
+Pin: origin www.deb-multimedia.org
+Pin-Priority: 990
+
+Package: plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 plasma-framework kio plasma-nm plasma-desktop lasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
+Pin: origin download.opensuse.org
+Pin-Priority: 990
+
+Package: *
 Pin: origin download.opensuse.org
 Pin: release a=Debian_Testing
-Pin-Priority: 300
+Pin-Priority: 990
 
 Package: *
 Pin: origin download.opensuse.org
 Pin: release a=Debian_Next
-Pin-Priority: 300
+Pin-Priority: 990
 
 Package: *
 Pin: origin download.opensuse.org
@@ -47,6 +48,5 @@ Pin: origin archive.neon.kde.org
 Pin-Priority: 200
 
 Package: *
-Pin: origin download.opensuse.org
-Pin: release a=Debian_Unstable
+Pin: origin deb.debian.org
 Pin-Priority: 990

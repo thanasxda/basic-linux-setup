@@ -1,11 +1,12 @@
-### debian
-deb [arch=amd64,i386] http://deb.debian.org/debian/ unstable main contrib non-free
-deb [arch=amd64,i386] http://deb.debian.org/debian/ sid main contrib non-free
-
-### debian-multimedia
-deb [arch=amd64,i386] http://www.deb-multimedia.org/ unstable main non-free
-deb [arch=amd64,i386] http://www.deb-multimedia.org/ sid main non-free
+### kali
+deb [arch=amd64,i386] http://http.kali.org/kali/ kali-rolling main non-free contrib
+deb [arch=amd64,i386] http://http.kali.org/kali/ kali-debian-picks main non-free contrib
+deb [arch=amd64,i386] http://http.kali.org/kali/ debian-testing main non-free contrib
+deb [arch=amd64,i386] http://http.kali.org/kali/ kali-dev main non-free contrib
+deb [arch=amd64,i386] http://http.kali.org/kali/ kali-experimental main non-free contrib
+deb [arch=amd64,i386] http://http.kali.org/kali/ kali-last-snapshot main non-free contrib
 
 ### llvm
 deb [arch=amd64,i386] http://apt.llvm.org/unstable/ llvm-toolchain main
 deb-src [arch=amd64,i386] http://apt.llvm.org/unstable/ llvm-toolchain main
+

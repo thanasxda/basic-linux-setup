@@ -27,6 +27,10 @@ echo you already have a "/backup.${distro}.sources.list" in the root of this fol
 echo so there is no need to restore it. it will remain unchanged from initial backup
 echo -e "${restore}"
 sudo cp sources.list /etc/apt/sources.list
+sudo cp *.list /etc/apt/sources.list.d/
+sudo rm -rf /etc/apt/sources.list.d/*sources.list
+sudo cp preferences /etc/apt/
+sudo cp preferences /etc/apt/preferences.d/
 sudo apt update
 echo -e "${yellow}"
 echo done, sources.list restored to basic-linux-setup

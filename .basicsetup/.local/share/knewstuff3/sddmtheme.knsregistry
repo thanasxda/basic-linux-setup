@@ -9,7 +9,7 @@
   <licence></licence>
   <version></version>
   <rating>60</rating>
-  <downloads>189803</downloads>
+  <downloads>55263</downloads>
   <installedfile>/tmp/McMojave.tar.xz</installedfile>
   <id>1312086</id>
   <releasedate>2019-10-07</releasedate>
@@ -17,8 +17,8 @@
   <changelog></changelog>
   <preview>https://cn.opendesktop.org/cache/100x100-0/img/a/6/9/e/3a19d47bca4563dc50d3c61b96bb89e6ba54.png</preview>
   <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/a/6/9/e/3a19d47bca4563dc50d3c61b96bb89e6ba54.png</previewBig>
-  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1NzA0NDc3MjMiLCJvIjoiMSIsInMiOiI4ZWM3YzFkYTA0NTEwY2NkOTA0ZDJkMzQxZjRiNzNiNWNhM2EyZmI5NGU5ZDdlMDUxZDBmYWZkZTU3OWRmOGYwYjM1MjRiZmViOTY3MDQ4MTMyMTUyODMwY2MxYmUxNzJlOGMzY2ZmYzJkMDYyYWNhMjZhMjI3MTllMjdkZjE3YyIsInQiOjE1ODkxMjYxMDIsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny4yMTMuMTUzIn0.i6pZKynLmwEehpyPk1Sn1Txr_u_nws9-rUBSV81TJH0/McMojave.tar.xz</payload>
-  <tags>gplv3,linux,unix</tags>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODkzNzI3ODciLCJvIjoiMSIsInMiOiI5YTVjZWM2OTA1OWUwMWIxMWExMDAwYmZjMTZhNjA2OGQ0MzY5YjQ2NTZhYjI2OGVhNDg4MzIxMGMzODE2Nzg5YzhlNjMzN2M1OWUxNTg1OThmNmE0YThkZmE2ZDk1YTI0ZjRlNjA5OWJlNGQ2MWQ3MDc0MjcwYjkzYmY3NGIwOCIsInQiOjE1OTM0Mjg5NjAsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny40My4xMDIifQ.q-OtTZiBL5w0EHodGbcRUw82K4BQw0fite9Hd43eFpM/McMojave.tar.xz</payload>
+  <tags>linux,unix,gplv3</tags>
   <status>installed</status>
  </stuff>
 </hotnewstuffregistry>
