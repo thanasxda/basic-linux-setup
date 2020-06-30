@@ -7,6 +7,12 @@ Switch keyboard layout to English (US)=none,none,Switch keyboard layout to Engli
 Switch to Next Keyboard Layout=Ctrl+Alt+K,Ctrl+Alt+K,Switch to Next Keyboard Layout
 _k_friendly_name=KDE Daemon
 
+[brave-browser-nightly.desktop]
+_k_friendly_name=Launch Brave Web Browser (nightly)
+_launch=Meta+B,none,Launch Brave Web Browser (nightly)
+new-private-window=,none,New Incognito Window
+new-window=none,none,New Window
+
 [kaccess]
 Toggle Screen Reader On and Off=Meta+Alt+S,Meta+Alt+S,Toggle Screen Reader On and Off
 _k_friendly_name=Accessibility
@@ -23,10 +29,8 @@ _k_friendly_name=KDE Daemon
 display=Display\tMeta+P,Display\tMeta+P,Switch Display
 
 [khotkeys]
-_k_friendly_name=System Settings
+_k_friendly_name=KDE Daemon
 {523a3c2b-67a4-4700-a176-c818d11fd920}=Meta+T,none,Launch Konsole
-{6e522ebd-1451-4bbb-bbd2-3143cb72a3cd}=none,none,Close Konsole
-{8d47b018-5685-4da1-b269-7d5b1c6407a1}=,none,New Action
 {d03619b6-9b3c-48cc-9d9c-a2aadb485550}=,none,Search
 
 [kmix]
