@@ -527,7 +527,7 @@ fi
 sudo aptitude -f install -y f2fs-tools xfsprogs rt-tests net-tools
 sudo aptitude -f install -y wine wine32
 sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland kodi
-sudo aptitude -f install -y gimp audacity
+sudo aptitude -f install -y gimp audacity uget
 
 sudo aptitude -f install -y alien bleachbit atom
 sudo aptitude -f install -y libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2
