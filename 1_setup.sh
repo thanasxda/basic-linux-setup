@@ -507,7 +507,7 @@ sudo apt -f install -y npm && sudo apt -f install -y && sudo npm cache clean -f 
 
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
-sudo aptitude install -y plasma-workspace-wayland kwayland-integration wayland-protocols
+sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
 ### allow root privilege under wayland and supress output
 if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
 then
@@ -650,8 +650,9 @@ echo -e "${restore}"             #
 
 sudo apt full-upgrade -y
 sudo apt -f install -y kde-config-systemd firewall* gnome-maps minitube
-sudo apt install -y -t Debian_Unstable plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
-sudo apt upgrade --with-new-pkgs -t Debian_Unstable -y
+sudo apt install -y plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
+sudo apt upgrade --with-new-pkgs -y #-t Debian_Unstable
+sudo apt full-upgrade -y -t Debian_Unstable
 
 ### microcode
 sudo apt remove -y intel-microcode
