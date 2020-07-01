@@ -650,7 +650,8 @@ echo -e "${restore}"             #
 #sudo aptitude -f install -y kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
 
 sudo apt full-upgrade -y
-sudo apt -f install -y kde-config-systemd firewall* gnome-maps minitube
+sudo apt -f install -y kde-config-systemd firewall* gnome-maps minitube packagekit
+sudo aptitude -f install -y plasma-discover-backend*
 sudo apt install -y plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
 sudo apt upgrade --with-new-pkgs -y #-t Debian_Unstable
 sudo apt full-upgrade -y -t Debian_Unstable
@@ -662,8 +663,7 @@ sudo apt remove -y amd-microcode
 ### make sure all is set up right
 sudo dpkg --configure -a && sudo apt update && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
 sudo apt upgrade --with-new-pkgs -y
-sudo apt --purge autoremove -y && sudo apt purge
-sudo apt autoclean && sudo apt clean
+sudo pkcon refresh && sudo pkcon update -y
 sudo aptitude -f install -y apt-listbugs apt-listchanges
 sudo aptitude install -y prelink irqbalance && sudo prelink -amR
 
