@@ -1,7 +1,7 @@
 #!/bin/bash
 ###############################################################
 ###############################################################
-### basic personal setup debian                        ###
+###              basic personal setup debian                ###
 ###############################################################
 ###             https://github.com/thanasxda                ###
 ###############################################################
@@ -11,14 +11,12 @@
 ### DON'T RUN AS SU!!! DIRS ARE NOT /home/root/             ###
 ###############################################################
 ###############################################################
-### dir variables - don't change                            ###
-source="$(pwd)"                                             ###
-basicsetup=$source/.basicsetup                              ###
-###############################################################
-### set bash colors                                         ####
-magenta="\033[05;1;95m"                                     #####
-yellow="\033[1;93m"                                         #######
-restore="\033[0m"                                           ##########
+
+### bash colors
+magenta="\033[05;1;95m"
+yellow="\033[1;93m"
+restore="\033[0m"
+
 ###########################################################################
 ### display header                                                      ###
 echo -e "${magenta}"                                                    ###
@@ -26,28 +24,34 @@ echo ".::BASIC-LINUX-SETUP::. - mainly for debian"                      ###
 echo -e "${restore}"                                                    ###
 ###########################################################################
 ####### START #############################################################
-# all underneath setup parts marked with many "!!!" need to be set according to your distro
-# for transposable compatibility in case it is not used for KDE Kali
+
+### dir variables
+source="$(pwd)"
+basicsetup=$source/.basicsetup
+
+### variables
+ins="aptitude -f install -y"
+apt="apt -f install -y"
+s="sudo"
+key="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
 
 #wget https://out7.hex-rays.com/files/idafree70_linux.run
-sudo chmod 755 *
+$s chmod 755 *
 #./idafree70_linux.run
-#sudo rm -rf idafree70_linux.run
+#$s rm -rf idafree70_linux.run
 
-sudo ./2_restore-debian-sources.sh
+$s ./2*
 
 systemctl enable --now apparmor.service
 
 ### first of all install aptitude to ease out package conflicts
-sudo apt -f install -y aptitude
+$s $apt aptitude
 
 cd $source
-sudo cp *.list /etc/apt/sources.list.d/
-sudo rm -rf /etc/apt/sources.list.d/*sources.list
-sudo cp preferences /etc/apt/
-sudo cp preferences /etc/apt/preferences.d/
-
-
+$s cp *.list /etc/apt/sources.list.d/
+$s rm -rf /etc/apt/sources.list.d/*sources.list
+$s cp preferences /etc/apt/
+$s cp preferences /etc/apt/preferences.d/
 
 ####### GENERAL DIRECTORIES #########################################################################
 #####################################################################################################
@@ -56,49 +60,38 @@ git=~/GIT
 tc=~/TOOLCHAIN
 mkdir -p $git && mkdir -p $tc
 
-
-
-
 ####### MINOR LINUX OPTIMIZATIONS ###################################################################
 #####################################################################################################
 ### optimizations press -y & enter
-printf 'y\n' | sudo dpkg-reconfigure dash
-sudo aptitude -f install -y kexec-tools
-sudo apt -f install -y && sudo apt --fix-missing install -y
-printf 'y\ny\n' | sudo dpkg-reconfigure kexec-tools
-
+printf 'y\n' | $s dpkg-reconfigure dash
+$s $ins kexec-tools
+$s $apt && $s apt --fix-missing install -y
+printf 'y\ny\n' | $s dpkg-reconfigure kexec-tools
 
 ### brave
-sudo aptitude -f install -y apt-transport-https curl
-curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | sudo apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
-echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | sudo tee /etc/apt/sources.list.d/brave-browser-nightly.list
-sudo apt update
-sudo apt install -y brave-browser-nightly
-
+$s $ins apt-transport-https curl
+curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | $s apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
+echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | $s tee /etc/apt/sources.list.d/brave-browser-nightly.list
+$s apt update
+$s $ins brave-browser-nightly
 
 ####### GIT CONFIGURATION ###########################################################################
 #####################################################################################################
 ### your git name & email - unhash and set up for personal usage
-sudo aptitude -f install -y git curl
+$s $ins git curl
 #git config --global user.name thanasxda
 #git config --global user.email 15927885+thanasxda@users.noreply.github.com
-
-
-
 
 ####### EULA LICENSE AGREEMENTS #####################################################################
 #####################################################################################################
 ### take care of licenses first  #
-sudo apt update                  #
+$s apt update                  #
 echo -e "${yellow}"              #
 echo LICENSES                    #
 echo -e "${restore}"             #
 ##################################
-echo ttf-mscorefonts-installer ttf-mscorefonts-installer/accepted-ttf-mscorefonts-installer-eula select true | sudo debconf-set-selections
-sudo aptitude -f install -y ttf-mscorefonts-installer
-
-
-
+echo ttf-mscorefonts-installer ttf-mscorefonts-installer/accepted-ttf-mscorefonts-installer-eula select true | $s debconf-set-selections
+$s $ins ttf-mscorefonts-installer
 
 ####### SYSTEM CONFIGURATION ########################################################################
 #####################################################################################################
@@ -112,7 +105,7 @@ echo setting up weekly fstrim... #
 echo -e "${restore}"             #
 ##################################
 ### trigger weekly fstrim
-sudo systemctl start fstrim.timer
+$s systemctl start fstrim.timer
 
 ### set up init.sh for kernel configuration #########################################
 echo -e "${yellow}"                                                                 #
@@ -122,32 +115,31 @@ echo -e "${restore}"                                                            
 #####################################################################################
 cd $basicsetup
 #
-sudo aptitude -f install -y rsync
+$s $ins rsync
 chmod +x init.sh
-sudo \cp init.sh /init.sh
+$s \cp init.sh /init.sh
 if grep -q "@reboot root /init.sh" /etc/crontab
 then
 echo "Flag exists"
 else
-sudo sed -i "\$a@reboot root /init.sh" /etc/crontab
+$s sed -i "\$a@reboot root /init.sh >/dev/null" /etc/crontab
 fi
 
 ### copy wallpaper & grub splash
-sudo rsync -v -K -a --force  MalakasUniverse /usr/share/wallpapers
-#sudo \cp -rf  splash.jpg /boot/grub
+$s rsync -v -K -a --force  MalakasUniverse /usr/share/wallpapers
+#$s \cp -rf  splash.jpg /boot/grub
 
 ### copy kde optimal preconfiguration
-sudo pkill brave-browser-nightly
-#sudo pkill brave-browser-beta
-sudo rsync -v -K -a --force --include=".*" .config ~/
-sudo rsync -v -K -a --force --include=".*" .kde ~/
-sudo rsync -v -K -a --force --include=".*" .local ~/
-sudo rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
-sudo rsync -v -K -a --force --include=".*" .kodi ~/
+$s pkill brave-browser-nightly
+#$s pkill brave-browser-beta
+$s rsync -v -K -a --force --include=".*" .config ~/
+$s rsync -v -K -a --force --include=".*" .kde ~/
+$s rsync -v -K -a --force --include=".*" .local ~/
+$s rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
+$s rsync -v -K -a --force --include=".*" .kodi ~/
 
 ### fix ownership preconfig - rare cases
-cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
-
+cd ~/ && $s chown -R $(id -u):$(id -g) $HOME
 
 ####### FIREFOX CONFIGURATION
 ### installation firefox addons, install as firefox opens. close firefox and reclick on console ###############
@@ -155,12 +147,12 @@ cd ~/ && sudo chown -R $(id -u):$(id -g) $HOME
 #echo INSTALL FIREFOX ADDONS ONE BY ONE, AFTER CLOSE FIREFOX AND CLICK ON CLI TILL ALL ADDONS ARE INSTALLED!!! #
 #echo -e "${restore}"                                                                                          #
 ###############################################################################################################
-#sudo pkill firefox
+#$s pkill firefox
 #echo sorry for that firefox crash. part of setup...
 
 ### copy firefox advanced settings and enable hw acceleration
 #cd $basicsetup/.mozilla/firefox/.default-release
-#sudo \cp -rf prefs.js ~/.mozilla/firefox/*.default-esr/prefs.js
+#$s \cp -rf prefs.js ~/.mozilla/firefox/*.default-esr/prefs.js
 cd $source
 
 ### install browser modules
@@ -179,7 +171,6 @@ cd $source
 yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
 yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
 
-
 ####### SWAP CONFIGURATION ##########################################################################
 #####################################################################################################
 ### configure swap               #
@@ -194,21 +185,18 @@ if grep -q "/swapfile" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i "\$a/swapfile    none    swap    sw    0    0" /etc/fstab
+$s sed -i "\$a/swapfile    none    swap    sw    0    0" /etc/fstab
 fi
-sudo swapoff -a
-sudo dd if=/dev/zero of=/swapfile bs=$swap count=1024
-sudo chmod 600 /swapfile
-sudo mkswap /swapfile
-sudo swapon -a
-sudo free -h
+$s swapoff -a
+$s dd if=/dev/zero of=/swapfile bs=$swap count=1024
+$s chmod 600 /swapfile
+$s mkswap /swapfile
+$s swapon -a
+$s free -h
 ### set swappiness to a low value for ram preference
-sudo sysctl vm.swappiness=$swappiness
+$s sysctl vm.swappiness=$swappiness
 ### LVM
 #/vgkubuntu-swap_1
-
-
-
 
 ####### SYSTEM CONFIGURATION ########################################################################
 #####################################################################################################
@@ -218,46 +206,44 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-sudo sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
-sudo sed -i '/GRUB_CMDLINE_LINUX/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
 ### set grub timeout
-sudo sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
+$s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### set grub min resolution
-#sudo sed -i "/GRUB_GFXMODE/c\GRUB_GFXMODE=1024x768" /etc/default/grub
+#$s sed -i "/GRUB_GFXMODE/c\GRUB_GFXMODE=1024x768" /etc/default/grub
 ### set grub wallpaper
-#sudo sed -i '/GRUB_BACKGROUND/c\GRUB_BACKGROUND="/boot/grub/splash.jpg"' /etc/default/grub
+#$s sed -i '/GRUB_BACKGROUND/c\GRUB_BACKGROUND="/boot/grub/splash.jpg"' /etc/default/grub
 ### apply grub settings
-sudo update-grub2
+$s update-grub2
 ### grub auto detection
-#GRUB_PATH=$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
-#sudo grub-install $GRUB_PATH
+#GRUB_PATH=$($s fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
+#$s grub-install $GRUB_PATH
 
 ### preconfigure ccache and mute output
 if grep -q "USE_CCACHE=1" ~/.bashrc
 then
 echo "Flag exists"
 else
-sudo sed -i "\$aexport USE_CCACHE=1" ~/.bashrc
-sudo sed -i "\$aexport USE_PREBUILT_CACHE=1" ~/.bashrc
-sudo sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.bashrc
-sudo sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
-sudo sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
+$s sed -i "\$aexport USE_CCACHE=1" ~/.bashrc
+$s sed -i "\$aexport USE_PREBUILT_CACHE=1" ~/.bashrc
+$s sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.bashrc
+$s sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
+$s sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
 fi
-
 
 if grep -q "fancy-bash-promt.sh" ~/.bashrc
 then
 echo "Flag exists"
 else
 cd $source
-sudo mkdir /root
-sudo mkdir /root/.config
-sudo cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
-sudo cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
+$s mkdir /root
+$s mkdir /root/.config
+$s cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
+$s cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
 bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
-sudo bash -c 'echo "source /root/.config/fancy-bash-promt2.sh" >> /root/.bashrc'
+$s bash -c 'echo "source /root/.config/fancy-bash-promt2.sh" >> /root/.bashrc'
 fi
-
 
 ### fstab flags
 ### ext4
@@ -265,35 +251,32 @@ if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,errors=remount-ro/g' /etc/fstab
+$s sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,errors=remount-ro/g' /etc/fstab
 fi
 ### xfs
 if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime/g' /etc/fstab
+$s sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime/g' /etc/fstab
 fi
 ### f2fs
 if grep -q "f2fs     rw,noatime,lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-sudo sed -i 's/f2fs    defaults,noatime/f2fs     rw,noatime,lazytime,background_gc=on,discard,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota/g' /etc/fstab
+$s sed -i 's/f2fs    defaults,noatime/f2fs     rw,noatime,lazytime,background_gc=on,discard,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota/g' /etc/fstab
 fi
 ### tmpfs
-sudo sed -i 's+/tmp           tmpfs   defaults,noatime,mode=1777 0 0++g' /etc/fstab
+$s sed -i 's+/tmp           tmpfs   defaults,noatime,mode=1777 0 0++g' /etc/fstab
 if grep -q "/run/shm" /etc/fstab
 then
 echo "Flag exists"
 else
-  sudo sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
-  sudo sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
-  sudo sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
+$s sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
+$s sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
+$s sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
 fi
-
-
-
 
 ####### BUILD ENVIRONMENT SETUP #####################################################################
 #####################################################################################################
@@ -305,18 +288,15 @@ echo -e "${restore}"             #
 cd $git
 #
 ### add i386 architecture needed for env
-sudo dpkg --add-architecture i386
-sudo aptitude update
+$s dpkg --add-architecture i386
+$s aptitude update
 git clone https://github.com/akhilnarang/scripts.git
 cd scripts/setup
 Keys.ENTER | ./android_build_env.sh
 Keys.ENTER | ./ccache.sh
 
 ### make sure all is set up right
-sudo dpkg --configure -a && sudo apt update && sudo apt -f upgrade -y && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y && sudo apt autoremove -y
-
-
-
+$s dpkg --configure -a && $s apt update && $s apt -f upgrade -y --with-new-pkgs && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y && $s apt autoremove -y
 
 ####### LINUX REPOSITORY SOURCES SETUP ##############################################################
 ### setup repos !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -336,82 +316,82 @@ echo -e "${restore}"             #
 
 #for i in ${!new_sources[@]}; do
 #    if ! grep -q "${new_sources[$i]}" /etc/apt/sources.list; then
-#        echo "${new_sources[$i]}" | sudo tee -a /etc/apt/sources.list
+#        echo "${new_sources[$i]}" | $s tee -a /etc/apt/sources.list
 #        echo "Added ${new_sources[$i]} to source list"
 #    fi
 #done
 
-### fetch keys ubuntu
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 1378B444
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 871920D1991BC93C
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
-### fetch keys llvm git
-wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+### fetch keys
+$s $ins ubuntu-archive-keyring deb-multimedia-keyring
+### ubuntu
+$s $key 1378B444
+$s $key 871920D1991BC93C
+$s $key 3B4FE6ACC0B21F32
 ### obaif
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 957d2708a03a4626
+$s $key 957d2708a03a4626
 ### kodi
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 6d975c4791e7ee5e
+$s $key 6d975c4791e7ee5e
 ### git
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys a1715d88e1df1f24
+$s $key a1715d88e1df1f24
 ### usb stuff
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3729827454b8c8ac
+$s $key 3729827454b8c8ac
 ### multimedia
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5C808C2B65558117
+$s $key 5C808C2B65558117
 ### google
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 78BD65473CB3BD13
-### tvheadend
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 89942AAE5CEAA174
-sudo apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
-sudo wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | sudo apt-key add -
-### llvm
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 15CF4D18AF4F7421
-### opensuse
-sudo wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | sudo apt-key add -
-sudo wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | sudo apt-key add -
-###
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E6D4736255751E5D
+$s $key 78BD65473CB3BD13
 ### kali
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6
+$s $key ED444FF07D8D0BF6
 ###
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 648ACFD622F3D138
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 2836cb0a8ac93f7a
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B8AC39B0876D807E
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A2F33E359F038ED9
+$s $key E6D4736255751E5D
+###
+$s $key 04EE7237B7D453EC
+$s $key 648ACFD622F3D138
+$s $key 3B4FE6ACC0B21F32
+$s $key 2836cb0a8ac93f7a
+$s $key B8AC39B0876D807E
+$s $key A2F33E359F038ED9
+### tvheadend
+$s $key 89942AAE5CEAA174
+$s apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
+$s wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | $s apt-key add -
+### opensuse
+$s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
+$s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
+### llvm git
+wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|$s apt-key add -
+$s $key 15CF4D18AF4F7421
 
 cd $source
-sudo cp *.list /etc/apt/sources.list.d/
-sudo rm -rf /etc/apt/sources.list.d/*sources.list
-sudo cp preferences /etc/apt/
-sudo cp preferences /etc/apt/preferences.d/
-
+$s cp *.list /etc/apt/sources.list.d/
+$s rm -rf /etc/apt/sources.list.d/*sources.list
+$s cp preferences /etc/apt/
+$s cp preferences /etc/apt/preferences.d/
 
 ##################################
 ####### PPA'S
 ### mesa drivers and extras
-#sudo add-apt-repository -y ppa:oibaf/graphics-drivers
-#sudo add-apt-repository -y ppa:git-core/ppa
-#sudo add-apt-repository -y ppa:team-xbmc/ppa
-#sudo add-apt-repository -y ppa:team-xbmc/unstable
-#sudo add-apt-repository -y ppa:team-xbmc/xbmc-nightly
-#sudo add-apt-repository -y ppa:appimagelauncher-team/stable
+#$s add-apt-repository -y ppa:oibaf/graphics-drivers
+#$s add-apt-repository -y ppa:git-core/ppa
+#$s add-apt-repository -y ppa:team-xbmc/ppa
+#$s add-apt-repository -y ppa:team-xbmc/unstable
+#$s add-apt-repository -y ppa:team-xbmc/xbmc-nightly
+#$s add-apt-repository -y ppa:appimagelauncher-team/stable
 
 ### fix distro syncing for now (forceful method - for now must be overridden)
-#sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu disco main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-xbmc-nightly-*.list'
-#sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-unstable-*.list'
-#sudo bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
-#sudo bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
-#sudo sh -c 'echo "deb https://apt.tvheadend.org/stable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
-#sudo sh -c 'echo "deb https://apt.tvheadend.org/unstable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
+#$s bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu disco main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-xbmc-nightly-*.list'
+#$s bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-unstable-*.list'
+#$s bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
+#$s bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
+#$s sh -c 'echo "deb https://apt.tvheadend.org/stable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
+#$s sh -c 'echo "deb https://apt.tvheadend.org/unstable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
 
 ### add debian multimedia
 #if grep -q "www.deb-multimedia.org" /etc/apt/sources.list
 #then
 #echo "Flag exists"
 #else
-#sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free/g' /etc/apt/sources.list
-#sudo sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free/g' /etc/apt/sources.list
+#$s sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free/g' /etc/apt/sources.list
+#$s sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free/g' /etc/apt/sources.list
 #fi
 
 ### kali
@@ -419,13 +399,13 @@ sudo cp preferences /etc/apt/preferences.d/
 #then
 #echo "Flag exists"
 #else
-#sudo echo '
+#$s echo '
 #deb http://http.kali.org/kali kali-debian-picks main non-free contrib
 #deb http://http.kali.org/kali debian-testing main non-free contrib
 #deb http://http.kali.org/kali kali-dev main non-free contrib
 #deb http://http.kali.org/kali kali-experimental main non-free contrib
 #deb http://http.kali.org/kali kali-last-snapshot main non-free contrib
-#' | sudo tee -a /etc/apt/sources.list
+#' | $s tee -a /etc/apt/sources.list
 #fi
 
 ### add debian experimental
@@ -433,7 +413,7 @@ sudo cp preferences /etc/apt/preferences.d/
 #then
 #echo "Flag exists"
 #else
-#sudo sed -i 's/#deb http://http.debian.net/debian experimental main contrib non-free/g' /etc/apt/sources.list
+#$s sed -i 's/#deb http://http.debian.net/debian experimental main contrib non-free/g' /etc/apt/sources.list
 #fi
 
 ### add debian unstable repos
@@ -441,10 +421,10 @@ sudo cp preferences /etc/apt/preferences.d/
 #then
 #echo "Flag exists"
 #else
-#sudo echo '# debian unstable repos - will break distro' | sudo tee -a /etc/apt/sources.list
-#sudo echo '# only use for rare individual packages' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
+#$s echo '# debian unstable repos - will break distro' | $s tee -a /etc/apt/sources.list
+#$s echo '# only use for rare individual packages' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
 #fi
 
 ### add llvm repos
@@ -452,14 +432,12 @@ sudo cp preferences /etc/apt/preferences.d/
 #then
 #echo "Flag exists"
 #else
-#sudo echo '### llvm git repos' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb-src http://apt.llvm.org/unstable/ llvm-toolchain main' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal main' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main' | sudo tee -a /etc/apt/sources.list
+#$s echo '### llvm git repos' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb-src http://apt.llvm.org/unstable/ llvm-toolchain main' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal main' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main' | $s tee -a /etc/apt/sources.list
 #fi
-
-
 
 ####### THANAS PACKAGES #############################################################################
 #####################################################################################################
@@ -468,92 +446,71 @@ echo -e "${yellow}"              #
 echo THANAS PACKAGES             #
 echo -e "${restore}"             #
 ##################################
-sudo apt update
-sudo aptitude update
+$s apt update
+$s aptitude update
 
-sudo aptitude -f install -y muon android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms
-
-### extras
-sudo aptitude -f install -y nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs deb-multimedia-keyring ffmpeg
-
-### list mesa drivers seperately
-#sudo aptitude -f install -y vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils mesa-opencl-icd
-
-### openwrt toolchain
-#sudo aptitude -f install -y subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath
-
-### kali full packages
-#sudo aptitude -f install -y kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources
-#sudo apt remove -y lime-forensics-dkms
-#sudo aptitude -f install -y routersploit
-
-### ...
-#sudo aptitude -f install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
-#sudo aptitude -f install -y gcc-multilib
-#sudo aptitude -f install -y gcc-10-multilib
-#sudo aptitude -f install -y gcc-10-x86-64-linux-gnu-base gcc-9-x86-64-linux-gnu-base
-#sudo aptitude -f install -y binutils-mips-linux-gnu
-
-### ensure full clang
-sudo aptitude -f install -y libomp-11-dev llvm-11 llvm clang-11 lld-11 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-11-dev
-
-### ram cache stuff
-#sudo aptitude -f install -y zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
-
-### kde kali
-#sudo aptitude install -y muon kde-baseapps kde-plasma-desktop plasma-browser-integration
+$s $ins muon android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
+nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
+libomp-11-dev llvm-11 llvm clang-11 lld-11 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-11-dev \
+subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
+f2fs-tools xfsprogs rt-tests net-tools \
+libavcodec-extra58 libavcodec-extra \
+wine wine32 \
+kodi-pvr-hts kodi-x11 kodi-wayland kodi \
+gimp audacity uget \
+alien bleachbit atom \
+libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2 \
+psensor flatpak plasma-discover-backend-flatpak \
+fwupd plasma-discover-backend-fwupd \
+kubuntu-restricted-extras ubuntu-restricted-extras \
+x264 x265 putty shellcheck \
+firewall* gnome-maps minitube packagekit sweeper \
+prelink irqbalance
 
 ### npm
-sudo apt -f install -y npm && sudo apt -f install -y && sudo npm cache clean -f && sudo npm cache clean -f && sudo npm install npm@latest -g
+$s $apt npm && $s $apt && $s npm cache clean -f && $s npm cache clean -f && $s npm install npm@latest -g
+
+### list mesa drivers seperately
+#$s $ins vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils mesa-opencl-icd
+
+### kali full packages
+#$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources
+#$s apt remove -y lime-forensics-dkms
+#$s $ins routersploit
+
+### ...
+#$s $ins gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
+#$s $ins gcc-multilib
+#$s $ins gcc-10-multilib
+#$s $ins gcc-10-x86-64-linux-gnu-base gcc-9-x86-64-linux-gnu-base
+#$s $ins binutils-mips-linux-gnu
+
+### ram cache stuff
+#$s $ins zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
+
+### kde kali
+#$s $ins muon kde-baseapps kde-plasma-desktop plasma-browser-integration
 
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
-sudo apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
+$s apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
 ### allow root privilege under wayland and supress output
 if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
 then
 echo "Flag exists"
 else
-sudo sed -i "\$axhost +si:localuser:root >/dev/null" ~/.bashrc
+$s sed -i "\$axhost +si:localuser:root >/dev/null" ~/.bashrc
 fi
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### TEMPORARILY ADD DEBIAN USNTABLE REPOS TO GET SOME PACKAGES!!!
-#sudo echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
-#sudo echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | sudo tee -a /etc/apt/sources.list
+#$s echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
+#$s echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
 #sleep 5
-#sudo apt update --allow-insecure-repositories
-
-### extra thanas packages
-### some listed purposefully seperate to avoid future conflicts or to distinguish packages from unique repo's or ppa's
-sudo aptitude -f install -y f2fs-tools xfsprogs rt-tests net-tools
-sudo aptitude -f install -y wine wine32
-sudo aptitude -f install -y kodi-pvr-hts kodi-x11 kodi-wayland kodi
-sudo aptitude -f install -y gimp audacity uget
-
-sudo aptitude -f install -y alien bleachbit atom
-sudo aptitude -f install -y libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2
-sudo aptitude -f install -y libavcodec-extra58 libavcodec-extra
-sudo aptitude -f install -y muon
-
-### extra
-sudo aptitude -f install -y psensor flatpak
-
-### fwupd
-sudo aptitude -f install -y fwupd plasma-discover-backend-fwupd
-
-#sudo aptitude -f install -y appimagelauncher
-
-#sudo echo 'deb http://gr.archive.ubuntu.com/ubuntu/ groovy main restricted universe multiverse' | sudo tee -a /etc/apt/sources.list
-sudo apt update
-sudo aptitude -f install -y kubuntu-restricted-extras ubuntu-restricted-extras
-sudo aptitude -f install -y x264 x265
-#sudo sed -i 's+deb http://gr.archive.ubuntu.com/ubuntu/ groovy main restricted universe multiverse++g' /etc/apt/sources.list
-
+#$s apt update --allow-insecure-repositories
 
 ### REMOVE DEBIAN UNSTABLE REPOS AGAIN
-#sudo sed -i 's+deb http://deb.debian.org/debian/ unstable main contrib non-free+#deb http://deb.debian.org/debian/ unstable main contrib non-free+g' /etc/apt/sources.list
-#sudo sed -i 's+deb-src http://deb.debian.org/debian/ unstable main contrib non-free+#deb-src http://deb.debian.org/debian/ unstable main contrib non-free+g' /etc/apt/sources.list
-apt update
+#$s sed -i 's+deb http://deb.debian.org/debian/ unstable main contrib non-free+#deb http://deb.debian.org/debian/ unstable main contrib non-free+g' /etc/apt/sources.list
+#$s sed -i 's+deb-src http://deb.debian.org/debian/ unstable main contrib non-free+#deb-src http://deb.debian.org/debian/ unstable main contrib non-free+g' /etc/apt/sources.list
 
 ### .exe files for wine
 #mkdir -p ~/wine && cd ~/wine
@@ -562,71 +519,69 @@ apt update
 #rm -rf license* readme* WinSCP*.zip WinSCP*.com
 
 ### usb stuff
-#sudo add-apt-repository -y ppa:mkusb/ppa
-#sudo apt update
-#sudo apt -f install --install-recommends -y mkusb mkusb-nox usb-pack-efi
+#$s add-apt-repository -y ppa:mkusb/ppa
+#$s apt update
+#$s apt -f install --install-recommends -y mkusb mkusb-nox usb-pack-efi
 
 ### extra .deb packages
 cd $source
-#
 
 wget https://release.gitkraken.com/linux/gitkraken-amd64.deb
-sudo dpkg -i gitkraken*
-sudo apt -f install -y && sudo apt --fix-broken install -y
+$s dpkg -i gitkraken*
+$s $apt && $s apt --fix-broken install -y
 rm -rf gitkraken*
 
-### google
 wget https://dl.google.com/dl/earth/client/current/google-earth-pro-stable_current_amd64.deb
-sudo dpkg -i google-earth-pro*
-sudo apt -f install -y && sudo apt --fix-broken install -y
+$s dpkg -i google-earth-pro*
+$s $apt && $s apt --fix-broken install -y
 rm -rf google-earth-pro*
 
 wget https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.529-Linux-x64.deb
-sudo dpkg -i VNC-V*
-sudo apt -f install -y && sudo apt --fix-broken install -y
+$s dpkg -i VNC-V*
+$s $apt && $s apt --fix-broken install -y
 rm -rf VNC-V*
 
 wget http://ftp.br.debian.org/debian/pool/main/d/diffuse/diffuse_0.4.8-4_all.deb
-sudo dpkg -i diffuse*
-sudo apt -f install -y && sudo apt --fix-broken install -y
+$s dpkg -i diffuse*
+$s $apt && $s apt --fix-broken install -y
 rm -rf diffuse*
 
 wget https://atom.io/download/deb
-sudo dpkg -i deb*
-sudo apt -f install -y && sudo apt --fix-broken install -y
+$s dpkg -i deb*
+$s $apt && $s apt --fix-broken install -y
 rm -rf deb*
 
-wget https://launchpad.net/~teejee2008/+archive/ubuntu/ppa/+files/kuu_18.9.3-0~201902031503~ubuntu18.04.1_amd64.deb
-sudo dpkg -i ukuu*
-sudo apt -f install -y && sudo apt --fix-broken install -y
+wget https://launchpad.net/~teejee2008/+archive/ubuntu/ppa/+files/ukuu_18.9.3-0~201902031503~ubuntu18.04.1_amd64.deb
+$s dpkg -i ukuu*
+$s $apt && $s apt --fix-broken install -y
 rm -rf ukuu*
 
 #wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-#sudo dpkg -i teamviewer*
-#sudo apt -f install -y && sudo apt --fix-broken install -y
+#$s dpkg -i teamviewer*
+#$s $apt && $s apt --fix-broken install -y
 #rm -rf teamviewer*
 
 #wget https://github.com/shiftkey/desktop/releases/download/release-2.4.1-linux2/GitHubDesktop-linux-2.4.1-linux2.deb
-#sudo dpkg -i GitHubDesktop*
-#sudo apt -f install -y && sudo apt --fix-broken install -y
+#$s dpkg -i GitHubDesktop*
+#$s $apt && $s apt --fix-broken install -y
 #rm -rf GitHubDesktop*
 
 ### ensure packages are well installed
-#sudo apt update && sudo apt -f install -y && sudo apt --fix-broken install -y
+#$s apt update && $s $apt && $s apt --fix-broken install -y
 
 ### enable snap
-sudo apt purge -y snapd snap-confine && sudo apt install -y snapd
-sudo systemctl enable --now snapd.socket
+$s apt purge -y snapd snap-confine && $s apt install -y snapd
+$s systemctl enable --now snapd.socket
 if grep -q "export PATH" ~/.bashrc
 then
 echo "Flag exists"
 else
-sudo sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
+$s sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
 fi
 sleep 5
-sudo apparmor_parser -r /etc/apparmor.d/*snap-confine*
-sudo apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
-#sudo snap install ngrok
+$s apparmor_parser -r /etc/apparmor.d/*snap-confine*
+$s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
+#$s snap install ngrok
 
 ###### GITHUB REPOSITORIES ##########################################################################
 #####################################################################################################
@@ -636,39 +591,39 @@ echo GIT EXTRAS                  #
 echo -e "${restore}"             #
 ##################################
 #cd $git
-#
+
 ### whereisbssid script
 #git clone --depth=1 https://github.com/Trackbool/WhereIsBSSID.git
 
 ### prebuilt llvm tc with lto=full pgo polly support
 #cd $tc
-#
+
 #git clone --depth=1 https://github.com/TwistedPrime/twisted-clang.git
 #mv twisted-clang clang
 #cd $source
 
-#sudo aptitude -f install -y kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
+#$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
 
-sudo apt full-upgrade -y
-sudo apt -f install -y kde-config-systemd firewall* gnome-maps minitube packagekit
-sudo aptitude -f install -y plasma-discover-backend*
-sudo apt install -y plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
-sudo apt upgrade --with-new-pkgs -y #-t Debian_Unstable
-sudo apt full-upgrade -y -t Debian_Unstable
+$s $apt kde-config-systemd \
+sddm-theme-breeze sddm-theme-debian-breeze kde-config-sddm \
+plasma-discover-backend* \
+plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
+$s apt upgrade --with-new-pkgs -y #-t Debian_Unstable
+$s apt full-upgrade -y -t Debian_Unstable
 
-### microcode
-sudo apt remove -y intel-microcode
-sudo apt remove -y amd-microcode
+$s apt -f remove -y chromium firefox-esr imagemagick konqueror \
+intel-microcode amd-microcode
 
 ### make sure all is set up right
-sudo dpkg --configure -a && sudo apt update && sudo apt -f --fix-broken install -y && sudo apt -f --fix-missing install -y
-sudo apt upgrade --with-new-pkgs -y
-sudo pkcon refresh && sudo pkcon update -y
-sudo aptitude -f install -y apt-listbugs apt-listchanges
-sudo aptitude install -y prelink irqbalance && sudo prelink -amR
+$s dpkg --configure -a && $s apt update && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y
+$s apt upgrade --with-new-pkgs -y
+$s pkcon refresh && $s pkcon update -y
+$s $ins apt-listbugs apt-listchanges
+$s prelink -amR
 
-
-
+#cd $basiclinuxsetup
+#$s cp McMojave.tar.xz /tmp/
+#$s cp -a .local ~/
 
 ####### SETUP FINISHED ##############################################################################
 #####################################################################################################
@@ -679,16 +634,13 @@ echo ...                                                                        
 echo -e "${restore}"                                                                                #
 #####################################################################################################
 
-
-
-
 ####### KERNEL COMPILATION/INSTALLATION #############################################################
 #####################################################################################################
 ### auto compile and install thanas x86-64 kernel on latest llvm
 ### can be done isolated as well on any distro, use ./build.sh
 cd $git
 git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
-cd thanas-x86-64-kernel && sudo chmod 755 *.sh
+cd thanas-x86-64-kernel && $s chmod 755 *.sh
 ###### MANUALLY INSTALL LLVM/CLANG-11 POLLY SUPPORT FOR NOW
 ### do this prior to clang-11 installation so that if support will officially come
 ### it will be overridden by the official latest clang libraries
@@ -696,14 +648,11 @@ cd thanas-x86-64-kernel && sudo chmod 755 *.sh
 #echo "Adding support for clang-11 polly..."
 #echo ""
 #polly=/usr/lib/llvm-11/lib
-#sudo mkdir -p $polly
-#sudo \cp -rf LLVMPolly.so $polly/
+#$s mkdir -p $polly
+#$s \cp -rf LLVMPolly.so $polly/
 #echo "done!"
 #echo -e "${restore}"
 ./1*
-
-
-
 
 #####################################################################################################
 ####### END #########################################################################################
