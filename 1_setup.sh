@@ -466,6 +466,12 @@ x264 x265 putty shellcheck \
 firewall* gnome-maps minitube packagekit sweeper gnome-disk-utility \
 prelink irqbalance
 
+
+
+###kali
+$s $ins nmapsi4
+
+
 ### npm
 $s $apt npm && $s $apt && $s npm cache clean -f && $s npm cache clean -f && $s npm install npm@latest -g
 
