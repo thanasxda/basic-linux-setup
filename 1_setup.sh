@@ -237,8 +237,7 @@ then
 echo "Flag exists"
 else
 cd $source
-$s mkdir /root
-$s mkdir /root/.config
+$s mkdir /root /root/.config
 $s cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
 $s cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
 bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
@@ -464,7 +463,7 @@ psensor flatpak plasma-discover-backend-flatpak \
 fwupd plasma-discover-backend-fwupd \
 kubuntu-restricted-extras ubuntu-restricted-extras \
 x264 x265 putty shellcheck \
-firewall* gnome-maps minitube packagekit sweeper \
+firewall* gnome-maps minitube packagekit sweeper gnome-disk-utility \
 prelink irqbalance
 
 ### npm

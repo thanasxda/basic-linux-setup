@@ -91,8 +91,7 @@ note that you can do this trick on several distro's making it possible to direct
 keep in mind by doing so worst case sometimes depending on distro it would be necessary to mount the distro as chroot  and after installing specific fs support drivers on the system, next to that you would also need to be on grub 2.04 at least to have full support on rootfs (not needing a seperate bootfs), which you also could install from chroot. IF necessary at all following this guide on other distro's the correct way to mount chroot and work on the system would be:
 ```
 sudo fdisk -l                         ### check partition layout
-sudo mkdir /mnt/boot
-sudo mkdir /mnt/boot/efi
+sudo mkdir /mnt/boot /mnt/boot/efi
 sudo mount /dev/sdXX /mnt/boot/efi    ### sdXX example /dev/sda1 bootfs
 sudo mount /dev/sdXX /mnt             ### sdXX example /dev/sda2 rootfs
 sudo mount -t proc none /mnt/proc
