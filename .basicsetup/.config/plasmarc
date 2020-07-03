@@ -5,7 +5,7 @@ Enabled=true
 Delay=0.7
 
 [Theme]
-name=Glassy
+name=ChromeOS
 
 [Wallpapers]
 usersWallpapers=/usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg,3840x2400.jpg

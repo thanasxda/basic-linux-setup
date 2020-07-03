@@ -1,14 +1,14 @@
 [Desktop Entry]
-DefaultProfile=basic.profile
+DefaultProfile=
 
 [Favorite Profiles]
-Favorites=Kali-Light.profile,Kali-Dark.profile,basic.profile
+Favorites=Kali-Light.profile,Kali-Dark.profile
 
 [KFileDialog Settings]
-Recent Files[$e]=3840x2400.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg,file:///usr/share/wallpapers/KaliBlur/contents/images/3840x2160.png,file:///usr/share/wallpapers/KaliBlueMatrix/contents/images/3840x2160.png
+Recent Files[$e]=3840x2400.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/malakas.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg,file:///usr/share/wallpapers/KaliBlur/contents/images/3840x2160.png,file:///usr/share/wallpapers/KaliBlueMatrix/contents/images/3840x2160.png
 Recent URLs[$e]=file:///usr/share/wallpapers/MalakasUniverse/contents/images/
 detailViewIconSize=0
 
 [MainWindow]
-State=AAAA/wAAAAD9AAAAAAAAAoAAAAHCAAAABAAAAAQAAAAIAAAACPwAAAAA
+State=AAAA/wAAAAD9AAAAAAAAA7QAAAIFAAAABAAAAAQAAAAIAAAACPwAAAAA
 ToolBarsMovable=Disabled

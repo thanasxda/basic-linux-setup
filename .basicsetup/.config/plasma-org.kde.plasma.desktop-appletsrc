@@ -10,7 +10,7 @@ RightButton;NoModifier=org.kde.contextmenu
 PreloadWeight=42
 
 [Containments][126]
-ItemGeometriesHorizontal=Applet-150:0,0,288,112,0;Applet-152:0,112,288,112,0;Applet-153:0,224,288,96,0;
+ItemGeometriesHorizontal=
 activityId=987df83d-646f-4da0-b856-13c55324f5be
 formfactor=0
 immutability=1
@@ -18,27 +18,6 @@ lastScreen=0
 location=0
 plugin=org.kde.plasma.folder
 wallpaperplugin=org.kde.image
-
-[Containments][126][Applets][150]
-immutability=1
-plugin=org.kde.plasma.systemmonitor.cpu
-
-[Containments][126][Applets][150][Configuration]
-PreloadWeight=2
-
-[Containments][126][Applets][152]
-immutability=1
-plugin=org.kde.plasma.systemmonitor.memory
-
-[Containments][126][Applets][152][Configuration]
-PreloadWeight=2
-
-[Containments][126][Applets][153]
-immutability=1
-plugin=org.kde.plasma.systemmonitor.net
-
-[Containments][126][Applets][153][Configuration]
-PreloadWeight=2
 
 [Containments][126][ConfigDialog]
 DialogHeight=540
@@ -49,7 +28,9 @@ PreloadWeight=0
 
 [Containments][126][General]
 alignment=1
-sortMode=6
+iconSize=3
+positions=
+sortMode=-1
 
 [Containments][126][Wallpaper][org.kde.image][General]
 Image=file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg
@@ -86,7 +67,7 @@ immutability=1
 plugin=org.kde.plasma.systemtray
 
 [Containments][127][Applets][131][Configuration]
-PreloadWeight=1
+PreloadWeight=46
 SystrayContainmentId=132
 
 [Containments][127][Applets][133]
@@ -94,7 +75,7 @@ immutability=1
 plugin=org.kde.plasma.digitalclock
 
 [Containments][127][Applets][133][Configuration]
-PreloadWeight=0
+PreloadWeight=5
 
 [Containments][127][Applets][134]
 immutability=1
@@ -116,7 +97,6 @@ DialogWidth=720
 
 [Containments][127][Applets][142][Configuration][General]
 alphaSort=true
-appNameFormat=2
 customButtonImage=emblem-debian-white
 favoritesPortedToKAstats=true
 recentOrdering=1
@@ -131,7 +111,7 @@ plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][144][Configuration]
 PreloadWeight=2
-localPath=~/.local/share/plasma_icons/org.kde.dolphin (3).desktop
+localPath=~/.local/share/plasma_icons/org.kde.dolphin (4).desktop
 url=file:///usr/share/applications/org.kde.dolphin.desktop
 
 [Containments][127][Applets][157]
@@ -140,18 +120,32 @@ plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][157][Configuration]
 PreloadWeight=42
-localPath=~/.local/share/plasma_icons/brave-browser-nightly.desktop
+localPath=~/.local/share/plasma_icons/brave-browser-nightly (1).desktop
 url=file:///usr/share/applications/brave-browser-nightly.desktop
 
+[Containments][127][Applets][159]
+immutability=1
+plugin=org.kde.plasma.icon
+
+[Containments][127][Applets][159][Configuration]
+localPath=~/.local/share/plasma_icons/org.kde.konsole (4).desktop
+url=file:///usr/share/applications/org.kde.konsole.desktop
+
+[Containments][127][Applets][160]
+immutability=1
+plugin=org.kde.plasma.icon
+
+[Containments][127][Applets][160][Configuration]
+localPath=~/.local/share/plasma_icons/gitkraken (2).desktop
+url=file:///usr/share/applications/gitkraken.desktop
+
 [Containments][127][ConfigDialog]
-DialogHeight=84
-DialogWidth=1920
 
 [Containments][127][Configuration]
 PreloadWeight=0
 
 [Containments][127][General]
-AppletOrder=142;129;157;144;130;131;133;134
+AppletOrder=142;129;157;144;159;160;130;131;133;134
 
 [Containments][132]
 activityId=
@@ -167,11 +161,14 @@ immutability=1
 plugin=org.kde.plasma.volume
 
 [Containments][132][Applets][135][Configuration]
-PreloadWeight=0
+PreloadWeight=70
 
 [Containments][132][Applets][135][Configuration][ConfigDialog]
 DialogHeight=540
 DialogWidth=720
+
+[Containments][132][Applets][135][Configuration][General]
+raiseMaximumVolume=true
 
 [Containments][132][Applets][136]
 immutability=1
@@ -217,10 +214,10 @@ PreloadWeight=0
 
 [Containments][132][Applets][158]
 immutability=1
-plugin=org.kde.plasma.keyboardindicator
+plugin=org.kde.plasma.mediacontroller
 
 [Containments][132][Applets][158][Configuration]
-PreloadWeight=42
+PreloadWeight=2
 
 [Containments][132][Applets][159]
 immutability=1
@@ -247,4 +244,4 @@ url=file:///usr/share/applications/brave-browser-nightly.desktop
 
 [ScreenMapping]
 itemsOnDisabledScreens=
-screenMapping=desktop:/GIT,0
+screenMapping=

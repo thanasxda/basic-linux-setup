@@ -1,3 +1,6 @@
+[FlatpakSources]
+Sources=\\0
+
 [Window]
-geometry=820,355,810,540
+geometry=820,355,810,541
 visibility=2

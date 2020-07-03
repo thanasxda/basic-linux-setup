@@ -18,17 +18,36 @@ Id_1=7b237fd7-1517-40bc-8826-be4e170e129c
 Number=1
 Rows=1
 
+[DrmOutputs][e61481d21b][e61481d21b]
+Scale=1
+
+[Effect-PresentWindows]
+BorderActivateAll=9
+
+[ElectricBorders]
+TopLeft=None
+
 [NightColor]
 Active=true
 Mode=Constant
 
 [Plugins]
+blurEnabled=false
+contrastEnabled=true
 wobblywindowsEnabled=true
 
+[Script-desktopchangeosd]
+TextOnly=true
+
 [TabBox]
+BorderActivate=9
 DesktopLayout=org.kde.breeze.desktop
 DesktopListLayout=org.kde.breeze.desktop
 LayoutName=org.kde.breeze.desktop
+TouchBorderActivate=9
+
+[Windows]
+ElectricBorders=1
 
 [org.kde.kdecoration2]
 BorderSize=Large
@@ -38,4 +57,4 @@ ButtonsOnRight=HIAX
 CloseOnDoubleClickOnMenu=false
 ShowToolTips=true
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__Glassy
+theme=__aurorae__svg__ChromeOS-dark

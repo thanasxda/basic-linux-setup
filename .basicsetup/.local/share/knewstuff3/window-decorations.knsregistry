@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE khotnewstuff3>
+<hotnewstuffregistry>
+ <stuff category="114">
+  <name>ChromeOS Aurorae</name>
+  <providerid>https://api.kde-look.org/ocs/v1/</providerid>
+  <author>vinceliuice</author>
+  <homepage>https://store.kde.org/p/1354048</homepage>
+  <licence></licence>
+  <version></version>
+  <rating>50</rating>
+  <downloads>40151</downloads>
+  <installedfile>/home/x/.local/share/aurorae/themes//ChromeOS-dark/*</installedfile>
+  <installedfile>/home/x/.local/share/aurorae/themes//ChromeOS/*</installedfile>
+  <installedfile>/home/x/.local/share/aurorae/themes//ChromeOS-light/*</installedfile>
+  <installedfile>/home/x/.local/share/aurorae/themes//</installedfile>
+  <id>1354048</id>
+  <releasedate>2020-04-02</releasedate>
+  <summary>ChromeOS kde is a materia Design theme for KDE Plasma desktop.&lt;br />
+&lt;br />
+In this repository you'll find:&lt;br />
+&lt;br />
+- Aurorae Themes&lt;br />
+- Kvantum Themes&lt;br />
+- Plasma Color Schemes&lt;br />
+- Plasma Desktop Themes&lt;br />
+- Plasma Look-and-Feel Themes</summary>
+  <changelog></changelog>
+  <preview>https://cn.opendesktop.org/cache/100x100-0/img/8/f/3/c/98afd8b072e4a9400ca8b15e2a64d8dfdcf6.png</preview>
+  <previewBig>https://cn.opendesktop.org/cache/770x540-0/img/8/f/3/c/98afd8b072e4a9400ca8b15e2a64d8dfdcf6.png</previewBig>
+  <payload>https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE1ODU4MDg3MzYiLCJvIjoiMSIsInMiOiJlODQzNjIwYTVhMWMzNTE5OTI5OTgzNWI1MjlmMzAxNTY3ZThiNjU4YTY5ODIzNjQxZWFhM2FlNTFkOTk1ZDIwNTQzMGJmY2ZlZjcyODk1YmIyNTc2ZGFlMzk0MmI4MzEyMjE4NGE2MGVmNmU0MmNjOTg1MWQ4OTRkOWY5NTk0MiIsInQiOjE1OTM4MTYwNzUsInN0ZnAiOm51bGwsInN0aXAiOiI5NC42Ny42My44MSJ9.doq7jYnz5_QMKEXKSgf0k94oRbVWKPh-H7Ev0i-iuBU/ChromeOS.tar.xz</payload>
+  <tags>linux,unix,theme,kde,plasma,gplv3</tags>
+  <status>installed</status>
+ </stuff>
+</hotnewstuffregistry>
