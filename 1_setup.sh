@@ -40,6 +40,15 @@ $s chmod 755 *
 #./idafree70_linux.run
 #$s rm -rf idafree70_linux.run
 
+### dont require prompt for sudo
+if $s grep -q "ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+then
+echo "Flag exists"
+else
+$s sed -i "\$a$USER ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+fi
+$s passwd -l root
+
 $s ./2*
 
 systemctl enable --now apparmor.service
@@ -85,13 +94,13 @@ $s $ins git curl
 ####### EULA LICENSE AGREEMENTS #####################################################################
 #####################################################################################################
 ### take care of licenses first  #
-$s apt update                  #
-echo -e "${yellow}"              #
-echo LICENSES                    #
-echo -e "${restore}"             #
+#$s apt update                  #
+#echo -e "${yellow}"              #
+#echo LICENSES                    #
+#echo -e "${restore}"             #
 ##################################
-echo ttf-mscorefonts-installer ttf-mscorefonts-installer/accepted-ttf-mscorefonts-installer-eula select true | $s debconf-set-selections
-$s $ins ttf-mscorefonts-installer
+#echo ttf-mscorefonts-installer ttf-mscorefonts-installer/accepted-ttf-mscorefonts-installer-eula select true | $s debconf-set-selections
+#$s $ins ttf-mscorefonts-installer
 
 ####### SYSTEM CONFIGURATION ########################################################################
 #####################################################################################################
@@ -170,6 +179,7 @@ cd $source
 #yes | brave-browser-beta https://chrome.google.com/webstore/detail/adblock-%E2%80%94-best-ad-blocker/gighmmpiobklfepjocnamgkkbiglidom
 yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
 yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
+yes | brave-browser-nightly https://chrome.google.com/webstore/detail/touch-vpn-secure-and-unli/bihmplhobchoageeokmgbdihknkjbknd
 
 ####### SWAP CONFIGURATION ##########################################################################
 #####################################################################################################
@@ -206,8 +216,8 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
-$s sed -i '/GRUB_CMDLINE_LINUX/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX="quiet splash"/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
 ### set grub timeout
 $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### set grub min resolution
@@ -237,7 +247,7 @@ then
 echo "Flag exists"
 else
 cd $source
-$s mkdir /root /root/.config
+$s bash -c 'mkdir -p /root/.config'
 $s cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
 $s cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
 bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
@@ -257,7 +267,7 @@ if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-$s sed -i 's/xfs     defaults/xfs     defaults,quota,discard,lazytime,noatime/g' /etc/fstab
+$s sed -i 's/xfs     defaults/xfs     defaults,rw,noatime,lazytime,attr2,inode64,logbufs=8,logbsize=32k,noquota,discard,lazytime/g' /etc/fstab
 fi
 ### f2fs
 if grep -q "f2fs     rw,noatime,lazytime" /etc/fstab
@@ -464,7 +474,10 @@ fwupd plasma-discover-backend-fwupd \
 kubuntu-restricted-extras ubuntu-restricted-extras \
 x264 x265 putty shellcheck \
 firewall* gnome-maps minitube packagekit sweeper gnome-disk-utility \
-prelink irqbalance
+prelink irqbalance \
+links lynx \
+arch-install-scripts fish
+
 
 ### npm
 $s $apt npm && $s $apt && $s npm cache clean -f && $s npm cache clean -f && $s npm install npm@latest -g
@@ -582,6 +595,15 @@ $s apparmor_parser -r /etc/apparmor.d/*snap-confine*
 $s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
 #$s snap install ngrok
 
+### language
+if grep -q " LC_ALL=en_US.UTF-8" ~/.bashrc
+then
+echo "Flag exists"
+else
+$s sed -i "\$aexport LC_CTYPE=en_US.UTF-8" ~/.bashrc
+$s sed -i "\$aexport LC_ALL=en_US.UTF-8" ~/.bashrc
+fi
+
 ###### GITHUB REPOSITORIES ##########################################################################
 #####################################################################################################
 ### git stuff                    #
@@ -603,7 +625,7 @@ echo -e "${restore}"             #
 
 #$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
 
-$s $apt kde-config-systemd kde-style-qtcurve-qt5 \
+$s $apt kde-config-systemd kde-style-qtcurve-qt5 qt5-style-kvantum* \
 sddm-theme-breeze sddm-theme-debian-breeze kde-config-sddm \
 plasma-discover-backend* \
 plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
@@ -617,6 +639,7 @@ intel-microcode amd-microcode
 $s dpkg --configure -a && $s apt update && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y
 $s apt upgrade --with-new-pkgs -y
 $s pkcon refresh && $s pkcon update -y
+$s apt upgrade --with-new-pkgs -y -t experimental
 $s $ins apt-listbugs apt-listchanges
 $s prelink -amR
 

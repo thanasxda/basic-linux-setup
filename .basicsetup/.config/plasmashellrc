@@ -9,7 +9,7 @@ LaunchCounts=
 pluginWhiteList=services,shell,bookmarks,baloosearch,locations
 
 [PlasmaTransientsConfig]
-PreloadWeight=10
+PreloadWeight=0
 
 [PlasmaViews][Panel 111][Defaults]
 thickness=36
@@ -65,4 +65,4 @@ thickness=36
 0=VGA-1
 
 [Updates]
-performed=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/move_desktop_layout_config.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/obsolete_kickoffrc.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/desktop-base.js
+performed=/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/move_desktop_layout_config.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/obsolete_kickoffrc.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/desktop-base.js,/usr/share/plasma/shells/org.kde.plasma.desktop/contents/updates/unlock_widgets.js

@@ -99,7 +99,6 @@ Word Completion Remove Tail=true
 [MainWindow]
 State=AAAA/wAAAAD9AAAAAAAAB4AAAARPAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgAAAAAA/////wAAAAAAAAAA
 ToolBarsMovable=Disabled
-Window-Maximized 1200x1920=true
 
 [filetree]
 editShade=33,84,111

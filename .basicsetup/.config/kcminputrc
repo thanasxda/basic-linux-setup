@@ -1,3 +1,5 @@
-[Mouse]
-cursorSize=0
-cursorTheme=breeze_cursors
+[$Version]
+update_info=delete_cursor_old_default_size.upd:DeleteCursorOldDefaultSize
+
+[Libinput][7511][44311][ZLY ZELOTES GAME MOUSE]
+ScrollFactor=4
