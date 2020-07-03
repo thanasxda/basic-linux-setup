@@ -28,7 +28,7 @@ sudo apt update && sudo apt -f install -y git && git clone https://github.com/th
 ## alternative filesystems on distros like debian
 
 download [debian-live-testing-amd64-kde.iso](https://cdimage.debian.org/cdimage/weekly-live-builds/amd64/iso-hybrid/debian-live-testing-amd64-kde.iso) and flash it on usb.
-boot up and for example for f2fs and xfs support run underneath command:
+boot up and for example for f2fs and xfs support run underneath command (xfs support only comes with native DI installer non live iso's):
 ```
 sudo apt update && sudo apt install xfsprogs f2fs-tools
 ```
