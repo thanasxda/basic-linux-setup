@@ -1,3 +1,7 @@
+Package: lsb-release base-files sddm grub* desktop-base
+Pin: origin deb.debian.org
+Pin-Priority: 991
+
 Package: *
 Pin: origin deb.debian.org
 Pin-Priority: 990
