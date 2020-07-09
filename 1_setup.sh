@@ -41,12 +41,12 @@ $s chmod 755 *
 #$s rm -rf idafree70_linux.run
 
 ### dont require prompt for sudo
-if $s grep -q "ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
-then
-echo "Flag exists"
-else
-$s sed -i "\$a$USER ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
-fi
+#if $s grep -q "ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+#then
+#echo "Flag exists"
+#else
+#$s sed -i "\$a$USER ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
+#fi
 $s passwd -l root
 
 $s ./2*
