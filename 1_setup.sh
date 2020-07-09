@@ -48,6 +48,8 @@ $s chmod 755 *
 #$s sed -i "\$a$USER ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
 #fi
 $s passwd -l root
+$s dpkg-reconfigure locales
+$s locale-gen
 
 $s ./2*
 
@@ -473,10 +475,13 @@ psensor flatpak plasma-discover-backend-flatpak \
 fwupd plasma-discover-backend-fwupd \
 kubuntu-restricted-extras ubuntu-restricted-extras \
 x264 x265 putty shellcheck \
-firewall* gnome-maps minitube packagekit sweeper gnome-disk-utility \
+gnome-maps minitube packagekit sweeper gnome-disk-utility \
 prelink irqbalance \
 links lynx \
-arch-install-scripts fish
+arch-install-scripts fish \
+virt-manager selinux-utils \
+libreoffice-writer \
+checkinstall
 
 
 ### npm
@@ -596,13 +601,13 @@ $s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
 #$s snap install ngrok
 
 ### language
-if grep -q " LC_ALL=en_US.UTF-8" ~/.bashrc
-then
-echo "Flag exists"
-else
-$s sed -i "\$aexport LC_CTYPE=en_US.UTF-8" ~/.bashrc
-$s sed -i "\$aexport LC_ALL=en_US.UTF-8" ~/.bashrc
-fi
+#f grep -q " LC_ALL=en_US.UTF-8" ~/.bashrc
+#then
+#echo "Flag exists"
+#else
+#$s sed -i "\$aexport LC_CTYPE=en_US.UTF-8" ~/.bashrc
+#$s sed -i "\$aexport LC_ALL=en_US.UTF-8" ~/.bashrc
+#fi
 
 ###### GITHUB REPOSITORIES ##########################################################################
 #####################################################################################################
@@ -625,15 +630,27 @@ echo -e "${restore}"             #
 
 #$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
 
-$s $apt kde-config-systemd kde-style-qtcurve-qt5 qt5-style-kvantum* \
-sddm-theme-breeze sddm-theme-debian-breeze kde-config-sddm \
+$s apt -f install -y qt5-style-kvantum* \
 plasma-discover-backend* \
+firewall*
+
+$s apt -f install -y gstreamer*
+
+$s $apt kde-config-systemd kde-style-qtcurve-qt5 \
+gstreamer1.0-vaapi \
+sddm-theme-breeze sddm-theme-debian-breeze kde-config-sddm \
+plasma-browser-integration apper kde-config-cron kde-config-plymouth \
+task-greek task-greek-desktop task-greek-kde-desktop kdeplasma-addons-data \
 plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
 $s apt upgrade --with-new-pkgs -y #-t Debian_Unstable
 $s apt full-upgrade -y -t Debian_Unstable
+$s $apt full-upgrade
 
 $s apt -f remove -y chromium firefox-esr imagemagick konqueror \
-intel-microcode amd-microcode
+intel-microcode amd64-microcode \
+plasma-discover-backend-*-dbgsym \
+gstreamer*dbg
+
 
 ### make sure all is set up right
 $s dpkg --configure -a && $s apt update && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y
