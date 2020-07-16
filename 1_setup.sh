@@ -466,7 +466,7 @@ libomp-11-dev llvm-11 llvm clang-11 lld-11 gcc clang binutils make flex bison bc
 subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
 f2fs-tools xfsprogs rt-tests net-tools \
 libavcodec-extra58 libavcodec-extra \
-wine wine32 \
+wine wine32 q4wine \
 kodi-pvr-hts kodi-x11 kodi-wayland kodi \
 gimp audacity uget \
 alien bleachbit atom \
