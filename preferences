@@ -50,3 +50,7 @@ Pin-Priority: 200
 Package: *
 Pin: origin deb.debian.org
 Pin-Priority: 990
+
+Package: *
+Pin: origin *archive.ubuntu.com
+Pin-Priority: 1
