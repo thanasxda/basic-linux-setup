@@ -54,3 +54,7 @@ Package: *
 Pin: origin download.opensuse.org
 Pin: release a=Debian_Unstable
 Pin-Priority: 990
+
+Package: *
+Pin: origin *archive.ubuntu.com
+Pin-Priority: 1
