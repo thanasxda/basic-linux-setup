@@ -47,6 +47,15 @@ $s chmod 755 *
 #else
 #$s sed -i "\$a$USER ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
 #fi
+
+### no pass upgrade
+if $s grep -q "NOPASSWD:/usr/bin/apt update" /etc/sudoers
+then
+echo "Flag exists"
+else
+$s sed -i "\$a$USER ALL=(ALL) NOPASSWD:/usr/bin/apt update, /usr/bin/apt upgrade, /usr/bin/apt dist-upgrade, /usr/bin/apt full-upgrade, /usr/bin/apt autoremove, /usr/bin/apt upgrade --with-new-pkgs -t experimental, /usr/sbin/reboot, /usr/sbin/shutdown" /etc/sudoers
+fi
+
 $s passwd -l root
 $s dpkg-reconfigure locales
 $s locale-gen
