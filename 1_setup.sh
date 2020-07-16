@@ -481,7 +481,8 @@ links lynx \
 arch-install-scripts fish \
 virt-manager selinux-utils \
 libreoffice-writer \
-checkinstall
+checkinstall \
+firmware-mod-kit
 
 
 ### npm
