@@ -12,6 +12,9 @@
 #### add delay prior to application
 sleep 10
 
+systemctl start firewalld
+
+
 #### extras
 echo 1 > /proc/sys/vm/overcommit_memory
 /etc/init.d/irqbalance start
@@ -24,6 +27,9 @@ echo "1" /proc/sys/fs/leases-enable
 echo "0" > /proc/sys/fs/dir-notify-enable
 echo "20" > /proc/sys/fs/lease-break-time
 echo "1" > /proc/sys/vm/overcommit_memory
+
+sudo echo always > /sys/kernel/mm/transparent_hugepage/enabled
+sudo echo always > /sys/kernel/mm/transparent_hugepage/defrag
 
 sysctl -w kernel.sched_scaling_enable=1
 sysctl sched_scaling_enable=1
@@ -132,6 +138,8 @@ sysctl net.ipv4.tcp_keepalive_intvl=15
 #sysctl net.ipv4.tcp_max_tw_buckets=1440000
 #sysctl net.ipv4.tcp_tw_recycle=1
 #sysctl net.ipv4.tcp_tw_reuse=1
+
+sysctl fs.xfs.xfssyncd_centisecs=10000
 
 ###### CPU
 ################################
