@@ -469,9 +469,9 @@ echo -e "${restore}"             #
 $s apt update
 $s aptitude update
 
-$s $ins muon android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-11 clang-11-doc clang-format clang-format-11 clang-tidy clang-tools-11 clangd clangd-11 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-11 libelf-dev libexpat1-dev libffi-dev libfuzzer-11-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-11-ocaml-dev libllvm-ocaml-dev libllvm11 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-11-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-11 lldb llvm llvm-11 llvm-11-dev llvm-11-doc llvm-11-examples llvm-11-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
+$s $ins muon android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-12 clang-11-doc clang-format clang-format-12 clang-tidy clang-tools-12 clangd clangd-12 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-12 libelf-dev libexpat1-dev libffi-dev libfuzzer-12-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-12-ocaml-dev libllvm-ocaml-dev libllvm12 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-12-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-12 lldb llvm llvm-12 llvm-12-dev llvm-12-doc llvm-12-examples llvm-12-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
 nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
-libomp-11-dev llvm-11 llvm clang-11 lld-11 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-11-dev \
+libomp-11-dev llvm-12 llvm clang-12 lld-12 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-12-dev \
 subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
 f2fs-tools xfsprogs rt-tests net-tools \
 libavcodec-extra58 libavcodec-extra \
@@ -676,20 +676,20 @@ $s prelink -amR
 
 ####### SETUP FINISHED ##############################################################################
 #####################################################################################################
-echo -e "${magenta}"                                                                                #
-echo ...                                                                                            #
-echo DONE WITH BASIC SETUP! COMPILING AND AUTO INSTALLING THANAS-x86-64-KERNEL                      #
-echo ...                                                                                            #
-echo -e "${restore}"                                                                                #
+#echo -e "${magenta}"                                                                                #
+#echo ...                                                                                            #
+#echo DONE WITH BASIC SETUP! COMPILING AND AUTO INSTALLING THANAS-x86-64-KERNEL                      #
+#echo ...                                                                                            #
+#echo -e "${restore}"                                                                                #
 #####################################################################################################
 
 ####### KERNEL COMPILATION/INSTALLATION #############################################################
 #####################################################################################################
 ### auto compile and install thanas x86-64 kernel on latest llvm
 ### can be done isolated as well on any distro, use ./build.sh
-cd $git
-git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
-cd thanas-x86-64-kernel && $s chmod 755 *.sh
+#cd $git
+#git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
+#cd thanas-x86-64-kernel && $s chmod 755 *.sh
 ###### MANUALLY INSTALL LLVM/CLANG-11 POLLY SUPPORT FOR NOW
 ### do this prior to clang-11 installation so that if support will officially come
 ### it will be overridden by the official latest clang libraries
@@ -701,7 +701,9 @@ cd thanas-x86-64-kernel && $s chmod 755 *.sh
 #$s \cp -rf LLVMPolly.so $polly/
 #echo "done!"
 #echo -e "${restore}"
-./1*
+#./1*
+
+$s exit
 
 #####################################################################################################
 ####### END #########################################################################################
