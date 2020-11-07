@@ -639,20 +639,22 @@ echo -e "${restore}"             #
 #cd $source
 
 #$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
-
-$s apt -f install -y qt5-style-kvantum* \
-plasma-discover-backend* \
-firewall*
-
+$s apt -f --fix-broken install -y
+$s apt -f install -y --fix-missing qt5-style-kvantum*
+$s apt -f install -y --fix-missing plasma-discover-backend* 
+$s apt -f install -y --fix-missing firewall*
+$s apt -f --fix-broken install -y
 $s apt -f install -y gstreamer*
 
-$s $apt kde-config-systemd kde-style-qtcurve-qt5 \
+$s $apt --fix-missing kde-config-systemd kde-style-qtcurve-qt5 \
 gstreamer1.0-vaapi \
 sddm-theme-breeze sddm-theme-debian-breeze kde-config-sddm \
 plasma-browser-integration apper kde-config-cron kde-config-plymouth \
 task-greek task-greek-desktop task-greek-kde-desktop kdeplasma-addons-data \
 plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
 $s apt upgrade --with-new-pkgs -y #-t Debian_Unstable
+$s apt -f --fix-broken install -y
+$s apt -f --fix-missing install -y
 $s apt full-upgrade -y -t Debian_Unstable
 $s $apt full-upgrade
 
