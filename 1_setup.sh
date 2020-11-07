@@ -682,20 +682,20 @@ $s prelink -amR
 
 ####### SETUP FINISHED ##############################################################################
 #####################################################################################################
-echo -e "${magenta}"                                                                                #
-echo ...                                                                                            #
-echo DONE WITH BASIC SETUP! COMPILING AND AUTO INSTALLING THANAS-x86-64-KERNEL                      #
-echo ...                                                                                            #
-echo -e "${restore}"                                                                                #
+#echo -e "${magenta}"                                                                                #
+#echo ...                                                                                            #
+#echo DONE WITH BASIC SETUP! COMPILING AND AUTO INSTALLING THANAS-x86-64-KERNEL                      #
+#echo ...                                                                                            #
+#echo -e "${restore}"                                                                                #
 #####################################################################################################
 
 ####### KERNEL COMPILATION/INSTALLATION #############################################################
 #####################################################################################################
 ### auto compile and install thanas x86-64 kernel on latest llvm
 ### can be done isolated as well on any distro, use ./build.sh
-cd $git
-git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
-cd thanas-x86-64-kernel && $s chmod 755 *.sh
+#cd $git
+#git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
+#cd thanas-x86-64-kernel && $s chmod 755 *.sh
 ###### MANUALLY INSTALL LLVM/CLANG-11 POLLY SUPPORT FOR NOW
 ### do this prior to clang-11 installation so that if support will officially come
 ### it will be overridden by the official latest clang libraries
@@ -707,7 +707,9 @@ cd thanas-x86-64-kernel && $s chmod 755 *.sh
 #$s \cp -rf LLVMPolly.so $polly/
 #echo "done!"
 #echo -e "${restore}"
-./1*
+#./1*
+
+$s exit
 
 #####################################################################################################
 ####### END #########################################################################################
