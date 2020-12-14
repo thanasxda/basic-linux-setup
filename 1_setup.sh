@@ -62,6 +62,77 @@ $s locale-gen
 
 $s ./2*
 
+
+####### LINUX REPOSITORY SOURCES SETUP ##############################################################
+### setup repos !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo -e "${yellow}"              #
+echo SET UP REPOS                #
+echo -e "${restore}"             #
+##################################
+
+### daily llvm git builds - not always support for lto
+### DO NOT change distro on the llvm repos. these branches are only meant for the toolchain
+### and will ensure you will always use latest llvm when using "make CC=clang"
+#llvm_1='deb http://apt.llvm.org/unstable/ llvm-toolchain main'
+#llvm_2='deb-src http://apt.llvm.org/unstable/ llvm-toolchain main'
+
+#new_sources=("$source_1" "$source_2" "$source_3" "$source_4" "$llvm_1" "$llvm_2")
+
+#for i in ${!new_sources[@]}; do
+#    if ! grep -q "${new_sources[$i]}" /etc/apt/sources.list; then
+#        echo "${new_sources[$i]}" | $s tee -a /etc/apt/sources.list
+#        echo "Added ${new_sources[$i]} to source list"
+#    fi
+#done
+
+### fetch keys
+$s $ins ubuntu-archive-keyring deb-multimedia-keyring
+### ubuntu
+$s $key 1378B444
+$s $key 871920D1991BC93C
+$s $key 3B4FE6ACC0B21F32
+### obaif
+$s $key 957d2708a03a4626
+### kodi
+$s $key 6d975c4791e7ee5e
+### git
+$s $key a1715d88e1df1f24
+### usb stuff
+$s $key 3729827454b8c8ac
+### multimedia
+$s $key 5C808C2B65558117
+### google
+$s $key 78BD65473CB3BD13
+### kali
+$s $key ED444FF07D8D0BF6
+###
+$s $key E6D4736255751E5D
+###
+$s $key 04EE7237B7D453EC
+$s $key 648ACFD622F3D138
+$s $key 3B4FE6ACC0B21F32
+$s $key 2836cb0a8ac93f7a
+$s $key B8AC39B0876D807E
+$s $key A2F33E359F038ED9
+### tvheadend
+$s $key 89942AAE5CEAA174
+$s apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
+$s wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | $s apt-key add -
+### opensuse
+$s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
+$s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
+### llvm git
+wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|$s apt-key add -
+$s $key 15CF4D18AF4F7421
+
+cd $source
+$s cp *.list /etc/apt/sources.list.d/
+$s rm -rf /etc/apt/sources.list.d/*sources.list
+$s cp preferences /etc/apt/
+$s cp preferences /etc/apt/preferences.d/
+$s apt update
+
 systemctl enable --now apparmor.service
 
 ### first of all install aptitude to ease out package conflicts
@@ -227,8 +298,8 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
-$s sed -i '/GRUB_CMDLINE_LINUX="quiet splash"/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
 ### set grub timeout
 $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### set grub min resolution
@@ -318,74 +389,6 @@ Keys.ENTER | ./ccache.sh
 ### make sure all is set up right
 $s dpkg --configure -a && $s apt update && $s apt -f upgrade -y --with-new-pkgs && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y && $s apt autoremove -y
 
-####### LINUX REPOSITORY SOURCES SETUP ##############################################################
-### setup repos !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-echo -e "${yellow}"              #
-echo SET UP REPOS                #
-echo -e "${restore}"             #
-##################################
-
-### daily llvm git builds - not always support for lto
-### DO NOT change distro on the llvm repos. these branches are only meant for the toolchain
-### and will ensure you will always use latest llvm when using "make CC=clang"
-#llvm_1='deb http://apt.llvm.org/unstable/ llvm-toolchain main'
-#llvm_2='deb-src http://apt.llvm.org/unstable/ llvm-toolchain main'
-
-#new_sources=("$source_1" "$source_2" "$source_3" "$source_4" "$llvm_1" "$llvm_2")
-
-#for i in ${!new_sources[@]}; do
-#    if ! grep -q "${new_sources[$i]}" /etc/apt/sources.list; then
-#        echo "${new_sources[$i]}" | $s tee -a /etc/apt/sources.list
-#        echo "Added ${new_sources[$i]} to source list"
-#    fi
-#done
-
-### fetch keys
-$s $ins ubuntu-archive-keyring deb-multimedia-keyring
-### ubuntu
-$s $key 1378B444
-$s $key 871920D1991BC93C
-$s $key 3B4FE6ACC0B21F32
-### obaif
-$s $key 957d2708a03a4626
-### kodi
-$s $key 6d975c4791e7ee5e
-### git
-$s $key a1715d88e1df1f24
-### usb stuff
-$s $key 3729827454b8c8ac
-### multimedia
-$s $key 5C808C2B65558117
-### google
-$s $key 78BD65473CB3BD13
-### kali
-$s $key ED444FF07D8D0BF6
-###
-$s $key E6D4736255751E5D
-###
-$s $key 04EE7237B7D453EC
-$s $key 648ACFD622F3D138
-$s $key 3B4FE6ACC0B21F32
-$s $key 2836cb0a8ac93f7a
-$s $key B8AC39B0876D807E
-$s $key A2F33E359F038ED9
-### tvheadend
-$s $key 89942AAE5CEAA174
-$s apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
-$s wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | $s apt-key add -
-### opensuse
-$s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
-$s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
-### llvm git
-wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|$s apt-key add -
-$s $key 15CF4D18AF4F7421
-
-cd $source
-$s cp *.list /etc/apt/sources.list.d/
-$s rm -rf /etc/apt/sources.list.d/*sources.list
-$s cp preferences /etc/apt/
-$s cp preferences /etc/apt/preferences.d/
 
 ##################################
 ####### PPA'S
@@ -520,7 +523,7 @@ $s $apt npm && $s $apt && $s npm cache clean -f && $s npm cache clean -f && $s n
 
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
-$s apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols
+$s apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols -t experimental
 ### allow root privilege under wayland and supress output
 if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
 then
@@ -638,10 +641,16 @@ echo -e "${restore}"             #
 #mv twisted-clang clang
 #cd $source
 
+sudo apt update
+sudo apt -f install -y aptitude
+sudo aptitude -f install -y  libomp-12-dev llvm-12 llvm llvm-12 clang-12 lld-12 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-12-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
+sudo apt -f --fix-missing install -y
+sudo aptitude -f upgrade -y --with-new-pkgs
+
 #$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
 $s apt -f --fix-broken install -y
 $s apt -f install -y --fix-missing qt5-style-kvantum*
-$s apt -f install -y --fix-missing plasma-discover-backend* 
+$s apt -f install -y --fix-missing plasma-discover-backend*
 $s apt -f install -y --fix-missing firewall*
 $s apt -f --fix-broken install -y
 $s apt -f install -y gstreamer*
