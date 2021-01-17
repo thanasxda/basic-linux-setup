@@ -56,9 +56,9 @@ else
 $s sed -i "\$a$USER ALL=(ALL) NOPASSWD:/usr/bin/apt update, /usr/bin/apt upgrade, /usr/bin/apt dist-upgrade, /usr/bin/apt full-upgrade, /usr/bin/apt autoremove, /usr/bin/apt upgrade --with-new-pkgs -t experimental, /usr/sbin/reboot, /usr/sbin/shutdown" /etc/sudoers
 fi
 
-$s passwd -l root
-$s dpkg-reconfigure locales
-$s locale-gen
+#$s passwd -l root
+#$s dpkg-reconfigure locales
+#$s locale-gen
 
 $s ./2*
 
@@ -324,17 +324,17 @@ $s sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
 $s sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
 fi
 
-if grep -q "fancy-bash-promt.sh" ~/.bashrc
-then
-echo "Flag exists"
-else
-cd $source
-$s bash -c 'mkdir -p /root/.config'
-$s cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
-$s cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
-bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
-$s bash -c 'echo "source /root/.config/fancy-bash-promt2.sh" >> /root/.bashrc'
-fi
+#if grep -q "fancy-bash-promt.sh" ~/.bashrc
+#then
+#echo "Flag exists"
+#else
+#cd $source
+#$s bash -c 'mkdir -p /root/.config'
+#$s cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
+#$s cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
+#bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
+#$s bash -c 'echo "source /root/.config/fancy-bash-promt2.sh" >> /root/.bashrc'
+#fi
 
 ### fstab flags
 ### ext4
@@ -494,7 +494,8 @@ arch-install-scripts fish \
 virt-manager selinux-utils \
 libreoffice-writer \
 checkinstall \
-firmware-mod-kit
+firmware-mod-kit \
+gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu
 
 
 ### npm
@@ -679,7 +680,15 @@ $s apt upgrade --with-new-pkgs -y
 $s pkcon refresh && $s pkcon update -y
 $s apt upgrade --with-new-pkgs -y -t experimental
 $s $ins apt-listbugs apt-listchanges
+$s $ins prelink -y
+
+$s $ins -y kali-tools-802-11 kali-tools-bluetooth kali-tools-crypto-stego kali-tools-database kali-tools-exploitation kali-tools-forensics kali-tools-fuzzing kali-tools-gpu kali-tools-hardware kali-tools-information-gathering kali-tools-passwords kali-tools-post-exploitation kali-tools-reverse-engineering kali-tools-sniffing-spoofing kali-tools-social-engineering kali-tools-top10 kali-tools-vulnerability kali-tools-wireless
 $s prelink -amR
+$s apt update
+$s apt upgrade -y -t experimental
+$s apt autoremove -y
+$s apt clean
+$s apt autoclean
 
 #cd $basiclinuxsetup
 #$s cp McMojave.tar.xz /tmp/
