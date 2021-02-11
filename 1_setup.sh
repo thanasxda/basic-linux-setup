@@ -30,10 +30,12 @@ source="$(pwd)"
 basicsetup=$source/.basicsetup
 
 ### variables
-ins="aptitude -f install -y"
-apt="apt -f install -y"
+ins="aptitude -f install -y -t experimental"
+apt="apt -f install -y -t experimental"
 s="sudo"
 key="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
+
+echo 'Acquire::ForceIPv4 "true";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
 
 #wget https://out7.hex-rays.com/files/idafree70_linux.run
 $s chmod 755 *
@@ -117,7 +119,7 @@ $s $key B8AC39B0876D807E
 $s $key A2F33E359F038ED9
 ### tvheadend
 $s $key 89942AAE5CEAA174
-$s apt-get -y install coreutils wget apt-transport-https lsb-release ca-certificates
+$s apt -y install coreutils wget apt-transport-https lsb-release ca-certificates
 $s wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | $s apt-key add -
 ### opensuse
 $s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
@@ -132,6 +134,10 @@ $s rm -rf /etc/apt/sources.list.d/*sources.list
 $s cp preferences /etc/apt/
 $s cp preferences /etc/apt/preferences.d/
 $s apt update
+$s apt -f install -y netselect-apt
+$s netselect-apt -n
+#$s mv sources.list /etc/apt/sources.list
+#$s apt update
 
 systemctl enable --now apparmor.service
 
@@ -271,21 +277,21 @@ echo -e "${yellow}"              #
 echo CONFIGURE SWAP              #
 echo -e "${restore}"             #
 ##################################
-swap=5000000
-swappiness=90
+#swap=10000000
+swappiness=40
 ##################################
-if grep -q "/swapfile" /etc/fstab
-then
-echo "Flag exists"
-else
-$s sed -i "\$a/swapfile    none    swap    sw    0    0" /etc/fstab
-fi
-$s swapoff -a
-$s dd if=/dev/zero of=/swapfile bs=$swap count=1024
-$s chmod 600 /swapfile
-$s mkswap /swapfile
-$s swapon -a
-$s free -h
+#if grep -q "/swapfile" /etc/fstab
+#then
+#echo "Flag exists"
+#else
+#$s sed -i "\$a/swapfile    none    swap    sw    0    0" /etc/fstab
+#fi
+#$s swapoff -a
+#$s dd if=/dev/zero of=/swapfile bs=$swap count=1024
+#$s chmod 600 /swapfile
+#$s mkswap /swapfile
+#$s swapon -a
+#$s free -h
 ### set swappiness to a low value for ram preference
 $s sysctl vm.swappiness=$swappiness
 ### LVM
@@ -299,8 +305,8 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
-$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1"' /etc/default/grub
 ### set grub timeout
 $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### set grub min resolution
@@ -345,12 +351,19 @@ echo "Flag exists"
 else
 $s sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,errors=remount-ro/g' /etc/fstab
 fi
+### efi bootloader
+if grep -q "lazytime" /etc/fstab
+then
+echo "Flag exists"
+else
+$s sed -i 's/vfat    umask=0077/vfat            rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,discard,errors=remount-ro/g' /etc/fstab
+fi
 ### xfs
 if grep -q "lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-$s sed -i 's/xfs     defaults/xfs     defaults,rw,noatime,lazytime,attr2,inode64,logbufs=8,logbsize=32k,noquota,discard,lazytime/g' /etc/fstab
+$s sed -i 's/xfs     defaults/xfs     defaults,rw,noatime,lazytime,attr2,inode64,logbufs=8,logbsize=32k,noquota,discard/g' /etc/fstab
 fi
 ### f2fs
 if grep -q "f2fs     rw,noatime,lazytime" /etc/fstab
@@ -473,30 +486,19 @@ echo -e "${restore}"             #
 $s apt update
 $s aptitude update
 
-$s $ins muon android-tools-adb android-tools-fastboot autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-12 clang-11-doc clang-format clang-format-12 clang-tidy clang-tools-12 clangd clangd-12 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk gcc gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath kubuntu-restricted-extras lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-11-dev libclang-dev libclang1 libclang1-12 libelf-dev libexpat1-dev libffi-dev libfuzzer-12-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-12-ocaml-dev libllvm-ocaml-dev libllvm12 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-12-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-12 lldb llvm llvm-12 llvm-12-dev llvm-12-doc llvm-12-examples llvm-12-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man ubuntu-restricted-extras unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
-nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
-libomp-11-dev llvm-12 llvm clang-12 lld-12 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-12-dev \
-subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
-f2fs-tools xfsprogs rt-tests net-tools \
-libavcodec-extra58 libavcodec-extra \
-wine wine32 q4wine \
-kodi-pvr-hts kodi-x11 kodi-wayland kodi \
-gimp audacity uget \
-alien bleachbit atom \
-libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2 \
-psensor flatpak plasma-discover-backend-flatpak \
-fwupd plasma-discover-backend-fwupd \
-kubuntu-restricted-extras ubuntu-restricted-extras \
-x264 x265 putty shellcheck \
-gnome-maps minitube packagekit sweeper gnome-disk-utility \
-prelink irqbalance \
-links lynx \
-arch-install-scripts fish \
-virt-manager selinux-utils \
-libreoffice-writer \
-checkinstall \
-firmware-mod-kit \
-gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu
+$s $ins adb fastboot
+
+$s $ins lldb
+
+$s $ins lldb-13
+
+$s $ins clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python-clang
+
+$s $ins gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu binutils binutils-dev \
+libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
+
+sudo apt -f install binutils-dev -y -t experimental
+#virt-manager
 
 
 ### npm
@@ -642,10 +644,45 @@ echo -e "${restore}"             #
 #git clone --depth=1 https://github.com/TwistedPrime/twisted-clang.git
 #mv twisted-clang clang
 #cd $source
+#kubuntu-restricted-extras ubuntu-restricted-extras android-tools-fastboot libavcodec-extra58
+
+$s $ins muon  autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-13 clang-13-doc clang-format clang-format-13 clang-tidy clang-tools-13 clangd clangd-13 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk  gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-13-dev libclang-dev libclang1 libclang1-12 libelf-dev libexpat1-dev libffi-dev libfuzzer-12-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-13-ocaml-dev libllvm-ocaml-dev libllvm12 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-13-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-13 lldb llvm llvm-13 llvm-13-dev llvm-13-doc llvm-13-examples llvm-13-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
+nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
+libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
+subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
+f2fs-tools xfsprogs rt-tests net-tools
+
+$s $ins libavcodec-extra libavcodec58 \
+
+$s $ins wine wine32 q4wine \
+kodi-pvr-hts kodi-x11 kodi-wayland kodi \
+gimp audacity uget \
+alien bleachbit atom \
+libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2 \
+psensor flatpak plasma-discover-backend-flatpak \
+fwupd plasma-discover-backend-fwupd \
+x264 x265 putty shellcheck \
+gnome-maps minitube packagekit sweeper gnome-disk-utility \
+prelink irqbalance \
+links lynx \
+arch-install-scripts fish \
+selinux-utils \
+libreoffice-writer \
+checkinstall \
+firmware-mod-kit \
+nmapsi4 \
+dolphin-plugins grub-customizer \
+ccache \
+adb fastboot \
+netselect-apt \
+python3-pip
+
+
+
 
 sudo apt update
 sudo apt -f install -y aptitude
-sudo aptitude -f install -y  libomp-12-dev llvm-12 llvm llvm-12 clang-12 lld-12 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-12-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
+sudo aptitude -f install -y  libomp-13-dev llvm-13 llvm llvm-13 clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
 sudo apt -f --fix-missing install -y
 sudo aptitude -f upgrade -y --with-new-pkgs
 
@@ -680,17 +717,23 @@ $s dpkg --configure -a && $s apt update && $s apt -f --fix-broken install -y && 
 $s apt upgrade --with-new-pkgs -y
 $s pkcon refresh && $s pkcon update -y
 $s apt upgrade --with-new-pkgs -y -t experimental
-$s $ins apt-listbugs apt-listchanges
+#$s $ins apt-listbugs apt-listchanges apt-cacher
+$s $ins -y plasma-discover-backend-fwupd plasma-discover-backend-snap plasma-discover-backend-flatpak fwupd
+$s apt -f install --fix-missing --fix-broken -y wine wine32 wine64 q4wine -t experimental
+$s dpkg --configure -a
 $s $ins prelink -y
 
 $s $ins -y kali-tools-802-11 kali-tools-bluetooth kali-tools-crypto-stego kali-tools-database kali-tools-exploitation kali-tools-forensics kali-tools-fuzzing kali-tools-gpu kali-tools-hardware kali-tools-information-gathering kali-tools-passwords kali-tools-post-exploitation kali-tools-reverse-engineering kali-tools-sniffing-spoofing kali-tools-social-engineering kali-tools-top10 kali-tools-vulnerability kali-tools-wireless
-$s prelink -amR
+$s $ins -y firmware-linux-nonfree firmware-linux-free firmware-misc-nonfree firmware-linux
 $s apt update
+$s apt -f install -y -t experimental binutils binutils-dev gcc-11 gcc-11-aarch64-linux-gnu gcc-11-arm-linux-gnueabi
+$s apt -f install -y -t experimental plasma-desktop kde-plasma-desktop task-kde-desktop kde-baseapps kio
 $s apt upgrade -y -t experimental
 $s apt autoremove -y
 $s apt clean
 $s apt autoclean
-
+$s pkcon update -y
+$s prelink -amR
 #cd $basiclinuxsetup
 #$s cp McMojave.tar.xz /tmp/
 #$s cp -a .local ~/
@@ -724,7 +767,7 @@ $s apt autoclean
 #echo -e "${restore}"
 #./1*
 
-$s exit
+exit
 
 #####################################################################################################
 ####### END #########################################################################################
