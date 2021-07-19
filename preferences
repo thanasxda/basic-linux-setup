@@ -6,6 +6,10 @@ Package: grub-efi-amd64-signed mokutil shim-helpers-amd64-signed shim-signed shi
 Pin: origin deb.debian.org
 Pin-Priority: 1
 
+Package: grub-efi-amd64-signed mokutil shim-helpers-amd64-signed shim-signed shim-signed-common shim-unsigned grub-common grub-efi grub-efi-amd64:i386 grub-efi-amd64-bin grub2-common lsb-release base-files sddm grub* kali-themes kali-menu desktop-base grub2 grub-common grub-efi grub-efi-amd64 grub-efi-amd64-bin grub2-common grub-efi grub-efi-amd64-signed mokutil shim-helpers-amd64-signed shim-signed shim-signed-common shim-unsigned
+Pin: origin ftp.gr.debian.org
+Pin-Priority: 1
+
 Package: *
 Pin: origin kali.download
 Pin-Priority: 991
@@ -27,6 +31,10 @@ Pin-Priority: 990
 
 Package: *
 Pin: origin www.deb-multimedia.org
+Pin-Priority: 990
+
+Package: *
+Pin: origin debian-mirrors.sdinet.de
 Pin-Priority: 990
 
 Package: plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 plasma-framework kio plasma-nm plasma-desktop lasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter

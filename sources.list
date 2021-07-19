@@ -6,5 +6,5 @@ deb [arch=amd64,i386] https://kali.download/kali kali-experimental main non-free
 deb [arch=amd64,i386] https://kali.download/kali kali-last-snapshot main non-free contrib
 
 ### llvm
-deb [arch=amd64,i386] http://apt.llvm.org/unstable/ llvm-toolchain main
-deb-src [arch=amd64,i386] http://apt.llvm.org/unstable/ llvm-toolchain main
+deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main
+deb-src [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main

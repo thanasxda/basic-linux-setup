@@ -37,6 +37,10 @@ key="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
 
 echo 'Acquire::ForceIPv4 "true";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
 
+$s apt-get update -oAcquire::AllowInsecureRepositories=true
+$s apt-get install deb-multimedia-keyring -y
+
+
 #wget https://out7.hex-rays.com/files/idafree70_linux.run
 $s chmod 755 *
 #./idafree70_linux.run
@@ -111,6 +115,8 @@ $s $key ED444FF07D8D0BF6
 ###
 $s $key E6D4736255751E5D
 ###
+$s $key 5A88D659DCB811BB
+###
 $s $key 04EE7237B7D453EC
 $s $key 648ACFD622F3D138
 $s $key 3B4FE6ACC0B21F32
@@ -127,6 +133,13 @@ $s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_
 ### llvm git
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|$s apt-key add -
 $s $key 15CF4D18AF4F7421
+wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && $s dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+
+$s apt-get clean
+$s rm -rf /var/lib/apt/lists/*
+$s apt-get clean
+$s apt-get update
+
 
 cd $source
 $s cp *.list /etc/apt/sources.list.d/

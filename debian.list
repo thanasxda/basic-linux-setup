@@ -1,11 +1,16 @@
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
+
 ### debian
-deb [arch=amd64,i386] http://deb.debian.org/debian/ unstable main contrib non-free
-deb [arch=amd64,i386] http://deb.debian.org/debian/ sid main contrib non-free
-deb [arch=amd64,i386] http://http.debian.net/debian experimental main contrib non-free
+deb [arch=amd64,i386] https://deb.debian.org/debian/  stable main contrib non-free
+deb [arch=amd64,i386] https://deb.debian.org/debian/  unstable main contrib non-free
+deb [arch=amd64,i386] https://deb.debian.org/debian/ sid main contrib non-free
+deb [arch=amd64,i386 trusted=yes] https://deb.debian.org/debian/  experimental main contrib non-free
 
 ### debian-multimedia
-deb [arch=amd64,i386] http://www.deb-multimedia.org/ unstable main non-free
-deb [arch=amd64,i386] http://www.deb-multimedia.org/ sid main non-free
-deb [arch=amd64,i386] http://www.deb-multimedia.org experimental main
+deb [arch=amd64,i386] https://www.deb-multimedia.org/ stable main non-free
+deb [arch=amd64,i386] https://www.deb-multimedia.org/ unstable main non-free
+deb [arch=amd64,i386] https://www.deb-multimedia.org/ sid main non-free
+deb [arch=amd64,i386 trusted=yes] https://www.deb-multimedia.org/ experimental main
+
+
