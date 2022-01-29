@@ -55,12 +55,12 @@ $s chmod 755 *
 #fi
 
 ### no pass upgrade
-if $s grep -q "NOPASSWD:/usr/bin/apt update" /etc/sudoers
-then
-echo "Flag exists"
-else
-$s sed -i "\$a$USER ALL=(ALL) NOPASSWD:/usr/bin/apt update, /usr/bin/apt upgrade, /usr/bin/apt dist-upgrade, /usr/bin/apt full-upgrade, /usr/bin/apt autoremove, /usr/bin/apt upgrade --with-new-pkgs -t experimental, /usr/sbin/reboot, /usr/sbin/shutdown" /etc/sudoers
-fi
+#if $s grep -q "NOPASSWD:/usr/bin/apt update" /etc/sudoers
+#then
+#echo "Flag exists"
+#else
+#$s sed -i "\$a$USER ALL=(ALL) NOPASSWD:/usr/bin/apt update, /usr/bin/apt upgrade, /usr/bin/apt dist-upgrade, /usr/bin/apt full-upgrade, /usr/bin/apt autoremove, /usr/bin/apt upgrade --with-new-pkgs -t experimental, /usr/sbin/reboot, /usr/sbin/shutdown" /etc/sudoers
+#fi
 
 #$s passwd -l root
 #$s dpkg-reconfigure locales
@@ -173,17 +173,19 @@ mkdir -p $git && mkdir -p $tc
 ####### MINOR LINUX OPTIMIZATIONS ###################################################################
 #####################################################################################################
 ### optimizations press -y & enter
-printf 'y\n' | $s dpkg-reconfigure dash
+#printf 'y\n' |
+$s dpkg-reconfigure dash
 $s $ins kexec-tools
 $s $apt && $s apt --fix-missing install -y
-printf 'y\ny\n' | $s dpkg-reconfigure kexec-tools
+#printf 'y\ny\n' |
+$s dpkg-reconfigure kexec-tools
 
 ### brave
-$s $ins apt-transport-https curl
-curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | $s apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
-echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | $s tee /etc/apt/sources.list.d/brave-browser-nightly.list
-$s apt update
-$s $ins brave-browser-nightly
+#$s $ins apt-transport-https curl
+#curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | $s apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
+#echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | $s tee /etc/apt/sources.list.d/brave-browser-nightly.list
+#$s apt update
+#$s $ins brave-browser-nightly
 
 ####### GIT CONFIGURATION ###########################################################################
 #####################################################################################################
@@ -278,10 +280,10 @@ cd $source
 
 #yes | brave-browser-beta https://chrome.google.com/webstore/detail/duckduckgo-privacy-essent/bkdgflcldnnnapblkhphbgpggdiikppg
 #yes | brave-browser-beta https://chrome.google.com/webstore/detail/adblock-%E2%80%94-best-ad-blocker/gighmmpiobklfepjocnamgkkbiglidom
-yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
-yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
-yes | brave-browser-nightly https://chrome.google.com/webstore/detail/touch-vpn-secure-and-unli/bihmplhobchoageeokmgbdihknkjbknd
-yes | brave-browser-nightly https://chrome.google.com/webstore/detail/privacy-badger/pkehgijcmpdhfbdbbnkijodmdjhbjlgp
+#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
+#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
+#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/touch-vpn-secure-and-unli/bihmplhobchoageeokmgbdihknkjbknd
+#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/privacy-badger/pkehgijcmpdhfbdbbnkijodmdjhbjlgp
 
 ####### SWAP CONFIGURATION ##########################################################################
 #####################################################################################################
@@ -342,7 +344,11 @@ $s sed -i "\$aexport USE_PREBUILT_CACHE=1" ~/.bashrc
 $s sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.bashrc
 $s sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
 $s sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
+$s sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
 fi
+
+#$s sed -1 "\$aexportPATH='$PATH:/usr/bin:usr/local/sbin:/usr/sbin:/sbin'" ~/.bashrc
+
 
 #if grep -q "fancy-bash-promt.sh" ~/.bashrc
 #then
@@ -372,18 +378,18 @@ else
 $s sed -i 's/vfat    umask=0077/vfat            rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,discard,errors=remount-ro/g' /etc/fstab
 fi
 ### xfs
-if grep -q "lazytime" /etc/fstab
+if grep -q "defaults,rw,lazytime,attr2" /etc/fstab
 then
 echo "Flag exists"
 else
-$s sed -i 's/xfs     defaults/xfs     defaults,rw,noatime,lazytime,attr2,inode64,logbufs=8,logbsize=32k,noquota,discard/g' /etc/fstab
+$s sed -i 's/xfs     defaults/xfs     defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=32k,noquota,discard/g' /etc/fstab
 fi
 ### f2fs
-if grep -q "f2fs     rw,noatime,lazytime" /etc/fstab
+if grep -q "f2fs     rw,lazytime" /etc/fstab
 then
 echo "Flag exists"
 else
-$s sed -i 's/f2fs    defaults,noatime/f2fs     rw,noatime,lazytime,background_gc=on,discard,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota/g' /etc/fstab
+$s sed -i 's/f2fs    defaults,noatime/f2fs     rw,lazytime,background_gc=on,discard,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota/g' /etc/fstab
 fi
 ### tmpfs
 $s sed -i 's+/tmp           tmpfs   defaults,noatime,mode=1777 0 0++g' /etc/fstab
@@ -391,9 +397,9 @@ if grep -q "/run/shm" /etc/fstab
 then
 echo "Flag exists"
 else
-$s sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
-$s sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
-$s sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,noatime,mode=1777 0 0" /etc/fstab
+$s sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,mode=1777 0 0" /etc/fstab
+$s sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,mode=1777 0 0" /etc/fstab
+$s sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,mode=1777 0 0" /etc/fstab
 fi
 
 ####### BUILD ENVIRONMENT SETUP #####################################################################
@@ -501,14 +507,14 @@ $s aptitude update
 
 $s $ins adb fastboot
 
-$s $ins lldb
+#$s $ins lldb
 
-$s $ins lldb-13
+#$s $ins lldb-13
 
-$s $ins clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python-clang
+#$s $ins clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python-clang
 
-$s $ins gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu binutils binutils-dev \
-libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
+#$s $ins gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu binutils binutils-dev \
+#libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
 
 sudo apt -f install binutils-dev -y -t experimental
 #virt-manager
@@ -541,13 +547,14 @@ $s $apt npm && $s $apt && $s npm cache clean -f && $s npm cache clean -f && $s n
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
 $s apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols -t experimental
+$s apt install -y net-tools
 ### allow root privilege under wayland and supress output
-if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
-then
-echo "Flag exists"
-else
-$s sed -i "\$axhost +si:localuser:root >/dev/null" ~/.bashrc
-fi
+#if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
+#then
+#echo "Flag exists"
+#else
+#$s sed -i "\$axhost +si:localuser:root >/dev/null" ~/.bashrc
+#fi
 ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ### TEMPORARILY ADD DEBIAN USNTABLE REPOS TO GET SOME PACKAGES!!!
 #$s echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
@@ -578,30 +585,30 @@ $s dpkg -i gitkraken*
 $s $apt && $s apt --fix-broken install -y
 rm -rf gitkraken*
 
-wget https://dl.google.com/dl/earth/client/current/google-earth-pro-stable_current_amd64.deb
-$s dpkg -i google-earth-pro*
-$s $apt && $s apt --fix-broken install -y
-rm -rf google-earth-pro*
+#wget https://dl.google.com/dl/earth/client/current/google-earth-pro-stable_current_amd64.deb
+#$s dpkg -i google-earth-pro*
+#$s $apt && $s apt --fix-broken install -y
+#rm -rf google-earth-pro*
 
-wget https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.529-Linux-x64.deb
-$s dpkg -i VNC-V*
-$s $apt && $s apt --fix-broken install -y
-rm -rf VNC-V*
+#wget https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.529-Linux-x64.deb
+#$s dpkg -i VNC-V*
+#$s $apt && $s apt --fix-broken install -y
+#rm -rf VNC-V*
 
-wget http://ftp.br.debian.org/debian/pool/main/d/diffuse/diffuse_0.4.8-4_all.deb
-$s dpkg -i diffuse*
-$s $apt && $s apt --fix-broken install -y
-rm -rf diffuse*
+#wget http://ftp.br.debian.org/debian/pool/main/d/diffuse/diffuse_0.4.8-4_all.deb
+#$s dpkg -i diffuse*
+#$s $apt && $s apt --fix-broken install -y
+#rm -rf diffuse*
 
-wget https://atom.io/download/deb
-$s dpkg -i deb*
-$s $apt && $s apt --fix-broken install -y
-rm -rf deb*
+#wget https://atom.io/download/deb
+#$s dpkg -i deb*
+#$s $apt && $s apt --fix-broken install -y
+#rm -rf deb*
 
-wget https://launchpad.net/~teejee2008/+archive/ubuntu/ppa/+files/ukuu_18.9.3-0~201902031503~ubuntu18.04.1_amd64.deb
-$s dpkg -i ukuu*
-$s $apt && $s apt --fix-broken install -y
-rm -rf ukuu*
+#wget https://launchpad.net/~teejee2008/+archive/ubuntu/ppa/+files/ukuu_18.9.3-0~201902031503~ubuntu18.04.1_amd64.deb
+#$s dpkg -i ukuu*
+#$s $apt && $s apt --fix-broken install -y
+#rm -rf ukuu*
 
 #wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
 #$s dpkg -i teamviewer*
@@ -659,43 +666,43 @@ echo -e "${restore}"             #
 #cd $source
 #kubuntu-restricted-extras ubuntu-restricted-extras android-tools-fastboot libavcodec-extra58
 
-$s $ins muon  autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-13 clang-13-doc clang-format clang-format-13 clang-tidy clang-tools-13 clangd clangd-13 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk  gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-13-dev libclang-dev libclang1 libclang1-12 libelf-dev libexpat1-dev libffi-dev libfuzzer-12-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-13-ocaml-dev libllvm-ocaml-dev libllvm12 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-13-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-13 lldb llvm llvm-13 llvm-13-dev llvm-13-doc llvm-13-examples llvm-13-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
-nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
-libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
-subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
-f2fs-tools xfsprogs rt-tests net-tools
+#$s $ins muon  autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-13 clang-13-doc clang-format clang-format-13 clang-tidy clang-tools-13 clangd clangd-13 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk  gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-13-dev libclang-dev libclang1 libclang1-12 libelf-dev libexpat1-dev libffi-dev libfuzzer-12-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-13-ocaml-dev libllvm-ocaml-dev libllvm12 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-13-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-13 lldb llvm llvm-13 llvm-13-dev llvm-13-doc llvm-13-examples llvm-13-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
+#nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
+#libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
+#subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
+#f2fs-tools xfsprogs rt-tests net-tools
 
-$s $ins libavcodec-extra libavcodec58 \
+$s $ins libavcodec-extra libavcodec58 x264 x265 \
 
-$s $ins wine wine32 q4wine \
-kodi-pvr-hts kodi-x11 kodi-wayland kodi \
-gimp audacity uget \
-alien bleachbit atom \
-libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2 \
-psensor flatpak plasma-discover-backend-flatpak \
-fwupd plasma-discover-backend-fwupd \
-x264 x265 putty shellcheck \
-gnome-maps minitube packagekit sweeper gnome-disk-utility \
-prelink irqbalance \
-links lynx \
-arch-install-scripts fish \
-selinux-utils \
-libreoffice-writer \
-checkinstall \
-firmware-mod-kit \
-nmapsi4 \
-dolphin-plugins grub-customizer \
-ccache \
-adb fastboot \
-netselect-apt \
-python3-pip
+#$s $ins wine wine32 q4wine \
+#kodi-pvr-hts kodi-x11 kodi-wayland kodi \
+#gimp audacity uget \
+#alien bleachbit atom \
+#libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2 \
+#psensor flatpak plasma-discover-backend-flatpak \
+#fwupd plasma-discover-backend-fwupd \
+#putty shellcheck \
+#gnome-maps minitube packagekit sweeper gnome-disk-utility \
+#prelink irqbalance \
+#links lynx \
+#arch-install-scripts fish \
+#selinux-utils \
+#libreoffice-writer \
+#checkinstall \
+#firmware-mod-kit \
+#nmapsi4 \
+#dolphin-plugins grub-customizer \
+#ccache \
+#adb fastboot \
+#netselect-apt \
+#python3-pip
 
 
 
 
 sudo apt update
 sudo apt -f install -y aptitude
-sudo aptitude -f install -y  libomp-13-dev llvm-13 llvm llvm-13 clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
+#sudo aptitude -f install -y  libomp-13-dev llvm-13 llvm llvm-13 clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
 sudo apt -f --fix-missing install -y
 sudo aptitude -f upgrade -y --with-new-pkgs
 
@@ -732,14 +739,14 @@ $s pkcon refresh && $s pkcon update -y
 $s apt upgrade --with-new-pkgs -y -t experimental
 #$s $ins apt-listbugs apt-listchanges apt-cacher
 $s $ins -y plasma-discover-backend-fwupd plasma-discover-backend-snap plasma-discover-backend-flatpak fwupd
-$s apt -f install --fix-missing --fix-broken -y wine wine32 wine64 q4wine -t experimental
+#$s apt -f install --fix-missing --fix-broken -y wine wine32 wine64 q4wine -t experimental
 $s dpkg --configure -a
 $s $ins prelink -y
 
-$s $ins -y kali-tools-802-11 kali-tools-bluetooth kali-tools-crypto-stego kali-tools-database kali-tools-exploitation kali-tools-forensics kali-tools-fuzzing kali-tools-gpu kali-tools-hardware kali-tools-information-gathering kali-tools-passwords kali-tools-post-exploitation kali-tools-reverse-engineering kali-tools-sniffing-spoofing kali-tools-social-engineering kali-tools-top10 kali-tools-vulnerability kali-tools-wireless
+#$s $ins -y kali-tools-802-11 kali-tools-bluetooth kali-tools-crypto-stego kali-tools-database kali-tools-exploitation kali-tools-forensics kali-tools-fuzzing kali-tools-gpu kali-tools-hardware kali-tools-information-gathering kali-tools-passwords kali-tools-post-exploitation kali-tools-reverse-engineering kali-tools-sniffing-spoofing kali-tools-social-engineering kali-tools-top10 kali-tools-vulnerability kali-tools-wireless
 $s $ins -y firmware-linux-nonfree firmware-linux-free firmware-misc-nonfree firmware-linux
 $s apt update
-$s apt -f install -y -t experimental binutils binutils-dev gcc-11 gcc-11-aarch64-linux-gnu gcc-11-arm-linux-gnueabi
+#$s apt -f install -y -t experimental binutils binutils-dev gcc-11 gcc-11-aarch64-linux-gnu gcc-11-arm-linux-gnueabi
 $s apt -f install -y -t experimental plasma-desktop kde-plasma-desktop task-kde-desktop kde-baseapps kio
 $s apt upgrade -y -t experimental
 $s apt autoremove -y
