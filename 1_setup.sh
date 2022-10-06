@@ -748,6 +748,8 @@ $s $ins -y firmware-linux-nonfree firmware-linux-free firmware-misc-nonfree firm
 $s apt update
 #$s apt -f install -y -t experimental binutils binutils-dev gcc-11 gcc-11-aarch64-linux-gnu gcc-11-arm-linux-gnueabi
 $s apt -f install -y -t experimental plasma-desktop kde-plasma-desktop task-kde-desktop kde-baseapps kio
+$s apt -f install -y jitterentropy-rngd
+systemctl enable jitterentropy
 $s apt upgrade -y -t experimental
 $s apt autoremove -y
 $s apt clean
