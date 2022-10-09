@@ -35,11 +35,15 @@ apt="apt -f install -y -t experimental"
 s="sudo"
 key="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
 
-echo 'Acquire::ForceIPv4 "true";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
-echo "127.0.0.1 release.gitkraken.com" >> /etc/hosts
+echo 'Acquire::ForceIPv4 "false";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
+echo "127.0.0.1 release.gitkraken.com"  | sudo tee  /etc/hosts
 
 $s apt-get update -oAcquire::AllowInsecureRepositories=true
 $s apt-get install deb-multimedia-keyring -y
+
+echo 'net.ipv6.conf.all.disable_ipv6 = 0' | sudo tee /etc/sysctl.conf
+echo 'net.ipv6.conf.default.disable_ipv6 = 0' | sudo tee /etc/sysctl.conf
+echo 'net.ipv6.conf.lo.disable_ipv6 = 0' | sudo tee /etc/sysctl.conf
 
 
 #wget https://out7.hex-rays.com/files/idafree70_linux.run
@@ -322,8 +326,8 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=nomwait tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off"' /etc/default/grub
-$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=nomwait tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=nomwait tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=0 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=nomwait tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=0 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off"' /etc/default/grub
 ### set grub timeout
 $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
 ### grub os prober
