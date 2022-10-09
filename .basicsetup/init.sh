@@ -147,8 +147,13 @@ sysctl fs.xfs.xfssyncd_centisecs=10000
 ### governor
 function setgov ()
 {
-    echo "performance" | sudo tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
+    bash -c 'echo "performance" | sudo tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor'
 }
+for i in $(find /sys/devices/system/cpu/cpufreq); do        
+  echo "performance" > $i/scaling_governor;
+done;
+
+
 ### workqueues
 chmod 666 /sys/module/workqueue/parameters/power_efficient
 chown root /sys/module/workqueue/parameters/power_efficient
