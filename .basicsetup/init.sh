@@ -8,7 +8,8 @@
 ######################################################################
 #################### https://github.com/thanasxda ####################
 ######################################################################
-
+sysctl -w net.ipv6.conf.all.disable_ipv6=0
+sysctl -w net.ipv6.conf.default.disable_ipv6=0
 #### add delay prior to application
 sleep 10
 
@@ -48,7 +49,7 @@ systemctl enable --now apparmor.service
 ### currently [none], [kyber], [bfq], [mq-deadline]
 #$(sudo fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
 for i in $(find /sys/block -type l); do
-  echo "none" > $i/queue/scheduler;
+  echo "kyber" > $i/queue/scheduler;
   echo "0" > $i/queue/add_random;
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
@@ -69,7 +70,7 @@ for i in $(find /sys/block -type l); do
   echo "0" > $i/queue/iosched/slice_idle
   echo "0" > $i/queue/iosched/group_idle
   echo "1" > $i/queue/iosched/low_latency
-  echo "150" > $i/queue/iosched/target_latency
+  echo "100" > $i/queue/iosched/target_latency
 done;
 
 echo "write through" | sudo tee /sys/block/*/queue/write_cache

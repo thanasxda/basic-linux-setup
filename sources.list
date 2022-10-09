@@ -1,50 +1,39 @@
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma522/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma522/Debian_Testing/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Testing/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Testing/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Testing/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Unstable/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma/Debian_Testing/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma/Debian_Unstable/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps/Debian_Testing/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma521/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma521/Debian_Testing/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma520/Debian_Unstable/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma520/Debian_Testing/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma519/Debian_Unstable/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma519/Debian_Testing/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/kwin-lowlatency/Debian_Testing/ ./
-# deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/kwin-lowlatency/Debian_Unstable/ ./
-
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
 ### debian
-deb [arch=amd64,i386] https://deb.debian.org/debian/ stable main contrib non-free
-deb [arch=amd64,i386] https://deb.debian.org/debian/ unstable main contrib non-free
-deb [arch=amd64,i386] https://deb.debian.org/debian/ testing main contrib non-free
-deb [arch=amd64,i386] https://deb.debian.org/debian/ sid main contrib non-free
-deb [arch=amd64,i386 trusted=yes] https://deb.debian.org/debian/ experimental main contrib non-free
-
-deb [arch=amd64,i386] https://deb.debian.org/debian/ bookworm main contrib non-free
+deb [arch=amd64,i386] https://debian.ipacct.com/debian/ unstable main contrib non-free
+deb [arch=amd64,i386] https://debian.ipacct.com/debian/ testing main contrib non-free
+deb [arch=amd64,i386] https://debian.ipacct.com/debian/ sid main contrib non-free
+deb [arch=amd64,i386 trusted=yes] https://debian.ipacct.com/debian/ experimental main contrib non-free
 
 ### debian-multimedia
-deb [arch=amd64,i386] https://www.deb-multimedia.org/ stable main non-free
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ unstable main non-free
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ testing main non-free
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ sid main non-free
 deb [arch=amd64,i386 trusted=yes] https://www.deb-multimedia.org/ experimental main non-free
 
-### llvm
-deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main
-
+### kali
 deb [arch=amd64,i386] https://kali.download/kali kali-rolling main non-free contrib
 deb [arch=amd64,i386] https://kali.download/kali kali-debian-picks main non-free contrib
 deb [arch=amd64,i386] https://kali.download/kali debian-testing main non-free contrib
 deb [arch=amd64,i386] https://kali.download/kali kali-dev main non-free contrib
 deb [arch=amd64,i386] https://kali.download/kali kali-experimental main non-free contrib
 deb [arch=amd64,i386] https://kali.download/kali kali-last-snapshot main non-free contrib
-deb https://cli.github.com/packages sid main
-# deb-src https://cli.github.com/packages sid main
+
+### llvm
+deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main
+
+### git
+deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages sid main
+deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages testing main
+deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages unstable main
+
+### kde
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma525/Debian_Unstable/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma525/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Unstable/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Unstable/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./

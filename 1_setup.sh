@@ -36,6 +36,7 @@ s="sudo"
 key="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
 
 echo 'Acquire::ForceIPv4 "true";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
+echo "127.0.0.1 release.gitkraken.com" >> /etc/hosts
 
 $s apt-get update -oAcquire::AllowInsecureRepositories=true
 $s apt-get install deb-multimedia-keyring -y
@@ -91,7 +92,7 @@ echo -e "${restore}"             #
 #        echo "Added ${new_sources[$i]} to source list"
 #    fi
 #done
-
+$s $ins git curl
 ### fetch keys
 $s $ins ubuntu-archive-keyring deb-multimedia-keyring
 ### ubuntu
@@ -134,6 +135,10 @@ $s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|$s apt-key add -
 $s $key 15CF4D18AF4F7421
 wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && $s dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 23F3D4EA75716059
+sudo cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+
 
 $s apt-get clean
 $s rm -rf /var/lib/apt/lists/*
@@ -181,18 +186,13 @@ $s $apt && $s apt --fix-missing install -y
 $s dpkg-reconfigure kexec-tools
 
 ### brave
-#$s $ins apt-transport-https curl
-#curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | $s apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
-#echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | $s tee /etc/apt/sources.list.d/brave-browser-nightly.list
-#$s apt update
-#$s $ins brave-browser-nightly
+$s $ins apt-transport-https curl
+curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | $s apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
+echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | $s tee /etc/apt/sources.list.d/brave-browser-nightly.list
+$s apt update
+$s $ins brave-browser-nightly
 
-####### GIT CONFIGURATION ###########################################################################
-#####################################################################################################
-### your git name & email - unhash and set up for personal usage
-$s $ins git curl
-#git config --global user.name thanasxda
-#git config --global user.email 15927885+thanasxda@users.noreply.github.com
+
 
 ####### EULA LICENSE AGREEMENTS #####################################################################
 #####################################################################################################
@@ -230,6 +230,7 @@ cd $basicsetup
 $s $ins rsync
 chmod +x init.sh
 $s \cp init.sh /init.sh
+$s \cp init.sh /etc/rc.local
 if grep -q "@reboot root /init.sh" /etc/crontab
 then
 echo "Flag exists"
@@ -280,8 +281,8 @@ cd $source
 
 #yes | brave-browser-beta https://chrome.google.com/webstore/detail/duckduckgo-privacy-essent/bkdgflcldnnnapblkhphbgpggdiikppg
 #yes | brave-browser-beta https://chrome.google.com/webstore/detail/adblock-%E2%80%94-best-ad-blocker/gighmmpiobklfepjocnamgkkbiglidom
-#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
-#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
+yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
+yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
 #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/touch-vpn-secure-and-unli/bihmplhobchoageeokmgbdihknkjbknd
 #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/privacy-badger/pkehgijcmpdhfbdbbnkijodmdjhbjlgp
 
@@ -295,6 +296,7 @@ echo -e "${restore}"             #
 #swap=10000000
 swappiness=40
 ##################################
+## make dedicated swap partition its faster than swapfile
 #if grep -q "/swapfile" /etc/fstab
 #then
 #echo "Flag exists"
@@ -305,8 +307,8 @@ swappiness=40
 #$s dd if=/dev/zero of=/swapfile bs=$swap count=1024
 #$s chmod 600 /swapfile
 #$s mkswap /swapfile
-#$s swapon -a
-#$s free -h
+$s swapon -a
+$s free -h
 ### set swappiness to a low value for ram preference
 $s sysctl vm.swappiness=$swappiness
 ### LVM
@@ -320,10 +322,12 @@ echo GRUB CONFIG                    #
 echo -e "${restore}"                #
 #####################################
 ### switch off mitigations improving linux performance
-$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1"' /etc/default/grub
-$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=none i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off"' /etc/default/grub
+$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 noibrs noibpb nopti nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=poll tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off"' /etc/default/grub
 ### set grub timeout
 $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
+### grub os prober
+$s sed -i "/#GRUB_DISABLE_OS_PROBER/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
 ### set grub min resolution
 #$s sed -i "/GRUB_GFXMODE/c\GRUB_GFXMODE=1024x768" /etc/default/grub
 ### set grub wallpaper
@@ -505,13 +509,39 @@ echo -e "${restore}"             #
 $s apt update
 $s aptitude update
 
+# openwrt
+sudo apt install build-essential ecj fastjar file flex g++ gcc-multilib g++-multilib gawk gettext git git-core java-propose-classpath libelf-dev libncurses5-dev libncursesw5-dev libssl-dev swig python3 python3-distutils subversion unzip wget zlib1g-dev rsync qemu-utils -y
+
+apt install lldb lld clang clangd llvm llvm-dev -y
+
+# LLVM
+apt-get install libllvm-16-ocaml-dev libllvm16 llvm-16 llvm-16-dev llvm-16-doc llvm-16-examples llvm-16-runtime -y
+# Clang and co
+apt-get install clang-16 clang-tools-16 clang-16-doc libclang-common-16-dev libclang-16-dev libclang1-16 clang-format-16 python3-clang-16 clangd-16 clang-tidy-16 -y
+# libfuzzer
+apt-get install libfuzzer-16-dev -y
+# lldb
+apt-get install lldb-16 -y
+# lld (linker)
+apt-get install lld-16 -y
+# libc++
+apt-get install libc++-16-dev libc++abi-16-dev -y
+# OpenMP
+apt-get install libomp-16-dev -y
+# libclc
+apt-get install libclc-16-dev -y
+# libunwind
+apt-get install libunwind-16-dev -y
+# mlir
+apt-get install libmlir-16-dev mlir-16-tools -y
+
 $s $ins adb fastboot
 
 #$s $ins lldb
 
 #$s $ins lldb-13
 
-#$s $ins clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp5 lld lldb llvm-dev llvm-runtime llvm python-clang
+#$s $ins clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp lld lldb llvm-dev llvm-runtime llvm python-clang
 
 #$s $ins gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu binutils binutils-dev \
 #libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
@@ -620,6 +650,23 @@ rm -rf gitkraken*
 #$s $apt && $s apt --fix-broken install -y
 #rm -rf GitHubDesktop*
 
+wget https://github.com/GitCredentialManager/git-credential-manager/releases/download/v2.0.785/gcm-linux_amd64.2.0.785.deb
+$s dpkg -i gcm-linux*
+$s $apt && $s apt --fix-broken install -y
+rm -rf gcm-linux*
+
+
+####### GIT CONFIGURATION ###########################################################################
+#####################################################################################################
+### your git name & email - unhash and set up for personal usage
+
+#git config --global user.name thanasxda
+#git config --global user.email 15927885+thanasxda@users.noreply.github.com
+curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+sh ./install-from-source.sh &&
+git-credential-manager-core configure
+git config --global credential.credentialStore secretservice
+
 ### ensure packages are well installed
 #$s apt update && $s $apt && $s apt --fix-broken install -y
 
@@ -665,14 +712,13 @@ echo -e "${restore}"             #
 #mv twisted-clang clang
 #cd $source
 #kubuntu-restricted-extras ubuntu-restricted-extras android-tools-fastboot libavcodec-extra58
-
-#$s $ins muon  autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang-13 clang-13-doc clang-format clang-format-13 clang-tidy clang-tools-13 clangd clangd-13 cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk  gdebi gedit gettext git git-svn gnupg gperf gstreamer1.0-qt5 help2man java-propose-classpath lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-11-dev libc++abi-11-dev libc6-dev libc6-dev-i386 libcap-dev libclang-13-dev libclang-dev libclang1 libclang1-12 libelf-dev libexpat1-dev libffi-dev libfuzzer-12-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-13-ocaml-dev libllvm-ocaml-dev libllvm12 liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-13-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lld-13 lldb llvm llvm-13 llvm-13-dev llvm-13-doc llvm-13-examples llvm-13-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
+#$s $ins muon  autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang llvm llvm-dev clangd clang-format clang-tidy clang-tools cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk  gdebi gedit gettext git git-svn gnupg gperf help2man java-propose-classpath lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-dev libc++abi-dev libc6-dev libc6-dev-i386 libcap-dev libclang-dev libclang1 libclang1 libelf-dev libexpat1-dev libffi-dev libfuzzer-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-ocaml-dev libllvm-ocaml-dev libllvm liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lldb llvm llvm-dev llvm-doc llvm-examples llvm-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
 #nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
 #libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
 #subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
 #f2fs-tools xfsprogs rt-tests net-tools
 
-$s $ins libavcodec-extra libavcodec58 x264 x265 \
+$s $ins libavcodec-extra libavcodec* x264 x265 \
 
 #$s $ins wine wine32 q4wine \
 #kodi-pvr-hts kodi-x11 kodi-wayland kodi \
@@ -710,7 +756,7 @@ sudo aptitude -f upgrade -y --with-new-pkgs
 $s apt -f --fix-broken install -y
 $s apt -f install -y --fix-missing qt5-style-kvantum*
 $s apt -f install -y --fix-missing plasma-discover-backend*
-$s apt -f install -y --fix-missing firewall*
+$s apt -f install -y --fix-missing firewall* cachefilesd memcached
 $s apt -f --fix-broken install -y
 $s apt -f install -y gstreamer*
 
@@ -744,11 +790,11 @@ $s dpkg --configure -a
 $s $ins prelink -y
 
 #$s $ins -y kali-tools-802-11 kali-tools-bluetooth kali-tools-crypto-stego kali-tools-database kali-tools-exploitation kali-tools-forensics kali-tools-fuzzing kali-tools-gpu kali-tools-hardware kali-tools-information-gathering kali-tools-passwords kali-tools-post-exploitation kali-tools-reverse-engineering kali-tools-sniffing-spoofing kali-tools-social-engineering kali-tools-top10 kali-tools-vulnerability kali-tools-wireless
-$s $ins -y firmware-linux-nonfree firmware-linux-free firmware-misc-nonfree firmware-linux
+$s $ins -y firmware-linux-nonfree firmware-linux-free firmware-misc-nonfree firmware-linux irqbalance
 $s apt update
 #$s apt -f install -y -t experimental binutils binutils-dev gcc-11 gcc-11-aarch64-linux-gnu gcc-11-arm-linux-gnueabi
 $s apt -f install -y -t experimental plasma-desktop kde-plasma-desktop task-kde-desktop kde-baseapps kio
-$s apt -f install -y jitterentropy-rngd
+$s apt -f install -y jitterentropy-rngd rng-tools5 kmod
 systemctl enable jitterentropy
 $s apt upgrade -y -t experimental
 $s apt autoremove -y
