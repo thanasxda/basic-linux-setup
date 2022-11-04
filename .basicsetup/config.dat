@@ -1,0 +1,184 @@
+Name: debconf-apt-progress/info
+Template: debconf-apt-progress/info
+Owners: debconf
+
+Name: debconf-apt-progress/media-change
+Template: debconf-apt-progress/media-change
+Owners: debconf
+
+Name: debconf-apt-progress/preparing
+Template: debconf-apt-progress/preparing
+Owners: debconf
+
+Name: debconf-apt-progress/title
+Template: debconf-apt-progress/title
+Owners: debconf
+
+Name: debconf/frontend
+Template: debconf/frontend
+Value: Dialog
+Owners: debconf
+
+Name: debconf/priority
+Template: debconf/priority
+Value: high
+Owners: debconf
+
+Name: kexec-tools/load_kexec
+Template: kexec-tools/load_kexec
+Value: true
+Owners: kexec-tools
+Flags: seen
+
+Name: kexec-tools/use_grub_config
+Template: kexec-tools/use_grub_config
+Value: true
+Owners: kexec-tools
+Flags: seen
+
+Name: adduser/homedir-permission
+Template: adduser/homedir-permission
+Value: true
+Owners: adduser
+
+Name: console-setup/store_defaults_in_debconf_db
+Template: console-setup/store_defaults_in_debconf_db
+Value: true
+Owners: console-setup
+
+Name: keyboard-configuration/store_defaults_in_debconf_db
+Template: keyboard-configuration/store_defaults_in_debconf_db
+Value: true
+Owners: d-i, keyboard-configuration
+Flags: seen
+
+Name: keyboard-configuration/unsupported_config_layout
+Template: keyboard-configuration/unsupported_config_layout
+Value: true
+Owners: d-i, keyboard-configuration
+
+Name: keyboard-configuration/unsupported_config_options
+Template: keyboard-configuration/unsupported_config_options
+Value: true
+Owners: d-i, keyboard-configuration
+
+Name: keyboard-configuration/unsupported_layout
+Template: keyboard-configuration/unsupported_layout
+Value: true
+Owners: d-i, keyboard-configuration
+
+Name: keyboard-configuration/unsupported_options
+Template: keyboard-configuration/unsupported_options
+Value: true
+Owners: d-i, keyboard-configuration
+
+Name: kismet-capture-common/install-setuid
+Template: kismet-capture-common/install-setuid
+Value: true
+Owners: kismet-capture-common
+Flags: seen
+
+Name: libraries/restart-without-asking
+Template: libraries/restart-without-asking
+Value: true
+Owners: libc6, libc6:amd64, libpam0g, libpam0g:amd64
+Flags: seen
+
+Name: wireshark-common/install-setuid
+Template: wireshark-common/install-setuid
+Value: true
+Owners: wireshark-common
+Flags: seen
+
+Name: macchanger/automatically_run
+Template: macchanger/automatically_run
+Value: true
+Owners: macchanger
+Flags: seen
+
+Name: rkhunter/apt_autogen
+Template: rkhunter/apt_autogen
+Value: false
+Owners: rkhunter
+
+Name: cups-bsd/setuplpd
+Template: cups-bsd/setuplpd
+Value: false
+Owners: cups-bsd
+
+Name: encfs/security-information
+Template: encfs/security-information
+Value: true
+Owners: encfs
+Flags: seen
+
+Name: glibc/disable-screensaver
+Template: glibc/disable-screensaver
+Owners: libc6, libc6:i386
+
+Name: glibc/kernel-not-supported
+Template: glibc/kernel-not-supported
+Owners: libc6, libc6:i386
+
+Name: glibc/kernel-too-old
+Template: glibc/kernel-too-old
+Owners: libc6, libc6:i386
+
+Name: glibc/restart-failed
+Template: glibc/restart-failed
+Owners: libc6, libc6:i386
+
+Name: glibc/restart-services
+Template: glibc/restart-services
+Owners: libc6, libc6:i386
+
+Name: glibc/upgrade
+Template: glibc/upgrade
+Owners: libc6, libc6:i386
+
+Name: make-ssl-cert/altname
+Template: make-ssl-cert/altname
+Owners: ssl-cert
+
+Name: make-ssl-cert/hostname
+Template: make-ssl-cert/hostname
+Owners: ssl-cert
+
+Name: make-ssl-cert/title
+Template: make-ssl-cert/title
+Owners: ssl-cert
+
+Name: make-ssl-cert/vulnerable_prng
+Template: make-ssl-cert/vulnerable_prng
+Owners: ssl-cert
+
+Name: openssh-server/password-authentication
+Template: openssh-server/password-authentication
+Value: true
+Owners: openssh-server
+
+Name: openssh-server/permit-root-login
+Template: openssh-server/permit-root-login
+Value: false
+Owners: openssh-server
+
+Name: update-inetd/ask-disable-entries
+Template: update-inetd/ask-disable-entries
+Owners: update-inetd
+
+Name: update-inetd/ask-entry-present
+Template: update-inetd/ask-entry-present
+Owners: update-inetd
+
+Name: update-inetd/ask-remove-entries
+Template: update-inetd/ask-remove-entries
+Owners: update-inetd
+
+Name: update-inetd/ask-several-entries
+Template: update-inetd/ask-several-entries
+Owners: update-inetd
+
+Name: update-inetd/title
+Template: update-inetd/title
+Owners: update-inetd
+

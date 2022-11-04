@@ -11,7 +11,7 @@ idleTime=300000
 lidAction=1
 powerButtonAction=16
 
-[Activities][987df83d-646f-4da0-b856-13c55324f5be]
+[Activities]
 mode=None
 
 [Battery]

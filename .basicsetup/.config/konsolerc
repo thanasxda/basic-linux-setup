@@ -1,9 +1,12 @@
+MenuBar=Disabled
 [Desktop Entry]
-DefaultProfile=
+DefaultProfile=basic.profile
 
 [Favorite Profiles]
 Favorites=Kali-Light.profile,Kali-Dark.profile
 
+[General]
+ConfigVersion=1
 [KFileDialog Settings]
 Recent Files[$e]=3840x2400.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/malakas.jpg,file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg,file:///usr/share/wallpapers/KaliBlur/contents/images/3840x2160.png,file:///usr/share/wallpapers/KaliBlueMatrix/contents/images/3840x2160.png
 Recent URLs[$e]=file:///usr/share/wallpapers/MalakasUniverse/contents/images/
@@ -11,4 +14,5 @@ detailViewIconSize=0
 
 [MainWindow]
 State=AAAA/wAAAAD9AAAAAAAAA7QAAAIFAAAABAAAAAQAAAAIAAAACPwAAAAA
+MenuBar=Disabled
 ToolBarsMovable=Disabled

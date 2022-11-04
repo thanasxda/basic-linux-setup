@@ -1,6 +1,15 @@
 #!/bin/bash
-### KERNEL UNINSTALL SCRIPT
-###########################
+#############################################################
+#############################################################
+##                  basic-linux-setup                      ##
+#############################################################
+##             https://github.com/thanasxda                ##
+#############################################################
+##      15927885+thanasxda@users.noreply.github.com        ##
+#############################################################
+##    https://github.com/thanasxda/basic-linux-setup.git   ##
+#############################################################
+#############################################################
 
 ###### SET BASH COLORS
 yellow="\033[1;93m"
@@ -27,11 +36,19 @@ RC_KERNEL="${VERSION}.${PATCHLEVEL}.${SUBLEVEL}"-rc*
 ###### INPUT KERNEL NAME HERE!
 #manual=5.7.0-rc4*
 
+manual=$(read)
+
 echo -e "${magenta}"
 echo ALL MANUALLY SPECIFIED KERNELS WITHIN THIS SCRIPT WILL BE REMOVED!
 echo if kernel source is present in predetermined location,
 echo all current version $RC_KERNEL will be removed.
+echo ""
+echo ""
+echo "Or just manually remove looking at underneath kernels. Enter kernelversion as in vmlinuz-< copy & paste just this >":
 echo -e "${restore}"
+ls /boot | grep vmlinuz
+echo -e "${magenta}"
+echo "If necessary at all manually input your kernel and confirm by pressing enter, or leave blank and press enter > here:" $(read)
 
 ###### KERNEL REMOVAL
 sudo rm -rf /boot/vmlinuz-$manual

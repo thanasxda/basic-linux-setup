@@ -8,4 +8,5 @@ Delay=0.7
 name=ChromeOS
 
 [Wallpapers]
-usersWallpapers=/usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg,3840x2400.jpg
+usersWallpapers=/usr/share/wallpapers/mlx_beach/contents/images/mlx_beach.jpg,mlx_beach.jpg
+

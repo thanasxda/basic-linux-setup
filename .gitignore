@@ -1,5 +1,7 @@
+tmp
 .basicsetup/tmp
-*test.sh
+*test*
+*.log
 backup.sources.list
 backup.kali.sources.list
 backup.ubuntu.sources.list

@@ -1,4 +1,16 @@
 #!/bin/bash
+#############################################################
+#############################################################
+##                  basic-linux-setup                      ##
+#############################################################
+##             https://github.com/thanasxda                ##
+#############################################################
+##      15927885+thanasxda@users.noreply.github.com        ##
+#############################################################
+##    https://github.com/thanasxda/basic-linux-setup.git   ##
+#############################################################
+#############################################################
+
 ### restoration script for kde/plasma stock config
 ### note this script only reverts visual customizations.
 ### if you want to remove the kernel + linux tweaks + kernel configuration

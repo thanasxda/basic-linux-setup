@@ -1,0 +1,10 @@
+### ubuntu - repository pinned with lowest priority
+#deb [arch=amd64,i386] http://archive.ubuntu.com/ubuntu/ devel main restricted universe multiverse 
+
+### extras - apps
+deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main
+deb [arch=amd64] http://dl.google.com/linux/earth/deb/ stable main
+deb [arch=amd64] https://repo.skype.com/deb stable main
+deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main
+deb [arch=amd64,i386] https://dl.winehq.org/wine-builds/debian/ unstable main
+

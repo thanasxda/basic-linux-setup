@@ -26,7 +26,7 @@ textless_progressbar=false
 progressbar_thickness=6
 menubar_mouse_tracking=true
 toolbutton_style=0
-click_behavior=0
+click_behavior=2
 translucent_windows=true
 blurring=false
 popup_blurring=false
@@ -59,17 +59,20 @@ reduce_window_opacity=0
 respect_DE=false
 scrollbar_in_view=false
 spin_button_width=16
-submenu_delay=250
+submenu_delay=0
 transient_groove=false
-tree_branch_line=false
-no_inactiveness=false
+tree_branch_line=true
+no_inactiveness=true
 reduce_menu_opacity=0
 contrast=1.00
-dialog_button_layout=0
+dialog_button_layout=4
 intensity=1.00
 saturation=1.00
 scrollable_menu=true
-shadowless_popup=false
+shadowless_popup=true
+drag_from_buttons=false
+menu_blur_radius=0
+tooltip_blur_radius=0
 
 [GeneralColors]
 window.color=#302f2e
@@ -115,12 +118,16 @@ normal_default_pushbutton=false
 single_top_toolbar=false
 tint_on_mouseover=10
 middle_click_scroll=true
-no_selection_tint=true
+no_selection_tint=false
 transparent_pcmanfm_view=true
 transparent_arrow_button=true
 opaque_colors=true
 kinetic_scrolling=false
 scroll_jump_workaround=true
+blur_only_active_window=true
+centered_forms=true
+noninteger_translucency=false
+style_vertical_toolbars=false
 
 [PanelButtonCommand]
 frame=true
@@ -540,4 +547,4 @@ interior=true
 interior.element=dialog
 
 [Focus]
-frame=true
+frame=false

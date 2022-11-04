@@ -1,5 +1,4 @@
 [ActionPlugins][0]
-MidButton;NoModifier=org.kde.paste
 RightButton;NoModifier=org.kde.contextmenu
 wheel:Vertical;NoModifier=org.kde.switchdesktop
 
@@ -9,31 +8,8 @@ RightButton;NoModifier=org.kde.contextmenu
 [Containments][1][Configuration]
 PreloadWeight=42
 
-[Containments][126]
-ItemGeometriesHorizontal=
-activityId=987df83d-646f-4da0-b856-13c55324f5be
-formfactor=0
-immutability=1
-lastScreen=0
-location=0
-plugin=org.kde.plasma.folder
-wallpaperplugin=org.kde.image
-
-[Containments][126][ConfigDialog]
-DialogHeight=540
-DialogWidth=720
-
-[Containments][126][Configuration]
-PreloadWeight=0
-
-[Containments][126][General]
-alignment=1
-iconSize=3
-positions=
-sortMode=-1
-
 [Containments][126][Wallpaper][org.kde.image][General]
-Image=file:///usr/share/wallpapers/MalakasUniverse/contents/images/3840x2400.jpg
+Image=file:///usr/share/wallpapers/mlx_beach/contents/images/mlx_beach.jpg
 
 [Containments][127]
 activityId=
@@ -62,12 +38,15 @@ PreloadWeight=18
 DialogHeight=540
 DialogWidth=720
 
+[Containments][127][Applets][130][Configuration][General]
+launchers=applications:systemsettings.desktop,applications:org.kde.kwrite.desktop
+
 [Containments][127][Applets][131]
 immutability=1
 plugin=org.kde.plasma.systemtray
 
 [Containments][127][Applets][131][Configuration]
-PreloadWeight=46
+PreloadWeight=100
 SystrayContainmentId=132
 
 [Containments][127][Applets][133]
@@ -97,13 +76,12 @@ DialogWidth=720
 
 [Containments][127][Applets][142][Configuration][General]
 alphaSort=true
-customButtonImage=emblem-debian-white
+customButtonImage=
 favoritesPortedToKAstats=true
 recentOrdering=1
 showIconsRootLevel=true
 showRecentApps=false
 showRecentDocs=false
-useCustomButtonImage=true
 
 [Containments][127][Applets][144]
 immutability=1
@@ -111,7 +89,7 @@ plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][144][Configuration]
 PreloadWeight=2
-localPath=~/.local/share/plasma_icons/org.kde.dolphin (4).desktop
+localPath=~/.local/share/plasma_icons/org.kde.dolphin (15).desktop
 url=file:///usr/share/applications/org.kde.dolphin.desktop
 
 [Containments][127][Applets][157]
@@ -120,7 +98,7 @@ plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][157][Configuration]
 PreloadWeight=42
-localPath=~/.local/share/plasma_icons/brave-browser-nightly (1).desktop
+localPath=~/.local/share/plasma_icons/brave-browser-nightly (12).desktop
 url=file:///usr/share/applications/brave-browser-nightly.desktop
 
 [Containments][127][Applets][159]
@@ -128,24 +106,26 @@ immutability=1
 plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][159][Configuration]
-localPath=~/.local/share/plasma_icons/org.kde.konsole (4).desktop
+localPath=~/.local/share/plasma_icons/org.kde.konsole (15).desktop
 url=file:///usr/share/applications/org.kde.konsole.desktop
 
-[Containments][127][Applets][160]
+[Containments][127][Applets][168]
 immutability=1
 plugin=org.kde.plasma.icon
 
-[Containments][127][Applets][160][Configuration]
-localPath=~/.local/share/plasma_icons/gitkraken (2).desktop
-url=file:///usr/share/applications/gitkraken.desktop
+[Containments][127][Applets][168][Configuration]
+localPath=~/.local/share/plasma_icons/firefox (1).desktop
+url=file:///usr/share/applications/firefox.desktop
 
 [Containments][127][ConfigDialog]
+DialogHeight=74
+DialogWidth=1920
 
 [Containments][127][Configuration]
 PreloadWeight=0
 
 [Containments][127][General]
-AppletOrder=142;129;157;144;159;160;130;131;133;134
+AppletOrder=;142;129;168;157;144;159;160;130;131;133;134
 
 [Containments][132]
 activityId=
@@ -154,6 +134,8 @@ immutability=1
 lastScreen=0
 location=4
 plugin=org.kde.plasma.private.systemtray
+popupHeight=432
+popupWidth=432
 wallpaperplugin=org.kde.image
 
 [Containments][132][Applets][135]
@@ -161,7 +143,7 @@ immutability=1
 plugin=org.kde.plasma.volume
 
 [Containments][132][Applets][135][Configuration]
-PreloadWeight=70
+PreloadWeight=80
 
 [Containments][132][Applets][135][Configuration][ConfigDialog]
 DialogHeight=540
@@ -196,7 +178,7 @@ immutability=1
 plugin=org.kde.plasma.notifications
 
 [Containments][132][Applets][139][Configuration]
-PreloadWeight=0
+PreloadWeight=5
 
 [Containments][132][Applets][140]
 immutability=1
@@ -210,14 +192,14 @@ immutability=1
 plugin=org.kde.plasma.networkmanagement
 
 [Containments][132][Applets][141][Configuration]
-PreloadWeight=0
+PreloadWeight=45
 
 [Containments][132][Applets][158]
 immutability=1
 plugin=org.kde.plasma.mediacontroller
 
 [Containments][132][Applets][158][Configuration]
-PreloadWeight=2
+PreloadWeight=0
 
 [Containments][132][Applets][159]
 immutability=1
@@ -226,12 +208,49 @@ plugin=org.kde.plasma.printmanager
 [Containments][132][Applets][159][Configuration]
 PreloadWeight=42
 
+[Containments][132][Applets][161]
+immutability=1
+plugin=org.kde.plasma.nightcolorcontrol
+
+[Containments][132][Applets][162]
+immutability=1
+plugin=org.kde.plasma.keyboardlayout
+
+[Containments][132][Applets][163]
+immutability=1
+plugin=org.kde.plasma.vault
+
+[Containments][132][Applets][164]
+immutability=1
+plugin=org.kde.plasma.manage-inputmethod
+
+[Containments][132][Applets][165]
+immutability=1
+plugin=org.kde.plasma.keyboardindicator
+
 [Containments][132][Configuration]
 PreloadWeight=0
 
 [Containments][132][General]
-extraItems=org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.printmanager
-knownItems=org.kde.plasma.bluetooth,org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardindicator,org.kde.plasma.printmanager
+extraItems=org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardlayout,org.kde.plasma.vault,org.kde.plasma.manage-inputmethod,org.kde.kupapplet
+knownItems=org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardlayout,org.kde.plasma.vault,org.kde.plasma.manage-inputmethod,org.kde.kupapplet
+
+[Containments][167]
+ItemGeometriesHorizontal=
+activityId=987df83d-646f-4da0-b856-13c55324f5be
+formfactor=0
+immutability=1
+lastScreen=0
+location=0
+plugin=org.kde.plasma.folder
+wallpaperplugin=com.kylepaulsen.kderedditwallpaper
+
+[Containments][167][ConfigDialog]
+DialogHeight=540
+DialogWidth=720
+
+[Containments][167][Wallpaper][com.kylepaulsen.kderedditwallpaper][General]
+FillMode=2
 
 [Containments][2][Applets][22][Configuration]
 PreloadWeight=0
@@ -244,4 +263,4 @@ url=file:///usr/share/applications/brave-browser-nightly.desktop
 
 [ScreenMapping]
 itemsOnDisabledScreens=
-screenMapping=
+screenMapping=desktop:/plasma-org.kde.plasma.desktop-appletsrc,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/mlx_beach.jpg,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/README.md,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/services.txt,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/plasmarc,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/Text File.txt,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/config2.dat,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/config.dat,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/BLS-LOGS,0,987df83d-646f-4da0-b856-13c55324f5be,desktop:/kwinrc,0,987df83d-646f-4da0-b856-13c55324f5be

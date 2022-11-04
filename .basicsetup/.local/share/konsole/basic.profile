@@ -1,5 +1,6 @@
 [Appearance]
 ColorScheme=Breeze
+UseFontLineChararacters=true
 
 [General]
 Name=basic

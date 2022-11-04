@@ -1,0 +1,1098 @@
+FILE IS MEANT AS REFERENCE GUIDE FOR AWARENESS OF DEFAULT SERVICES
+preconfiguration will adjust these services, they will not remain as listed here 
+
+
+TOTAL DIFF FROM STOCK:
+
+
+BLS:
+
+systemd-coredump.socket
+run-qemu.mount
+alsa-restore.service
+alsa-state.service
+alsa-utils.service
+anacron.service
+binfmt-support.service
+cachefilesd.service
+colord.service
+configure-printer@.service
+cpufrequtils.service
+exim4-base.service
+exim4.service
+firewalld.service
+flatpak-system-helper.service
+fwupd-offline-update.service
+fwupd-refresh.service
+fwupd.service
+ipp-usb.service
+irqbalance.service
+jitterentropy-rngd.service
+jitterentropy.service
+kexec-load.service
+kexec.service
+loadcpufreq.service
+lynis.service
+pam_namespace.service
+preload.service
+rngd.service
+rsync.service
+saned.service
+saned@.service
+systemd-coredump@.service
+systemd-firstboot.service
+snapd.apparmor.service
+snapd.recovery-chooser-trigger.service
+snapd.seeded.service
+snapd.service
+systemd-pcrphase-initrd.service
+systemd-pcrphase-sysinit.service
+systemd-pcrphase.service
+unattended-upgrades.service
+uuidd.service
+saned.socket
+snapd.socket
+uuidd.socket
+anacron.timer
+exim4-base.timer
+fwupd-refresh.timer
+lynis.timer
+
+
+KALI DEFAULTS:
+
+proc-fs-nfsd.mount
+run-rpc_pipefs.mount
+var-lib-nfs-rpc_pipefs.mount
+accounts-daemon.service
+apache-htcacheclean.service
+apache-htcacheclean@.service
+apache2.service
+apache2@.service
+atftpd.service
+auth-rpcgss-module.service
+dns2tcp.service
+faraday.service
+inetsim.service
+iodined.service
+king-phisher.service
+kismet.service
+mariadb.service
+mariadb@.service
+miredo.service
+mysql.service
+mysqld.service
+nfs-common.service
+nfs-idmapd.service
+nfs-utils.service
+nginx.service
+nmbd.service
+openvpn-client@.service
+openvpn-server@.service
+openvpn.service
+openvpn@.service
+pg_basebackup@.service
+pg_compresswal@.service
+pg_dump@.service
+pg_receivewal@.service
+phpsessionclean.service
+plocate-updatedb.service
+portmap.service
+postgresql.service
+postgresql@.service
+ptunnel.service
+redsocks.service
+rpc-gssd.service
+rpc-statd-notify.service
+rpc-statd.service
+rpc-svcgssd.service
+rpcbind.service
+rsync.service
+rwhod.service
+samba-ad-dc.service
+screen-cleanup.service
+smbd.service
+snmpd.service
+sslh.service
+stunnel4.service
+stunnel@.service
+sysstat-collect.service
+sysstat-summary.service
+sysstat.service
+vpnc@.service
+atftpd.socket
+mariadb.socket
+mariadb@.socket
+rpcbind.socket
+nfs-client.target
+rpc_pipefs.target
+stunnel.target
+pg_basebackup@.timer
+pg_compresswal@.timer
+pg_dump@.timer
+phpsessionclean.timer
+plocate-updatedb.timer
+sysstat-collect.timer
+sysstat-summary.timer
+
+
+SYSTEMCTL LIST-UNIT-FILES ON FRESH INSTALL 3WAY COMPARISON WITHOUT APPLICATION OF SCRIPT:
+
+KDE DEFAULT:
+
+UNIT FILE                                                                 STATE           VENDOR PRESET
+proc-sys-fs-binfmt_misc.automount                                         static          -
+-.mount                                                                   generated       -
+dev-hugepages.mount                                                       static          -
+dev-mqueue.mount                                                          static          -
+proc-sys-fs-binfmt_misc.mount                                             disabled        disabled
+sys-fs-fuse-connections.mount                                             static          -
+sys-kernel-config.mount                                                   static          -
+sys-kernel-debug.mount                                                    static          -
+sys-kernel-tracing.mount                                                  static          -
+systemd-ask-password-console.path                                         static          -
+systemd-ask-password-plymouth.path                                        static          -
+systemd-ask-password-wall.path                                            static          -
+session-3.scope                                                           transient       -
+accounts-daemon.service                                                   enabled         enabled
+apparmor.service                                                          disabled        disabled
+apt-daily-upgrade.service                                                 static          -
+apt-daily.service                                                         static          -
+autovt@.service                                                           alias           -
+avahi-daemon.service                                                      disabled        disabled
+bluetooth.service                                                         disabled        disabled
+bolt.service                                                              static          -
+console-getty.service                                                     disabled        disabled
+console-setup.service                                                     enabled         enabled
+container-getty@.service                                                  static          -
+cron.service                                                              enabled         enabled
+cryptdisks-early.service                                                  masked          disabled
+cryptdisks.service                                                        masked          disabled
+dbus-org.freedesktop.hostname1.service                                    alias           -
+dbus-org.freedesktop.locale1.service                                      alias           -
+dbus-org.freedesktop.login1.service                                       alias           -
+dbus-org.freedesktop.ModemManager1.service                                alias           -
+dbus-org.freedesktop.nm-dispatcher.service                                alias           -
+dbus-org.freedesktop.timedate1.service                                    alias           -
+dbus-org.freedesktop.timesync1.service                                    alias           -
+dbus.service                                                              static          -
+debug-shell.service                                                       disabled        disabled
+display-manager.service                                                   alias           -
+dpkg-db-backup.service                                                    static          -
+drkonqi-coredump-processor@.service                                       disabled        disabled
+e2scrub@.service                                                          static          -
+e2scrub_all.service                                                       static          -
+e2scrub_fail@.service                                                     static          -
+e2scrub_reap.service                                                      enabled         disabled
+emergency.service                                                         static          -
+fstrim.service                                                            static          -
+gdomap.service                                                            generated       -
+geoclue.service                                                           static          -
+getty-static.service                                                      static          -
+getty@.service                                                            enabled         enabled
+haveged.service                                                           enabled         enabled
+hwclock.service                                                           masked          disabled
+ifup@.service                                                             static          -
+ifupdown-pre.service                                                      static          -
+ifupdown-wait-online.service                                              disabled        disabled
+iio-sensor-proxy.service                                                  static          -
+initrd-cleanup.service                                                    static          -
+initrd-parse-etc.service                                                  static          -
+initrd-switch-root.service                                                static          -
+initrd-udevadm-cleanup-db.service                                         static          -
+keyboard-setup.service                                                    enabled         enabled
+kmod-static-nodes.service                                                 static          -
+kmod.service                                                              alias           -
+logrotate.service                                                         static          -
+man-db.service                                                            static          -
+ModemManager.service                                                      enabled         enabled
+modprobe@.service                                                         static          -
+networking.service                                                        enabled         enabled
+NetworkManager-dispatcher.service                                         enabled         disabled
+NetworkManager-wait-online.service                                        enabled         disabled
+NetworkManager.service                                                    enabled         enabled
+nftables.service                                                          disabled        disabled
+nm-priv-helper.service                                                    static          -
+packagekit-offline-update.service                                         static          -
+packagekit.service                                                        static          -
+plymouth-halt.service                                                     static          -
+plymouth-kexec.service                                                    static          -
+plymouth-log.service                                                      alias           -
+plymouth-poweroff.service                                                 static          -
+plymouth-quit-wait.service                                                static          -
+plymouth-quit.service                                                     static          -
+plymouth-read-write.service                                               static          -
+plymouth-reboot.service                                                   static          -
+plymouth-start.service                                                    static          -
+plymouth-switch-root-initramfs.service                                    static          -
+plymouth-switch-root.service                                              static          -
+plymouth.service                                                          alias           -
+polkit.service                                                            static          -
+procps.service                                                            alias           -
+pulseaudio-enable-autospawn.service                                       masked          disabled
+quotaon.service                                                           static          -
+rc-local.service                                                          static          -
+rc.service                                                                masked          disabled
+rcS.service                                                               masked          disabled
+regenerate-ssh-host-keys.service                                          enabled         enabled
+rescue.service                                                            static          -
+rsyslog.service                                                           enabled         enabled
+rtkit-daemon.service                                                      disabled        enabled
+sddm.service                                                              enabled         disabled
+serial-getty@.service                                                     disabled        disabled
+smartd.service                                                            alias           -
+smartmontools.service                                                     enabled         enabled
+speech-dispatcher.service                                                 generated       -
+speech-dispatcherd.service                                                disabled        disabled
+ssh.service                                                               disabled        disabled
+ssh@.service                                                              static          -
+sudo.service                                                              masked          enabled
+syslog.service                                                            alias           -
+system-update-cleanup.service                                             static          -
+systemd-ask-password-console.service                                      static          -
+systemd-ask-password-plymouth.service                                     static          -
+systemd-ask-password-wall.service                                         static          -
+systemd-backlight@.service                                                static          -
+systemd-binfmt.service                                                    static          -
+systemd-boot-check-no-failures.service                                    disabled        disabled
+systemd-exit.service                                                      static          -
+systemd-fsck-root.service                                                 static          -
+systemd-fsck@.service                                                     static          -
+systemd-fsckd.service                                                     static          -
+systemd-halt.service                                                      static          -
+systemd-hibernate-resume@.service                                         static          -
+systemd-hibernate.service                                                 static          -
+systemd-hostnamed.service                                                 static          -
+systemd-hybrid-sleep.service                                              static          -
+systemd-initctl.service                                                   static          -
+systemd-journal-flush.service                                             static          -
+systemd-journald.service                                                  static          -
+systemd-journald@.service                                                 static          -
+systemd-kexec.service                                                     static          -
+systemd-localed.service                                                   static          -
+systemd-logind.service                                                    static          -
+systemd-machine-id-commit.service                                         static          -
+systemd-modules-load.service                                              static          -
+systemd-network-generator.service                                         disabled        enabled
+systemd-networkd-wait-online.service                                      disabled        disabled
+systemd-networkd-wait-online@.service                                     disabled        disabled
+systemd-networkd.service                                                  disabled        enabled
+systemd-poweroff.service                                                  static          -
+systemd-pstore.service                                                    enabled         enabled
+systemd-quotacheck.service                                                static          -
+systemd-random-seed.service                                               static          -
+systemd-reboot.service                                                    static          -
+systemd-remount-fs.service                                                enabled-runtime disabled
+systemd-repart.service                                                    static          -
+systemd-resolved.service                                                  disabled        enabled
+systemd-rfkill.service                                                    static          -
+systemd-suspend-then-hibernate.service                                    static          -
+systemd-suspend.service                                                   static          -
+systemd-sysctl.service                                                    static          -
+systemd-sysext.service                                                    disabled        disabled
+systemd-sysusers.service                                                  static          -
+systemd-time-wait-sync.service                                            disabled        disabled
+systemd-timedated.service                                                 static          -
+systemd-timesyncd.service                                                 enabled         enabled
+systemd-tmpfiles-clean.service                                            static          -
+systemd-tmpfiles-setup-dev.service                                        static          -
+systemd-tmpfiles-setup.service                                            static          -
+systemd-udev-settle.service                                               static          -
+systemd-udev-trigger.service                                              static          -
+systemd-udevd.service                                                     static          -
+systemd-update-utmp-runlevel.service                                      static          -
+systemd-update-utmp.service                                               static          -
+systemd-user-sessions.service                                             static          -
+systemd-volatile-root.service                                             static          -
+udev.service                                                              alias           -
+udisks2.service                                                           disabled        disabled
+upower.service                                                            disabled        disabled
+user-runtime-dir@.service                                                 static          -
+user@.service                                                             static          -
+wpa_supplicant-nl80211@.service                                           disabled        disabled
+wpa_supplicant-wired@.service                                             disabled        disabled
+wpa_supplicant.service                                                    disabled        disabled
+wpa_supplicant@.service                                                   disabled        disabled
+x11-common.service                                                        masked          disabled
+machine.slice                                                             static          -
+system-systemd\x2dcryptsetup.slice                                        static          -
+user.slice                                                                static          -
+avahi-daemon.socket                                                       disabled        disabled
+dbus.socket                                                               static          -
+ssh.socket                                                                disabled        disabled
+syslog.socket                                                             static          -
+systemd-fsckd.socket                                                      static          -
+systemd-initctl.socket                                                    static          -
+systemd-journald-audit.socket                                             static          -
+systemd-journald-dev-log.socket                                           static          -
+systemd-journald-varlink@.socket                                          static          -
+systemd-journald.socket                                                   static          -
+systemd-journald@.socket                                                  static          -
+systemd-networkd.socket                                                   disabled        disabled
+systemd-rfkill.socket                                                     static          -
+systemd-udevd-control.socket                                              static          -
+systemd-udevd-kernel.socket                                               static          -
+dev-disk-by\x2duuid-d19ff67b\x2d507a\x2d459f\x2da4d2\x2d14d714288a36.swap generated       -
+basic.target                                                              static          -
+blockdev@.target                                                          static          -
+bluetooth.target                                                          static          -
+boot-complete.target                                                      static          -
+cryptsetup-pre.target                                                     static          -
+cryptsetup.target                                                         static          -
+ctrl-alt-del.target                                                       alias           -
+default.target                                                            alias           -
+emergency.target                                                          static          -
+exit.target                                                               disabled        disabled
+factory-reset.target                                                      static          -
+final.target                                                              static          -
+first-boot-complete.target                                                static          -
+getty-pre.target                                                          static          -
+getty.target                                                              static          -
+graphical.target                                                          static          -
+halt.target                                                               disabled        disabled
+hibernate.target                                                          static          -
+hybrid-sleep.target                                                       static          -
+initrd-fs.target                                                          static          -
+initrd-root-device.target                                                 static          -
+initrd-root-fs.target                                                     static          -
+initrd-switch-root.target                                                 static          -
+initrd-usr-fs.target                                                      static          -
+initrd.target                                                             static          -
+integritysetup-pre.target                                                 static          -
+integritysetup.target                                                     static          -
+kexec.target                                                              disabled        disabled
+local-fs-pre.target                                                       static          -
+local-fs.target                                                           static          -
+multi-user.target                                                         static          -
+network-online.target                                                     static          -
+network-pre.target                                                        static          -
+network.target                                                            static          -
+nss-lookup.target                                                         static          -
+nss-user-lookup.target                                                    static          -
+paths.target                                                              static          -
+poweroff.target                                                           disabled        disabled
+printer.target                                                            static          -
+reboot.target                                                             disabled        enabled
+remote-cryptsetup.target                                                  disabled        enabled
+remote-fs-pre.target                                                      static          -
+remote-fs.target                                                          enabled         enabled
+remote-veritysetup.target                                                 disabled        enabled
+rescue-ssh.target                                                         static          -
+rescue.target                                                             static          -
+rpcbind.target                                                            static          -
+runlevel0.target                                                          alias           -
+runlevel1.target                                                          alias           -
+runlevel2.target                                                          alias           -
+runlevel3.target                                                          alias           -
+runlevel4.target                                                          alias           -
+runlevel5.target                                                          alias           -
+runlevel6.target                                                          alias           -
+shutdown.target                                                           static          -
+sigpwr.target                                                             static          -
+sleep.target                                                              static          -
+slices.target                                                             static          -
+smartcard.target                                                          static          -
+sockets.target                                                            static          -
+sound.target                                                              static          -
+suspend-then-hibernate.target                                             static          -
+suspend.target                                                            static          -
+swap.target                                                               static          -
+sysinit.target                                                            static          -
+system-update-pre.target                                                  static          -
+system-update.target                                                      static          -
+time-set.target                                                           static          -
+time-sync.target                                                          static          -
+timers.target                                                             static          -
+umount.target                                                             static          -
+usb-gadget.target                                                         static          -
+veritysetup-pre.target                                                    static          -
+veritysetup.target                                                        static          -
+apt-daily-upgrade.timer                                                   enabled         disabled
+apt-daily.timer                                                           enabled         disabled
+dpkg-db-backup.timer                                                      enabled         enabled
+e2scrub_all.timer                                                         enabled         enabled
+fstrim.timer                                                              enabled         enabled
+logrotate.timer                                                           enabled         enabled
+man-db.timer                                                              enabled         enabled
+systemd-tmpfiles-clean.timer                                              static          -
+
+274 unit files listed.
+
+
+KDE + KALI DEFAULTS (top10,default):
+
+UNIT FILE                                                                 STATE           VENDOR PRESET
+proc-sys-fs-binfmt_misc.automount                                         static          -
+-.mount                                                                   generated       -
+dev-hugepages.mount                                                       static          -
+dev-mqueue.mount                                                          static          -
+proc-fs-nfsd.mount                                                        static          -
+proc-sys-fs-binfmt_misc.mount                                             disabled        disabled
+run-rpc_pipefs.mount                                                      generated       -
+sys-fs-fuse-connections.mount                                             static          -
+sys-kernel-config.mount                                                   static          -
+sys-kernel-debug.mount                                                    static          -
+sys-kernel-tracing.mount                                                  static          -
+var-lib-nfs-rpc_pipefs.mount                                              static          -
+systemd-ask-password-console.path                                         static          -
+systemd-ask-password-plymouth.path                                        static          -
+systemd-ask-password-wall.path                                            static          -
+session-3.scope                                                           transient       -
+accounts-daemon.service                                                   enabled         enabled
+apache-htcacheclean.service                                               disabled        disabled
+apache-htcacheclean@.service                                              disabled        disabled
+apache2.service                                                           disabled        disabled
+apache2@.service                                                          disabled        disabled
+apparmor.service                                                          disabled        disabled
+apt-daily-upgrade.service                                                 static          -
+apt-daily.service                                                         static          -
+atftpd.service                                                            indirect        disabled
+auth-rpcgss-module.service                                                static          -
+autovt@.service                                                           alias           -
+avahi-daemon.service                                                      disabled        disabled
+bluetooth.service                                                         disabled        disabled
+bolt.service                                                              static          -
+console-getty.service                                                     disabled        disabled
+console-setup.service                                                     enabled         enabled
+container-getty@.service                                                  static          -
+cron.service                                                              enabled         enabled
+cryptdisks-early.service                                                  masked          disabled
+cryptdisks.service                                                        masked          disabled
+dbus-org.freedesktop.hostname1.service                                    alias           -
+dbus-org.freedesktop.locale1.service                                      alias           -
+dbus-org.freedesktop.login1.service                                       alias           -
+dbus-org.freedesktop.ModemManager1.service                                alias           -
+dbus-org.freedesktop.nm-dispatcher.service                                alias           -
+dbus-org.freedesktop.timedate1.service                                    alias           -
+dbus-org.freedesktop.timesync1.service                                    alias           -
+dbus.service                                                              static          -
+debug-shell.service                                                       disabled        disabled
+display-manager.service                                                   alias           -
+dns2tcp.service                                                           generated       -
+dpkg-db-backup.service                                                    static          -
+drkonqi-coredump-processor@.service                                       disabled        disabled
+e2scrub@.service                                                          static          -
+e2scrub_all.service                                                       static          -
+e2scrub_fail@.service                                                     static          -
+e2scrub_reap.service                                                      enabled         disabled
+emergency.service                                                         static          -
+faraday.service                                                           disabled        disabled
+fstrim.service                                                            static          -
+gdomap.service                                                            generated       -
+geoclue.service                                                           static          -
+getty-static.service                                                      static          -
+getty@.service                                                            enabled         enabled
+haveged.service                                                           enabled         enabled
+hwclock.service                                                           masked          disabled
+ifup@.service                                                             static          -
+ifupdown-pre.service                                                      static          -
+ifupdown-wait-online.service                                              disabled        disabled
+iio-sensor-proxy.service                                                  static          -
+inetsim.service                                                           generated       -
+initrd-cleanup.service                                                    static          -
+initrd-parse-etc.service                                                  static          -
+initrd-switch-root.service                                                static          -
+initrd-udevadm-cleanup-db.service                                         static          -
+iodined.service                                                           masked          disabled
+keyboard-setup.service                                                    enabled         enabled
+king-phisher.service                                                      disabled        disabled
+kismet.service                                                            disabled        disabled
+kmod-static-nodes.service                                                 static          -
+kmod.service                                                              alias           -
+logrotate.service                                                         static          -
+man-db.service                                                            static          -
+mariadb.service                                                           disabled        disabled
+mariadb@.service                                                          disabled        disabled
+miredo.service                                                            disabled        disabled
+ModemManager.service                                                      enabled         enabled
+modprobe@.service                                                         static          -
+mysql.service                                                             alias           -
+mysqld.service                                                            alias           -
+networking.service                                                        enabled         enabled
+NetworkManager-dispatcher.service                                         enabled         disabled
+NetworkManager-wait-online.service                                        enabled         disabled
+NetworkManager.service                                                    enabled         enabled
+nfs-common.service                                                        masked          enabled
+nfs-idmapd.service                                                        static          -
+nfs-utils.service                                                         static          -
+nftables.service                                                          disabled        disabled
+nginx.service                                                             disabled        disabled
+nm-priv-helper.service                                                    static          -
+nmbd.service                                                              disabled        disabled
+openvpn-client@.service                                                   disabled        disabled
+openvpn-server@.service                                                   disabled        disabled
+openvpn.service                                                           disabled        disabled
+openvpn@.service                                                          disabled        disabled
+packagekit-offline-update.service                                         static          -
+packagekit.service                                                        static          -
+pg_basebackup@.service                                                    static          -
+pg_compresswal@.service                                                   static          -
+pg_dump@.service                                                          static          -
+pg_receivewal@.service                                                    disabled        disabled
+phpsessionclean.service                                                   static          -
+plocate-updatedb.service                                                  static          -
+plymouth-halt.service                                                     static          -
+plymouth-kexec.service                                                    static          -
+plymouth-log.service                                                      alias           -
+plymouth-poweroff.service                                                 static          -
+plymouth-quit-wait.service                                                static          -
+plymouth-quit.service                                                     static          -
+plymouth-read-write.service                                               static          -
+plymouth-reboot.service                                                   static          -
+plymouth-start.service                                                    static          -
+plymouth-switch-root-initramfs.service                                    static          -
+plymouth-switch-root.service                                              static          -
+plymouth.service                                                          alias           -
+polkit.service                                                            static          -
+portmap.service                                                           alias           -
+postgresql.service                                                        disabled        disabled
+postgresql@.service                                                       indirect        disabled
+procps.service                                                            alias           -
+ptunnel.service                                                           generated       -
+pulseaudio-enable-autospawn.service                                       masked          disabled
+quotaon.service                                                           static          -
+rc-local.service                                                          static          -
+rc.service                                                                masked          disabled
+rcS.service                                                               masked          disabled
+redsocks.service                                                          disabled        disabled
+regenerate-ssh-host-keys.service                                          enabled         enabled
+rescue.service                                                            static          -
+rpc-gssd.service                                                          static          -
+rpc-statd-notify.service                                                  static          -
+rpc-statd.service                                                         static          -
+rpc-svcgssd.service                                                       static          -
+rpcbind.service                                                           disabled        disabled
+rsync.service                                                             disabled        enabled
+rsyslog.service                                                           enabled         enabled
+rtkit-daemon.service                                                      disabled        enabled
+rwhod.service                                                             generated       -
+samba-ad-dc.service                                                       masked          disabled
+screen-cleanup.service                                                    masked          disabled
+sddm.service                                                              enabled         disabled
+serial-getty@.service                                                     disabled        disabled
+smartd.service                                                            alias           -
+smartmontools.service                                                     enabled         enabled
+smbd.service                                                              disabled        disabled
+snmpd.service                                                             disabled        disabled
+speech-dispatcher.service                                                 generated       -
+speech-dispatcherd.service                                                disabled        disabled
+ssh.service                                                               disabled        disabled
+ssh@.service                                                              static          -
+sslh.service                                                              disabled        disabled
+stunnel4.service                                                          generated       -
+stunnel@.service                                                          disabled        disabled
+sudo.service                                                              masked          enabled
+syslog.service                                                            alias           -
+sysstat-collect.service                                                   static          -
+sysstat-summary.service                                                   static          -
+sysstat.service                                                           disabled        disabled
+system-update-cleanup.service                                             static          -
+systemd-ask-password-console.service                                      static          -
+systemd-ask-password-plymouth.service                                     static          -
+systemd-ask-password-wall.service                                         static          -
+systemd-backlight@.service                                                static          -
+systemd-binfmt.service                                                    static          -
+systemd-boot-check-no-failures.service                                    disabled        disabled
+systemd-exit.service                                                      static          -
+systemd-fsck-root.service                                                 static          -
+systemd-fsck@.service                                                     static          -
+systemd-fsckd.service                                                     static          -
+systemd-halt.service                                                      static          -
+systemd-hibernate-resume@.service                                         static          -
+systemd-hibernate.service                                                 static          -
+systemd-hostnamed.service                                                 static          -
+systemd-hybrid-sleep.service                                              static          -
+systemd-initctl.service                                                   static          -
+systemd-journal-flush.service                                             static          -
+systemd-journald.service                                                  static          -
+systemd-journald@.service                                                 static          -
+systemd-kexec.service                                                     static          -
+systemd-localed.service                                                   static          -
+systemd-logind.service                                                    static          -
+systemd-machine-id-commit.service                                         static          -
+systemd-modules-load.service                                              static          -
+systemd-network-generator.service                                         disabled        enabled
+systemd-networkd-wait-online.service                                      disabled        disabled
+systemd-networkd-wait-online@.service                                     disabled        disabled
+systemd-networkd.service                                                  disabled        enabled
+systemd-poweroff.service                                                  static          -
+systemd-pstore.service                                                    enabled         enabled
+systemd-quotacheck.service                                                static          -
+systemd-random-seed.service                                               static          -
+systemd-reboot.service                                                    static          -
+systemd-remount-fs.service                                                enabled-runtime disabled
+systemd-repart.service                                                    static          -
+systemd-resolved.service                                                  disabled        enabled
+systemd-rfkill.service                                                    static          -
+systemd-suspend-then-hibernate.service                                    static          -
+systemd-suspend.service                                                   static          -
+systemd-sysctl.service                                                    static          -
+systemd-sysext.service                                                    disabled        disabled
+systemd-sysusers.service                                                  static          -
+systemd-time-wait-sync.service                                            disabled        disabled
+systemd-timedated.service                                                 static          -
+systemd-timesyncd.service                                                 enabled         enabled
+systemd-tmpfiles-clean.service                                            static          -
+systemd-tmpfiles-setup-dev.service                                        static          -
+systemd-tmpfiles-setup.service                                            static          -
+systemd-udev-settle.service                                               static          -
+systemd-udev-trigger.service                                              static          -
+systemd-udevd.service                                                     static          -
+systemd-update-utmp-runlevel.service                                      static          -
+systemd-update-utmp.service                                               static          -
+systemd-user-sessions.service                                             static          -
+systemd-volatile-root.service                                             static          -
+udev.service                                                              alias           -
+udisks2.service                                                           disabled        disabled
+upower.service                                                            disabled        disabled
+user-runtime-dir@.service                                                 static          -
+user@.service                                                             static          -
+vpnc@.service                                                             disabled        disabled
+wpa_supplicant-nl80211@.service                                           disabled        disabled
+wpa_supplicant-wired@.service                                             disabled        disabled
+wpa_supplicant.service                                                    disabled        disabled
+wpa_supplicant@.service                                                   disabled        disabled
+x11-common.service                                                        masked          disabled
+machine.slice                                                             static          -
+system-systemd\x2dcryptsetup.slice                                        static          -
+user.slice                                                                static          -
+atftpd.socket                                                             disabled        disabled
+avahi-daemon.socket                                                       disabled        disabled
+dbus.socket                                                               static          -
+mariadb.socket                                                            static          -
+mariadb@.socket                                                           static          -
+rpcbind.socket                                                            disabled        disabled
+ssh.socket                                                                disabled        disabled
+syslog.socket                                                             static          -
+systemd-fsckd.socket                                                      static          -
+systemd-initctl.socket                                                    static          -
+systemd-journald-audit.socket                                             static          -
+systemd-journald-dev-log.socket                                           static          -
+systemd-journald-varlink@.socket                                          static          -
+systemd-journald.socket                                                   static          -
+systemd-journald@.socket                                                  static          -
+systemd-networkd.socket                                                   disabled        disabled
+systemd-rfkill.socket                                                     static          -
+systemd-udevd-control.socket                                              static          -
+systemd-udevd-kernel.socket                                               static          -
+dev-disk-by\x2duuid-5ddb60a9\x2d99c7\x2d49f8\x2d820e\x2d7da518d05c01.swap generated       -
+basic.target                                                              static          -
+blockdev@.target                                                          static          -
+bluetooth.target                                                          static          -
+boot-complete.target                                                      static          -
+cryptsetup-pre.target                                                     static          -
+cryptsetup.target                                                         static          -
+ctrl-alt-del.target                                                       alias           -
+default.target                                                            alias           -
+emergency.target                                                          static          -
+exit.target                                                               disabled        disabled
+factory-reset.target                                                      static          -
+final.target                                                              static          -
+first-boot-complete.target                                                static          -
+getty-pre.target                                                          static          -
+getty.target                                                              static          -
+graphical.target                                                          static          -
+halt.target                                                               disabled        disabled
+hibernate.target                                                          static          -
+hybrid-sleep.target                                                       static          -
+initrd-fs.target                                                          static          -
+initrd-root-device.target                                                 static          -
+initrd-root-fs.target                                                     static          -
+initrd-switch-root.target                                                 static          -
+initrd-usr-fs.target                                                      static          -
+initrd.target                                                             static          -
+integritysetup-pre.target                                                 static          -
+integritysetup.target                                                     static          -
+kexec.target                                                              disabled        disabled
+local-fs-pre.target                                                       static          -
+local-fs.target                                                           static          -
+multi-user.target                                                         static          -
+network-online.target                                                     static          -
+network-pre.target                                                        static          -
+network.target                                                            static          -
+nfs-client.target                                                         enabled         enabled
+nss-lookup.target                                                         static          -
+nss-user-lookup.target                                                    static          -
+paths.target                                                              static          -
+poweroff.target                                                           disabled        disabled
+printer.target                                                            static          -
+reboot.target                                                             disabled        enabled
+remote-cryptsetup.target                                                  disabled        enabled
+remote-fs-pre.target                                                      static          -
+remote-fs.target                                                          enabled         enabled
+remote-veritysetup.target                                                 disabled        enabled
+rescue-ssh.target                                                         static          -
+rescue.target                                                             static          -
+rpc_pipefs.target                                                         generated       -
+rpcbind.target                                                            static          -
+runlevel0.target                                                          alias           -
+runlevel1.target                                                          alias           -
+runlevel2.target                                                          alias           -
+runlevel3.target                                                          alias           -
+runlevel4.target                                                          alias           -
+runlevel5.target                                                          alias           -
+runlevel6.target                                                          alias           -
+shutdown.target                                                           static          -
+sigpwr.target                                                             static          -
+sleep.target                                                              static          -
+slices.target                                                             static          -
+smartcard.target                                                          static          -
+sockets.target                                                            static          -
+sound.target                                                              static          -
+stunnel.target                                                            enabled         enabled
+suspend-then-hibernate.target                                             static          -
+suspend.target                                                            static          -
+swap.target                                                               static          -
+sysinit.target                                                            static          -
+system-update-pre.target                                                  static          -
+system-update.target                                                      static          -
+time-set.target                                                           static          -
+time-sync.target                                                          static          -
+timers.target                                                             static          -
+umount.target                                                             static          -
+usb-gadget.target                                                         static          -
+veritysetup-pre.target                                                    static          -
+veritysetup.target                                                        static          -
+apt-daily-upgrade.timer                                                   enabled         disabled
+apt-daily.timer                                                           enabled         disabled
+dpkg-db-backup.timer                                                      enabled         enabled
+e2scrub_all.timer                                                         enabled         enabled
+fstrim.timer                                                              enabled         enabled
+logrotate.timer                                                           enabled         enabled
+man-db.timer                                                              enabled         enabled
+pg_basebackup@.timer                                                      disabled        enabled
+pg_compresswal@.timer                                                     disabled        enabled
+pg_dump@.timer                                                            disabled        enabled
+phpsessionclean.timer                                                     enabled         enabled
+plocate-updatedb.timer                                                    enabled         enabled
+sysstat-collect.timer                                                     enabled         enabled
+sysstat-summary.timer                                                     enabled         enabled
+systemd-tmpfiles-clean.timer                                              static          -
+
+346 unit files listed.
+
+
+BASIC-LINUX-SETUP DEFAULTS ON JUST KDE:
+
+UNIT FILE                                                                 STATE           PRESET
+proc-sys-fs-binfmt_misc.automount                                         static          -
+-.mount                                                                   generated       -
+dev-hugepages.mount                                                       static          -
+dev-mqueue.mount                                                          static          -
+proc-sys-fs-binfmt_misc.mount                                             disabled        disabled
+run-qemu.mount                                                            disabled        enabled
+sys-fs-fuse-connections.mount                                             static          -
+sys-kernel-config.mount                                                   static          -
+sys-kernel-debug.mount                                                    static          -
+sys-kernel-tracing.mount                                                  static          -
+systemd-ask-password-console.path                                         static          -
+systemd-ask-password-plymouth.path                                        static          -
+systemd-ask-password-wall.path                                            static          -
+session-3.scope                                                           transient       -
+accounts-daemon.service                                                   enabled         enabled
+alsa-restore.service                                                      static          -
+alsa-state.service                                                        static          -
+alsa-utils.service                                                        masked          enabled
+anacron.service                                                           enabled         enabled
+apparmor.service                                                          disabled        disabled
+apt-daily-upgrade.service                                                 static          -
+apt-daily.service                                                         static          -
+autovt@.service                                                           alias           -
+avahi-daemon.service                                                      disabled        disabled
+binfmt-support.service                                                    enabled         enabled
+bluetooth.service                                                         disabled        disabled
+bolt.service                                                              static          -
+cachefilesd.service                                                       generated       -
+colord.service                                                            static          -
+configure-printer@.service                                                static          -
+console-getty.service                                                     disabled        disabled
+console-setup.service                                                     enabled         enabled
+container-getty@.service                                                  static          -
+cpufrequtils.service                                                      generated       -
+cron.service                                                              enabled         enabled
+cryptdisks-early.service                                                  masked          disabled
+cryptdisks.service                                                        masked          disabled
+dbus-org.freedesktop.hostname1.service                                    alias           -
+dbus-org.freedesktop.locale1.service                                      alias           -
+dbus-org.freedesktop.login1.service                                       alias           -
+dbus-org.freedesktop.ModemManager1.service                                alias           -
+dbus-org.freedesktop.nm-dispatcher.service                                alias           -
+dbus-org.freedesktop.timedate1.service                                    alias           -
+dbus-org.freedesktop.timesync1.service                                    alias           -
+dbus.service                                                              static          -
+debug-shell.service                                                       disabled        disabled
+display-manager.service                                                   alias           -
+dpkg-db-backup.service                                                    static          -
+drkonqi-coredump-processor@.service                                       disabled        disabled
+e2scrub@.service                                                          static          -
+e2scrub_all.service                                                       static          -
+e2scrub_fail@.service                                                     static          -
+e2scrub_reap.service                                                      enabled         disabled
+emergency.service                                                         static          -
+exim4-base.service                                                        static          -
+exim4.service                                                             generated       -
+firewalld.service                                                         disabled        disabled
+flatpak-system-helper.service                                             static          -
+fstrim.service                                                            static          -
+fwupd-offline-update.service                                              static          -
+fwupd-refresh.service                                                     static          -
+fwupd.service                                                             static          -
+gdomap.service                                                            generated       -
+geoclue.service                                                           static          -
+getty-static.service                                                      static          -
+getty@.service                                                            enabled         enabled
+haveged.service                                                           enabled         enabled
+hwclock.service                                                           masked          disabled
+ifup@.service                                                             static          -
+ifupdown-pre.service                                                      static          -
+ifupdown-wait-online.service                                              disabled        disabled
+iio-sensor-proxy.service                                                  static          -
+initrd-cleanup.service                                                    static          -
+initrd-parse-etc.service                                                  static          -
+initrd-switch-root.service                                                static          -
+initrd-udevadm-cleanup-db.service                                         static          -
+ipp-usb.service                                                           static          -
+irqbalance.service                                                        enabled         enabled
+jitterentropy-rngd.service                                                generated       -
+jitterentropy.service                                                     disabled        disabled
+kexec-load.service                                                        generated       -
+kexec.service                                                             generated       -
+keyboard-setup.service                                                    enabled         enabled
+kmod-static-nodes.service                                                 static          -
+kmod.service                                                              alias           -
+loadcpufreq.service                                                       generated       -
+logrotate.service                                                         static          -
+lynis.service                                                             static          -
+man-db.service                                                            static          -
+ModemManager.service                                                      enabled         enabled
+modprobe@.service                                                         static          -
+networking.service                                                        enabled         enabled
+NetworkManager-dispatcher.service                                         enabled         disabled
+NetworkManager-wait-online.service                                        enabled         disabled
+NetworkManager.service                                                    enabled         enabled
+nftables.service                                                          disabled        disabled
+nm-priv-helper.service                                                    static          -
+packagekit-offline-update.service                                         static          -
+packagekit.service                                                        static          -
+pam_namespace.service                                                     static          -
+plymouth-halt.service                                                     static          -
+plymouth-kexec.service                                                    static          -
+plymouth-log.service                                                      alias           -
+plymouth-poweroff.service                                                 static          -
+plymouth-quit-wait.service                                                static          -
+plymouth-quit.service                                                     static          -
+plymouth-read-write.service                                               static          -
+plymouth-reboot.service                                                   static          -
+plymouth-start.service                                                    static          -
+plymouth-switch-root-initramfs.service                                    static          -
+plymouth-switch-root.service                                              static          -
+plymouth.service                                                          alias           -
+polkit.service                                                            static          -
+preload.service                                                           generated       -
+procps.service                                                            alias           -
+pulseaudio-enable-autospawn.service                                       masked          disabled
+quotaon.service                                                           static          -
+rc-local.service                                                          static          -
+rc.service                                                                masked          disabled
+rcS.service                                                               masked          disabled
+regenerate-ssh-host-keys.service                                          enabled         enabled
+rescue.service                                                            static          -
+rngd.service                                                              disabled        disabled
+rsync.service                                                             disabled        enabled
+rsyslog.service                                                           enabled         enabled
+rtkit-daemon.service                                                      disabled        enabled
+saned.service                                                             masked          disabled
+saned@.service                                                            indirect        disabled
+sddm.service                                                              enabled         disabled
+serial-getty@.service                                                     disabled        disabled
+smartd.service                                                            alias           -
+smartmontools.service                                                     enabled         enabled
+snapd.apparmor.service                                                    disabled        disabled
+snapd.recovery-chooser-trigger.service                                    disabled        disabled
+snapd.seeded.service                                                      disabled        disabled
+snapd.service                                                             disabled        disabled
+speech-dispatcher.service                                                 generated       -
+speech-dispatcherd.service                                                disabled        disabled
+sudo.service                                                              masked          enabled
+syslog.service                                                            alias           -
+system-update-cleanup.service                                             static          -
+systemd-ask-password-console.service                                      static          -
+systemd-ask-password-plymouth.service                                     static          -
+systemd-ask-password-wall.service                                         static          -
+systemd-backlight@.service                                                static          -
+systemd-binfmt.service                                                    static          -
+systemd-boot-check-no-failures.service                                    disabled        disabled
+systemd-coredump@.service                                                 static          -
+systemd-exit.service                                                      static          -
+systemd-firstboot.service                                                 static          -
+systemd-fsck-root.service                                                 static          -
+systemd-fsck@.service                                                     static          -
+systemd-fsckd.service                                                     static          -
+systemd-halt.service                                                      static          -
+systemd-hibernate-resume@.service                                         static          -
+systemd-hibernate.service                                                 static          -
+systemd-hostnamed.service                                                 static          -
+systemd-hybrid-sleep.service                                              static          -
+systemd-initctl.service                                                   static          -
+systemd-journal-flush.service                                             static          -
+systemd-journald.service                                                  static          -
+systemd-journald@.service                                                 static          -
+systemd-kexec.service                                                     static          -
+systemd-localed.service                                                   static          -
+systemd-logind.service                                                    static          -
+systemd-machine-id-commit.service                                         static          -
+systemd-modules-load.service                                              static          -
+systemd-network-generator.service                                         disabled        enabled
+systemd-networkd-wait-online.service                                      disabled        disabled
+systemd-networkd-wait-online@.service                                     disabled        disabled
+systemd-networkd.service                                                  disabled        enabled
+systemd-pcrphase-initrd.service                                           static          -
+systemd-pcrphase-sysinit.service                                          static          -
+systemd-pcrphase.service                                                  static          -
+systemd-poweroff.service                                                  static          -
+systemd-pstore.service                                                    enabled         enabled
+systemd-quotacheck.service                                                static          -
+systemd-random-seed.service                                               static          -
+systemd-reboot.service                                                    static          -
+systemd-remount-fs.service                                                enabled-runtime disabled
+systemd-repart.service                                                    static          -
+systemd-rfkill.service                                                    static          -
+systemd-suspend-then-hibernate.service                                    static          -
+systemd-suspend.service                                                   static          -
+systemd-sysctl.service                                                    static          -
+systemd-sysext.service                                                    disabled        disabled
+systemd-sysusers.service                                                  static          -
+systemd-time-wait-sync.service                                            disabled        disabled
+systemd-timedated.service                                                 static          -
+systemd-timesyncd.service                                                 enabled         enabled
+systemd-tmpfiles-clean.service                                            static          -
+systemd-tmpfiles-setup-dev.service                                        static          -
+systemd-tmpfiles-setup.service                                            static          -
+systemd-udev-settle.service                                               static          -
+systemd-udev-trigger.service                                              static          -
+systemd-udevd.service                                                     static          -
+systemd-update-utmp-runlevel.service                                      static          -
+systemd-update-utmp.service                                               static          -
+systemd-user-sessions.service                                             static          -
+systemd-volatile-root.service                                             static          -
+udev.service                                                              alias           -
+udisks2.service                                                           disabled        disabled
+unattended-upgrades.service                                               enabled         disabled
+upower.service                                                            disabled        disabled
+user-runtime-dir@.service                                                 static          -
+user@.service                                                             static          -
+uuidd.service                                                             indirect        disabled
+wpa_supplicant-nl80211@.service                                           disabled        disabled
+wpa_supplicant-wired@.service                                             disabled        disabled
+wpa_supplicant.service                                                    disabled        disabled
+wpa_supplicant@.service                                                   disabled        disabled
+x11-common.service                                                        masked          disabled
+machine.slice                                                             static          -
+system-systemd\x2dcryptsetup.slice                                        static          -
+user.slice                                                                static          -
+avahi-daemon.socket                                                       disabled        disabled
+dbus.socket                                                               static          -
+saned.socket                                                              disabled        disabled
+snapd.socket                                                              disabled        disabled
+syslog.socket                                                             static          -
+systemd-coredump.socket                                                   static          -
+systemd-fsckd.socket                                                      static          -
+systemd-initctl.socket                                                    static          -
+systemd-journald-audit.socket                                             static          -
+systemd-journald-dev-log.socket                                           static          -
+systemd-journald-varlink@.socket                                          static          -
+systemd-journald.socket                                                   static          -
+systemd-journald@.socket                                                  static          -
+systemd-networkd.socket                                                   disabled        disabled
+systemd-rfkill.socket                                                     static          -
+systemd-udevd-control.socket                                              static          -
+systemd-udevd-kernel.socket                                               static          -
+uuidd.socket                                                              enabled         enabled
+dev-disk-by\x2duuid-d19ff67b\x2d507a\x2d459f\x2da4d2\x2d14d714288a36.swap generated       -
+basic.target                                                              static          -
+blockdev@.target                                                          static          -
+bluetooth.target                                                          static          -
+boot-complete.target                                                      static          -
+cryptsetup-pre.target                                                     static          -
+cryptsetup.target                                                         static          -
+ctrl-alt-del.target                                                       alias           -
+default.target                                                            alias           -
+emergency.target                                                          static          -
+exit.target                                                               disabled        disabled
+factory-reset.target                                                      static          -
+final.target                                                              static          -
+first-boot-complete.target                                                static          -
+getty-pre.target                                                          static          -
+getty.target                                                              static          -
+graphical.target                                                          static          -
+halt.target                                                               disabled        disabled
+hibernate.target                                                          static          -
+hybrid-sleep.target                                                       static          -
+initrd-fs.target                                                          static          -
+initrd-root-device.target                                                 static          -
+initrd-root-fs.target                                                     static          -
+initrd-switch-root.target                                                 static          -
+initrd-usr-fs.target                                                      static          -
+initrd.target                                                             static          -
+integritysetup-pre.target                                                 static          -
+integritysetup.target                                                     static          -
+kexec.target                                                              disabled        disabled
+local-fs-pre.target                                                       static          -
+local-fs.target                                                           static          -
+multi-user.target                                                         static          -
+network-online.target                                                     static          -
+network-pre.target                                                        static          -
+network.target                                                            static          -
+nss-lookup.target                                                         static          -
+nss-user-lookup.target                                                    static          -
+paths.target                                                              static          -
+poweroff.target                                                           disabled        disabled
+printer.target                                                            static          -
+reboot.target                                                             disabled        enabled
+remote-cryptsetup.target                                                  disabled        enabled
+remote-fs-pre.target                                                      static          -
+remote-fs.target                                                          enabled         enabled
+remote-veritysetup.target                                                 disabled        enabled
+rescue.target                                                             static          -
+rpcbind.target                                                            static          -
+runlevel0.target                                                          alias           -
+runlevel1.target                                                          alias           -
+runlevel2.target                                                          alias           -
+runlevel3.target                                                          alias           -
+runlevel4.target                                                          alias           -
+runlevel5.target                                                          alias           -
+runlevel6.target                                                          alias           -
+shutdown.target                                                           static          -
+sigpwr.target                                                             static          -
+sleep.target                                                              static          -
+slices.target                                                             static          -
+smartcard.target                                                          static          -
+sockets.target                                                            static          -
+sound.target                                                              static          -
+suspend-then-hibernate.target                                             static          -
+suspend.target                                                            static          -
+swap.target                                                               static          -
+sysinit.target                                                            static          -
+system-update-pre.target                                                  static          -
+system-update.target                                                      static          -
+time-set.target                                                           static          -
+time-sync.target                                                          static          -
+timers.target                                                             static          -
+umount.target                                                             static          -
+usb-gadget.target                                                         static          -
+veritysetup-pre.target                                                    static          -
+veritysetup.target                                                        static          -
+anacron.timer                                                             enabled         enabled
+apt-daily-upgrade.timer                                                   enabled         disabled
+apt-daily.timer                                                           enabled         disabled
+dpkg-db-backup.timer                                                      enabled         enabled
+e2scrub_all.timer                                                         enabled         enabled
+exim4-base.timer                                                          enabled         enabled
+fstrim.timer                                                              enabled         enabled
+fwupd-refresh.timer                                                       enabled         enabled
+logrotate.timer                                                           enabled         enabled
+lynis.timer                                                               enabled         enabled
+man-db.timer                                                              enabled         enabled
+systemd-tmpfiles-clean.timer                                              static          -
+
+319 unit files listed.

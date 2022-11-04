@@ -1,845 +1,720 @@
 #!/bin/bash
-###############################################################
-###############################################################
-###              basic personal setup debian                ###
-###############################################################
-###             https://github.com/thanasxda                ###
-###############################################################
-### thanasxda 15927885+thanasxda@users.noreply.github.com   ###
-###############################################################
-### explanation at every step, read to know. be warned.     ###
-### DON'T RUN AS SU!!! DIRS ARE NOT /home/root/             ###
-###############################################################
-###############################################################
+#############################################################
+#############################################################
+##                  basic-linux-setup                      ##
+#############################################################
+##             https://github.com/thanasxda                ##
+#############################################################
+##      15927885+thanasxda@users.noreply.github.com        ##
+#############################################################
+##    https://github.com/thanasxda/basic-linux-setup.git   ##
+#############################################################
+#############################################################
 
-### bash colors
-magenta="\033[05;1;95m"
+DATE_START=$(date +"%s")
+magenta="\033[05;1;95m"  ## colors
 yellow="\033[1;93m"
 restore="\033[0m"
 
 ###########################################################################
-### display header                                                      ###
-echo -e "${magenta}"                                                    ###
-echo ".::BASIC-LINUX-SETUP::. - mainly for debian"                      ###
-echo -e "${restore}"                                                    ###
+echo -e "${magenta}"            ## display header - information and tips ##
+echo ".::BASIC-LINUX-SETUP::."
+echo -e "${restore}" && echo -e "${yellow}"
+echo "Unattended setup mainly for Kali/Debian with subsection for OpenWrt and general linux devices."
+echo "DISCLAIMER!!!:"
+echo "I am not responsible if your computer catches fire and brings your house along with it."
+echo -e "${restore}" && echo -e "${yellow}"
+echo "Never apt dist-upgrade/full-upgrade -t experimental"
+echo "Read arch wiki for personalization:"
+echo -e "${magenta}"
+echo "https://wiki.archlinux.org/title/Improving_performance"
+echo -e "${restore}" && echo -e "${yellow}"
+echo "For openwrt:"
+echo -e "${magenta}"
+echo "wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/wrt.sh && sh wrt.sh"
+echo -e "${restore}" && echo -e "${yellow}"
+echo "Git credentials:"
+echo "git config --global user.name thanasxda"
+echo "git config --global user.email 15927885+thanasxda@users.noreply.github.com"
+echo "" && echo ""
 ###########################################################################
 ####### START #############################################################
 
-### dir variables
-source="$(pwd)"
-basicsetup=$source/.basicsetup
-
-### variables
-ins="aptitude -f install -y -t experimental"
-apt="apt -f install -y -t experimental"
-s="sudo"
-key="apt-key adv --keyserver keyserver.ubuntu.com --recv-keys"
-
-echo 'Acquire::ForceIPv4 "false";' | sudo tee /etc/apt/apt.conf.d/99force-ipv4
-echo "127.0.0.1 release.gitkraken.com"  | sudo tee  /etc/hosts
-
-$s apt-get update -oAcquire::AllowInsecureRepositories=true
-$s apt-get install deb-multimedia-keyring -y
-
-echo 'net.ipv6.conf.all.disable_ipv6 = 0' | sudo tee /etc/sysctl.conf
-echo 'net.ipv6.conf.default.disable_ipv6 = 0' | sudo tee /etc/sysctl.conf
-echo 'net.ipv6.conf.lo.disable_ipv6 = 0' | sudo tee /etc/sysctl.conf
 
 
-#wget https://out7.hex-rays.com/files/idafree70_linux.run
-$s chmod 755 *
-#./idafree70_linux.run
-#$s rm -rf idafree70_linux.run
-
-### dont require prompt for sudo
-#if $s grep -q "ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
-#then
-#echo "Flag exists"
-#else
-#$s sed -i "\$a$USER ALL=(ALL) NOPASSWD: ALL" /etc/sudoers
-#fi
-
-### no pass upgrade
-#if $s grep -q "NOPASSWD:/usr/bin/apt update" /etc/sudoers
-#then
-#echo "Flag exists"
-#else
-#$s sed -i "\$a$USER ALL=(ALL) NOPASSWD:/usr/bin/apt update, /usr/bin/apt upgrade, /usr/bin/apt dist-upgrade, /usr/bin/apt full-upgrade, /usr/bin/apt autoremove, /usr/bin/apt upgrade --with-new-pkgs -t experimental, /usr/sbin/reboot, /usr/sbin/shutdown" /etc/sudoers
-#fi
-
-#$s passwd -l root
-#$s dpkg-reconfigure locales
-#$s locale-gen
-
-$s ./2*
 
 
-####### LINUX REPOSITORY SOURCES SETUP ##############################################################
-### setup repos !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-echo -e "${yellow}"              #
-echo SET UP REPOS                #
-echo -e "${restore}"             #
-##################################
+    #"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"
+    ### workaround to keep you from running as sudo or root ... thats what you get when you dont know echo $LOGNAME lol... [ $LOGNAME = youruseraccount ]  .. $ printenv
+          if echo -e $USER | grep -q root; then
+          echo -e "DO NOT RUN AS $USER OR sudo ! If you're using root type exit or reopen bash and do not execute the script with sudo. Just ./script* or sh script* and enter password." &&
+          exit 0; else echo -e "WELCOME $USER"; fi
 
-### daily llvm git builds - not always support for lto
-### DO NOT change distro on the llvm repos. these branches are only meant for the toolchain
-### and will ensure you will always use latest llvm when using "make CC=clang"
-#llvm_1='deb http://apt.llvm.org/unstable/ llvm-toolchain main'
-#llvm_2='deb-src http://apt.llvm.org/unstable/ llvm-toolchain main'
+          
+          
+          
+          
+          
+          
+    ### output log to desktop
+    	#mkdir -p ~/Desktop/BLS-LOGS
+    	#echo "" && echo "" && echo "BE SURE TO CHECK LOGFILES ON YOUR DESKTOP!" && echo "" && echo ""
+    # { 	# start log, note pkglists will have seperate log appending to this first one this file creates
+   	# && echo "        START BLS_LOG: `date +%Y-%m-%d.%H:%M:%S` " && echo "" && echo ""
+	echo "" && echo "" && echo " .:::: $(uname -a) ::::."
+	echo -e "$(lscpu | grep 'Architecture')"
+	echo -e "$(lscpu | grep 'Model name')"
+	echo -e "Total memory:                    $(awk '/MemTotal/ { print $2 }' /proc/meminfo)kB" && 
+	echo "" && echo ""
+	#echo "Logfiles=" && echo "$(ls ~/Desktop/BLS-LOGS)" && echo ""
+	echo -e "${restore}"
+	echo "Commit=" && echo "$(git show --name-only)" && echo "" && echo "START SETUP:" && echo "" && echo ""
 
-#new_sources=("$source_1" "$source_2" "$source_3" "$source_4" "$llvm_1" "$llvm_2")
+	
+	
+	
+	
+	
+	
+    ### choice of buildenv
+        echo -e "${yellow}"
+        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system." yn
+        case $yn in  [Yy]* ) export INSTALLBUILDENV=true ; break;; [Nn]* ) break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        echo "" && echo ""
+    
+        echo "Please enter your password to start the setup..." && echo -e "${restore}" 
+    
+    
+    
+    
+    
+    
+    
+    ###     <<<< VARIABLES >>>> - values that are called later in the setup for convenience and avoiding clutter >>>>>>>>>>>>>>>>>>>>
 
-#for i in ${!new_sources[@]}; do
-#    if ! grep -q "${new_sources[$i]}" /etc/apt/sources.list; then
-#        echo "${new_sources[$i]}" | $s tee -a /etc/apt/sources.list
-#        echo "Added ${new_sources[$i]} to source list"
-#    fi
-#done
-$s $ins git curl
-### fetch keys
-$s $ins ubuntu-archive-keyring deb-multimedia-keyring
-### ubuntu
-$s $key 1378B444
-$s $key 871920D1991BC93C
-$s $key 3B4FE6ACC0B21F32
-### obaif
-$s $key 957d2708a03a4626
-### kodi
-$s $key 6d975c4791e7ee5e
-### git
-$s $key a1715d88e1df1f24
-### usb stuff
-$s $key 3729827454b8c8ac
-### multimedia
-$s $key 5C808C2B65558117
-### google
-$s $key 78BD65473CB3BD13
-### kali
-$s $key ED444FF07D8D0BF6
-###
-$s $key E6D4736255751E5D
-###
-$s $key 5A88D659DCB811BB
-###
-$s $key 04EE7237B7D453EC
-$s $key 648ACFD622F3D138
-$s $key 3B4FE6ACC0B21F32
-$s $key 2836cb0a8ac93f7a
-$s $key B8AC39B0876D807E
-$s $key A2F33E359F038ED9
-### tvheadend
-$s $key 89942AAE5CEAA174
-$s apt -y install coreutils wget apt-transport-https lsb-release ca-certificates
-$s wget -qO- https://doozer.io/keys/tvheadend/tvheadend/pgp | $s apt-key add -
-### opensuse
-$s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
-$s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
-### llvm git
-wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|$s apt-key add -
-$s $key 15CF4D18AF4F7421
-wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && $s dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+   # hdd="/dev/sd*"  # your harddrive here, if you do use xfs. otherwise dont mind. wont get recognized as filesystem
+   # nvme="/dev/nvme*"
 
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 23F3D4EA75716059
-sudo cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+        source="$(pwd)"
+        basicsetup=$source/.basicsetup
+        tmp=$source/tmp
+            sl=">/dev/null"
+            s="sudo"
+            up="$s apt update"
+            a="$s apt -f install -y --fix-broken --fix-missing"
+            apt="$s apt -f install -y -t experimental --fix-broken --fix-missing"
+            rem="apt -f -y purge"
 
+            
+            
+            
+            
 
-$s apt-get clean
-$s rm -rf /var/lib/apt/lists/*
-$s apt-get clean
-$s apt-get update
-
-
+# just used this as an exemplary marker on top, for dirs explicitly being placed on the far left side for readability and ease of usage
+# for editing ~/basic-linux-setup/'test*' is already in gitignore. so make a file, !#/bin/bash on top, save & chmod +x test.sh to make it executable,
+# run or copy paste parts to console individually for testing. script is usually safer, keep in mind
 cd $source
-$s cp *.list /etc/apt/sources.list.d/
-$s rm -rf /etc/apt/sources.list.d/*sources.list
-$s cp preferences /etc/apt/
-$s cp preferences /etc/apt/preferences.d/
-$s apt update
-$s apt -f install -y netselect-apt
-$s netselect-apt -n
-#$s mv sources.list /etc/apt/sources.list
-#$s apt update
+mkdir -p $tmp
 
-systemctl enable --now apparmor.service
+        $s chmod +x *
+        echo ""
+        $s sh $source/2* # execute backup sources.list script
+        $s rm -rf /var/lib/dpkg/lock* /var/lib/aptitude/lock* /var/cache/apt/archives/ /var/lib/apt/lists/*
+        #$s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
+        $s fuser -viks /var/cache/debconf/config.dat
+            $s pkill -f apt
+            $s pkill -f aptitude
+            $s pkill -f packagekitd
+            $s pkill -f dpkg
+            $s pkill -f /etc/rc.local
+            $s pkill -f /etc/sysctl.conf
+                echo 'Acquire::ForceIPv4 "true";' | $s tee /etc/apt/apt.conf.d/99force-ipv4
+                $s dpkg --add-architecture i386
+                $s dpkg-reconfigure dash
+            
+cd $tmp
 
-### first of all install aptitude to ease out package conflicts
-$s $apt aptitude
 
-cd $source
-$s cp *.list /etc/apt/sources.list.d/
-$s rm -rf /etc/apt/sources.list.d/*sources.list
-$s cp preferences /etc/apt/
-$s cp preferences /etc/apt/preferences.d/
+    ###     <<<< ADD KEYS >>>> - for access to repositories >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            $s wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && $s dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
+            $s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
+            $s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
+            $s wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | $s apt-key add -
+            $s curl -L https://packagecloud.io/AtomEditor/atom/gpgkey | $s apt-key add -
+            $s apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C80E383C3DE9F082E01391A0366C67DE91CA5D5F
+                $s apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 0B31DBA06A8A26F9 1378B444 15CF4D18AF4F7421 23F3D4EA75716059 2836cb0a8ac93f7a 3729827454b8c8ac 3B4FE6ACC0B21F32 4EB27DB2A3B88B8B 5A88D659DCB811BB 5C808C2B65558117 648ACFD622F3D138 6d975c4791e7ee5e 78BD65473CB3BD13 871920D1991BC93C 89942AAE5CEAA174 957d2708a03a4626 A2F33E359F038ED9 A89D7C1B2F76304D B8AC39B0876D807E E6D4736255751E5D ED444FF07D8D0BF6 a1715d88e1df1f24 B8AC39B0876D807E 54404762BBB6E853 112695A0E562B32A 818A435C5FCBF54A 9DE922F1C2FDE6C4 1F3045A5DF7587C3 4C6E74D6C0A35108
 
-####### GENERAL DIRECTORIES #########################################################################
-#####################################################################################################
-### set up dirs of git and prebuilt toolchain
-git=~/GIT
-tc=~/TOOLCHAIN
-mkdir -p $git && mkdir -p $tc
-
-####### MINOR LINUX OPTIMIZATIONS ###################################################################
-#####################################################################################################
-### optimizations press -y & enter
-#printf 'y\n' |
-$s dpkg-reconfigure dash
-$s $ins kexec-tools
-$s $apt && $s apt --fix-missing install -y
-#printf 'y\ny\n' |
-$s dpkg-reconfigure kexec-tools
-
-### brave
-$s $ins apt-transport-https curl
-curl -s https://brave-browser-apt-nightly.s3.brave.com/brave-core-nightly.asc | $s apt-key --keyring /etc/apt/trusted.gpg.d/brave-browser-prerelease.gpg add -
-echo "deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main" | $s tee /etc/apt/sources.list.d/brave-browser-nightly.list
-$s apt update
-$s $ins brave-browser-nightly
+                
+                
+    ###     <<<< WORKAROUND GPG >>>> - avoiding errors when running apt update >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+                    $s cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+                    $s rm -rf /var/lib/apt/lists/* && $s apt clean && $s apt autoclean
 
 
 
-####### EULA LICENSE AGREEMENTS #####################################################################
-#####################################################################################################
-### take care of licenses first  #
-#$s apt update                  #
-#echo -e "${yellow}"              #
-#echo LICENSES                    #
-#echo -e "${restore}"             #
-##################################
-#echo ttf-mscorefonts-installer ttf-mscorefonts-installer/accepted-ttf-mscorefonts-installer-eula select true | $s debconf-set-selections
-#$s $ins ttf-mscorefonts-installer
+                
+                
+                
+                
+                
+    ###      <<<< BASIC PKGS & KEYRINGS >>>> - needed for running this script >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        $up -oAcquire::AllowInsecureRepositories=true
+        $s dpkg --configure -a
+        $a rsync
+            $s rsync -v -K -a --force --include=".*" config.dat /var/cache/debconf/config.dat
+            echo -e 'DPkg::Options {
+   "--force-overwrite";
+   "--force-confold";
+   "--force-confdef";
+};' | $s tee /etc/apt/apt.conf.d/71debconf
+            #$a xdotool
+                    #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install libc6'
+                    #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install kexec-tools'
+                    #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install macchanger'
+                    #xdotool key Left | xdotool key KP_Enter | xdotool key Left | xdotool key KP_Enter | $s dpkg-reconfigure kexec-tools
+                    $a libc6 ; $a kexec-tools ; $s dpkg-reconfigure --frontend readline kexec-tools --force ; $a libpam-systemd ; $a macchanger
+            $a deb-multimedia-keyring
+            #$a ubuntu-archive-keyring
+            #$a gnome-keyring
+                $a ca-certificates
+                $a apt-transport-https
+                $a coreutils
+                $a lsb-release
+                $a curl
+                $a git
+                $a aptitude
+                    $s dpkg --configure -a
+                    $s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
 
-####### SYSTEM CONFIGURATION ########################################################################
-#####################################################################################################
-### configure system customization
-echo -e "${yellow}"              #
-echo MINOR SYSTEM CUSTOMIZATION  #
-echo -e "${restore}"             #
-##################################
-echo -e "${yellow}"              #
-echo setting up weekly fstrim... #
-echo -e "${restore}"             #
-##################################
-### trigger weekly fstrim
-$s systemctl start fstrim.timer
 
-### set up init.sh for kernel configuration #########################################
-echo -e "${yellow}"                                                                 #
-echo setting up userspace kernel configuration                                      #
-echo on root filesystem /init.sh can be found, adjust it to your needs if necessary #
-echo -e "${restore}"                                                                #
-#####################################################################################
+
+
+
+
+
+
+
+    ###     <<<< COPY SOURCES.LIST & MORE >>>> - make executable, backup and copy repositories setup and execute init.sh script >>>>>
+        #$s chmod +x *
+        #$s sh $source/2* # execute backup sources.list script
+        $s cp *.list /etc/apt/sources.list.d/
+        $s rm -rf /etc/apt/sources.list.d/*sources.list
+        $s cp preferences /etc/apt/
+        $s cp preferences /etc/apt/preferences.d/
+        $s cp -f init.sh /etc/rc.local && $s cp -f init.sh /etc/sysctl.conf
+            $s rm -rf /etc/update_hosts.sh # rm potentially outdated hosts script
+            $s sed -i '/@weekly sh \/etc\/update_hosts.sh >\/dev\/null/c\' /etc/anacrontabs
+                        if ! grep -q "@reboot sh /etc/rc.local" /etc/anacrontabs; then echo "@reboot sh /etc/rc.local >/dev/null" | $s tee -a /etc/anacrontabs ; fi
+
+cd $tmp
+
+
+
+
+
+
+
+                    
+                    
+
+    ###     <<<< BASIC PKGS >>>> - we just added and updated sources, latest pkgs can be updated >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        $a deb-multimedia-keyring
+            $a brave-browser-nightly
+            $a google-earth-pro-stable
+            $rem firefox-esr
+            $a firefox
+                #$a netselect-apt
+                        $a kali-tweaks
+
+                        
+                        
+                        
+                        
+
+    ###     <<<< NECESSARY PACKAGE FOR GIT >>>> - pkgs and the way they operate get changed >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            if [ $INSTALLBUILDENV = true ] ; then
+                    curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+                    printf 'y' | sh ./install-from-source.sh &&
+                    git-credential-manager-core configure &&
+                    git config --global credential.credentialStore secretservice ; fi
+
+
+                    
+                    
+                    
+                    
+
+
+    ###     <<<< CUSTOMIZE LINUX >>>> - zsh, preconfig kde, browsers & extras >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        # zsh
+        #`ZSH= sh install.sh`
+        $a zsh
+        $a curl
+        #$s apt -f -y remove zsh-autosuggestions zsh-syntax-highlighting zsh-antigen
+        $s dpkg-reconfigure zsh
+        $s chsh -s $(which zsh) # switch to zsh if not already on kali
+        for i in $(ls /home) ; do sudo rm -rf /home/$i/.oh-my-zsh ; done
+        sudo rm -rf /root/.oh-my-zsh
+        $s sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        for i in $(ls /home) ; do
+        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git /home/$i/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git /home/$i/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+        git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /home/$i/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
+        git clone --depth=1 https://github.com/marlonrichert/zsh-autocomplete.git /home/$i/.oh-my-zsh/custom/plugins/zsh-autocomplete
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$i/.oh-my-zsh/custom/themes/powerlevel10k ; done
+        $s git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+        $s git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+        $s git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
+        $s git clone --depth=1 https://github.com/marlonrichert/zsh-autocomplete.git /root/.oh-my-zsh/custom/plugins/zsh-autocomplete
+        $s git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.oh-my-zsh/custom/themes/powerlevel10k
+        $s chown root /root/.oh-my-zsh/*
+        #$s chmod 0600 /root/.oh-my-zsh/*
+        $a zsh-autosuggestions
+        $a zsh-syntax-highlighting
+        $a zsh-antigen
+        $a fonts-powerline
+
+
+        
 cd $basicsetup
-#
-$s $ins rsync
-chmod +x init.sh
-$s \cp init.sh /init.sh
-$s \cp init.sh /etc/rc.local
-if grep -q "@reboot root /init.sh" /etc/crontab
-then
-echo "Flag exists"
-else
-$s sed -i "\$a@reboot root /init.sh >/dev/null" /etc/crontab
-fi
 
-### copy wallpaper & grub splash
-$s rsync -v -K -a --force  MalakasUniverse /usr/share/wallpapers
-#$s \cp -rf  splash.jpg /boot/grub
+    ###     <<<< COPY PRECONFIG >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        $s rsync -v -K -a --force --include=".*" .p10k.zsh /root/.p10k.zsh
+        $s rsync -v -K -a --force --include=".*" .p10k.zsh ~/.p10k.zsh
+        $s rsync -v -K -a --force --include=".*" .zshrc ~/ # were still on zsh config this part, read carefully when editing
+        $s rsync -v -K -a --force --include=".*" .zshrc.root /root/.zshrc
+        $s chown root /root/.zshrc /root/.p10k.zsh
+        #$s chmod 0600 /root/.zshrc /root/.p10k.zsh
+    ### ############
+            killb="$s pkill -f brave-browser-nightly"       # remember the browsers are preconfigerd for hardware acceleration which is in underneath part, thus kill process
+            killf="$s pkill -f firefox"
+                $killb && $killf
+                    $s rsync -v -K -a --force --include=".*" .hushlogin ~/.hushlogin
+                    $s rsync -v -K -a --force --include=".*" .hushlogin /root/.hushlogin
+                    $s rsync -v -K -a --force --include=".*" .bashrc ~/.bashrc
+                    $s rsync -v -K -a --force --include=".*" .bashrc /root/.bashrc
+                    $s rsync -v -K -a --force --include=".*" .config ~/
+                    $s rsync -v -K -a --force --include=".*" .kde ~/
+                    $s rsync -v -K -a --force --include=".*" .local ~/
+                    $s rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
+                    $s rsync -v -K -a --force --include=".*" .kodi ~/
+                    $s rsync -v -K -a --force --include=".*" MalakasUniverse /usr/share/wallpapers/
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+    ### <<<< ADJUST BROWSERS >>>> - 1 firefox, 2 brave >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        echo -e "${yellow}"
+echo ".....................................................................
+If setup gets stuck on this screen, just open and close firefox for it to speed up...
+.....................................................................
+Don't forget to go to settings in Firefox after the setup and enabling the addons that come preinstalled in settings>extensions>enable...
+If they appear enabled in settings but do not show up on the top bar of Firefox just disable and re-enable them...
+....................................................................."
+        echo -e "${restore}"
 
-### copy kde optimal preconfiguration
-$s pkill brave-browser-nightly
-#$s pkill brave-browser-beta
-$s rsync -v -K -a --force --include=".*" .config ~/
-$s rsync -v -K -a --force --include=".*" .kde ~/
-$s rsync -v -K -a --force --include=".*" .local ~/
-$s rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
-$s rsync -v -K -a --force --include=".*" .kodi ~/
+ 
+cd $basicsetup/.mozilla/firefox/.default-release
+                    
+                    
+                    
+                    
+                # make sure firefox generates config
+                    #inotifywait -m -e create /tmp/x | while read -r _ flags file; do if [[ $flags = CREATE,ISDIR ]]; then printf "subdirectory '%s' was created\n" "$file"; fi; done
+                    #while $(ls /home/"$(ls /home)"/.mozilla/firefox) [ $? = 1 ] ; do
+                    for i in {1..20} ; do until ls /home/$(ls /home)/.mozilla/firefox/*.default-release ; do firefox | sleep 2 | sudo pkill -f firefox ; done ; done ; if $(ls /home/$(ls /home)/.mozilla/firefox) [ $? = 0 ] ; then break ; fi 
+                    # done 
+                    $s rsync -v -K -a --force --include=".*" extensions/* /usr/share/mozilla/extensions/\{ec8030f7-c20a-464f-9b0e-13a3a9e97384\}/
+                    #yes | firefox -install-global-extension /usr/share/mozilla/extensions/\{ec8030f7-c20a-464f-9b0e-13a3a9e97384\}/*
+                    for i in $(ls /home) ; do 
+                    $s \cp -rf prefs.js /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)"/prefs.js
+                    $s \cp -rf extensions /home/$i/.mozilla/firefox/extensions
+                    $s \cp -rf extensions /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)"/extensions ; done
 
-### fix ownership preconfig - rare cases
-cd ~/ && $s chown -R $(id -u):$(id -g) $HOME
 
-####### FIREFOX CONFIGURATION
-### installation firefox addons, install as firefox opens. close firefox and reclick on console ###############
-#echo -e "${magenta}"                                                                                          #
-#echo INSTALL FIREFOX ADDONS ONE BY ONE, AFTER CLOSE FIREFOX AND CLICK ON CLI TILL ALL ADDONS ARE INSTALLED!!! #
-#echo -e "${restore}"                                                                                          #
-###############################################################################################################
-#$s pkill firefox
-#echo sorry for that firefox crash. part of setup...
-
-### copy firefox advanced settings and enable hw acceleration
-#cd $basicsetup/.mozilla/firefox/.default-release
-#$s \cp -rf prefs.js ~/.mozilla/firefox/*.default-esr/prefs.js
+                        # fix ~/  home folder permissions
+                            $s chown -R $(id -u):$(id -g) $HOME
 cd $source
-
-### install browser modules
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3539016/adblock_plus-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3560936/duckduckgo_privacy_essentials-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3502002/youtube_audio_only-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3053229/adblocker_for_youtubetm-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3553672/youtube_video_and_audio_downloader_webex-
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3550879/plasma_integration-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3534334/video_downloadhelper-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/805784/kde_connect-*
-#yes | firefox https://addons.mozilla.org/firefox/downloads/file/3547657/hotspot_shield_free_vpn_proxy_unlimited_vpn-*
-
-#yes | brave-browser-beta https://chrome.google.com/webstore/detail/duckduckgo-privacy-essent/bkdgflcldnnnapblkhphbgpggdiikppg
-#yes | brave-browser-beta https://chrome.google.com/webstore/detail/adblock-%E2%80%94-best-ad-blocker/gighmmpiobklfepjocnamgkkbiglidom
-yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog
-yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi
-#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/touch-vpn-secure-and-unli/bihmplhobchoageeokmgbdihknkjbknd
-#yes | brave-browser-nightly https://chrome.google.com/webstore/detail/privacy-badger/pkehgijcmpdhfbdbbnkijodmdjhbjlgp
-
-####### SWAP CONFIGURATION ##########################################################################
-#####################################################################################################
-### configure swap               #
-echo -e "${yellow}"              #
-echo CONFIGURE SWAP              #
-echo -e "${restore}"             #
-##################################
-#swap=10000000
-swappiness=40
-##################################
-## make dedicated swap partition its faster than swapfile
-#if grep -q "/swapfile" /etc/fstab
-#then
-#echo "Flag exists"
-#else
-#$s sed -i "\$a/swapfile    none    swap    sw    0    0" /etc/fstab
-#fi
-#$s swapoff -a
-#$s dd if=/dev/zero of=/swapfile bs=$swap count=1024
-#$s chmod 600 /swapfile
-#$s mkswap /swapfile
-$s swapon -a
-$s free -h
-### set swappiness to a low value for ram preference
-$s sysctl vm.swappiness=$swappiness
-### LVM
-#/vgkubuntu-swap_1
-
-####### SYSTEM CONFIGURATION ########################################################################
-#####################################################################################################
-### grub config & system optimization
-echo -e "${yellow}"                 #
-echo GRUB CONFIG                    #
-echo -e "${restore}"                #
-#####################################
-### switch off mitigations improving linux performance
-$s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="quiet splash log_priority=0 udev.log_priority=0 audit=0 nobp=0 noibrs ibrs=off noibpb ibpb=off nopti pti=off nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spectre_v2=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=nomwait tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off tsc=reliable clocksource=tsc cpu_spec_mitigations=off no_uaccess_flush no_entry_flush ssbd=force-off spec_store_bypass_disable=off nvme_core.default_ps_max_latency_us=0 pcie_aspm=off transparent_hugepage=never nmi_watchdog=0 nohz=on skew_tick=1 pcie_aspm=force pcie_aspm.policy=performance cpufreq.default_governor=performance"' /etc/default/grub
-$s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="quiet splash log_priority=0 udev.log_priority=0 audit=0 nobp=0 noibrs ibrs=off noibpb ibpb=off nopti pti=off nospectre_v2 nospectre_v1 l1tf=off nospec_store_bypass_disable no_stf_barrier pti=off mds=off spectre_v1=off spectre_v2_user=off spectre_v2=off spec_store_bypass_disable=off mitigations=off scsi_mod.use_blk_mq=1 idle=nomwait tsx_async_abort=off tsx=on elevator=kyber i915.enable_rc6=0 acpi_osi=Linux ipv6.disable=1 ssbd=force-off kvm.nx_huge_pages=off retbleed=off kpti=0 srbds=off tsc=reliable clocksource=tsc cpu_spec_mitigations=off no_uaccess_flush no_entry_flush ssbd=force-off spec_store_bypass_disable=off nvme_core.default_ps_max_latency_us=0 pcie_aspm=off transparent_hugepage=never nmi_watchdog=0 nohz=on skew_tick=1 pcie_aspm=force pcie_aspm.policy=performance cpufreq.default_governor=performance"' /etc/default/grub
-### set grub timeout
-$s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
-### grub os prober
-$s sed -i "/#GRUB_DISABLE_OS_PROBER/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
-### set grub min resolution
-#$s sed -i "/GRUB_GFXMODE/c\GRUB_GFXMODE=1024x768" /etc/default/grub
-### set grub wallpaper
-#$s sed -i '/GRUB_BACKGROUND/c\GRUB_BACKGROUND="/boot/grub/splash.jpg"' /etc/default/grub
-### apply grub settings
-$s update-grub2
-### grub auto detection
-#GRUB_PATH=$($s fdisk -l | grep '^/dev/[a-z]*[0-9]' | awk '$2 == "*"' | cut -d" " -f1 | cut -c1-8)
-#$s grub-install $GRUB_PATH
-
-### preconfigure ccache and mute output
-if grep -q "USE_CCACHE=1" ~/.bashrc
-then
-echo "Flag exists"
-else
-$s sed -i "\$aexport USE_CCACHE=1" ~/.bashrc
-$s sed -i "\$aexport USE_PREBUILT_CACHE=1" ~/.bashrc
-$s sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.bashrc
-$s sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.bashrc
-$s sed -i "\$accache -M 30G >/dev/null" ~/.bashrc
-$s sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
-fi
-
-#$s sed -1 "\$aexportPATH='$PATH:/usr/bin:usr/local/sbin:/usr/sbin:/sbin'" ~/.bashrc
+                        
+                        ### deprecated part of setup, more automated now...
+                        
+            # browser plugins firefox
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/youtube-audio_only/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/adblock-for-firefox/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/adblock-for-youtube/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/bloody-vikings/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/random_user_agent/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/uaswitcher/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/css-exfil-protection/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/librejs/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/cookie-autodelete/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/ublock-origin/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/adnauseam/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/webgl-fingerprint-defender/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/font-fingerprint-defender/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/switchyomega/
+                #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/absolutedouble-trace/
+                    #yes | firefox https://addons.mozilla.org/en-US/firefox/addon/myki-password-manager/
 
 
-#if grep -q "fancy-bash-promt.sh" ~/.bashrc
-#then
-#echo "Flag exists"
-#else
-#cd $source
-#$s bash -c 'mkdir -p /root/.config'
-#$s cp $basicsetup/.config/fancy-bash-promt.sh ~/.config/
-#$s cp $basicsetup/.config/fancy-bash-promt2.sh /root/.config/
-#bash -c 'echo "source ~/.config/fancy-bash-promt.sh" >> ~/.bashrc'
-#$s bash -c 'echo "source /root/.config/fancy-bash-promt2.sh" >> /root/.bashrc'
-#fi
+                                                                                                            ## section not needed - preinstalled already
+            # browser addons brave (based on chrome)
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/audio-only-youtube/pkocpiliahoaohbolmkelakpiphnllog && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/scrollanywhere/jehmdpemhgfgjblpkilmeoafmkhbckhi >/dev/null && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/touch-vpn-secure-and-unli/bihmplhobchoageeokmgbdihknkjbknd && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/trace-online-tracking-pro/njkmjblmcfiobddjgebnoeldkjcplfjb  && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/random-user-agent-switche/einpaelgookohagofgnnkcfjbkkgepnp && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/user-agent-switcher-for-c/djflhoibgkdhkhhcedjiklpkjnoahfmg && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/css-exfil-protection/ibeemfhcbbikonfajhamlkdgedmekifo && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/cookie-autodelete/fhcgjolkccmbidfldomjliifgaodjagh && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/ublock-origin/cjpalhdlnbpafiamejdnhcphjbkeiagm && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/webgl-fingerprint-defende/olnbjpaejebpnokblkepbphhembdicik && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/font-fingerprint-defender/fhkphphbadjkepgfljndicmgdlndmoke && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif && $killb
+                #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/trace-online-tracking-pro/njkmjblmcfiobddjgebnoeldkjcplfjb && $killb
+                    #yes | brave-browser-nightly https://chrome.google.com/webstore/detail/myki-password-manager-aut/bmikpgodpkclnkgmnpphehdgcimmided && $killb
 
-### fstab flags
-### ext4
-if grep -q "lazytime" /etc/fstab
-then
-echo "Flag exists"
-else
-$s sed -i 's/errors=remount-ro/commit=60,discard,quota,lazytime,errors=remount-ro/g' /etc/fstab
-fi
-### efi bootloader
-if grep -q "lazytime" /etc/fstab
-then
-echo "Flag exists"
-else
-$s sed -i 's/vfat    umask=0077/vfat            rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,discard,errors=remount-ro/g' /etc/fstab
-fi
-### xfs
-if grep -q "defaults,rw,lazytime,attr2" /etc/fstab
-then
-echo "Flag exists"
-else
-$s sed -i 's/xfs     defaults/xfs     defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=32k,noquota,discard/g' /etc/fstab
-fi
-### f2fs
-if grep -q "f2fs     rw,lazytime" /etc/fstab
-then
-echo "Flag exists"
-else
-$s sed -i 's/f2fs    defaults,noatime/f2fs     rw,lazytime,background_gc=on,discard,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota/g' /etc/fstab
-fi
-### tmpfs
-$s sed -i 's+/tmp           tmpfs   defaults,noatime,mode=1777 0 0++g' /etc/fstab
-if grep -q "/run/shm" /etc/fstab
-then
-echo "Flag exists"
-else
-$s sed -i "\$atmpfs    /tmp        tmpfs    rw,defaults,lazytime,mode=1777 0 0" /etc/fstab
-$s sed -i "\$atmpfs    /var/tmp    tmpfs    rw,defaults,lazytime,mode=1777 0 0" /etc/fstab
-$s sed -i "\$atmpfs    /run/shm    tmpfs    rw,defaults,lazytime,mode=1777 0 0" /etc/fstab
-fi
+            $killb && $killf
 
-####### BUILD ENVIRONMENT SETUP #####################################################################
-#####################################################################################################
-### build env scripts ############
-echo -e "${yellow}"              #
-echo BUILD ENV SCRIPTS           #
-echo -e "${restore}"             #
-##################################
-cd $git
-#
-### add i386 architecture needed for env
-$s dpkg --add-architecture i386
-$s aptitude update
-git clone https://github.com/akhilnarang/scripts.git
-cd scripts/setup
-Keys.ENTER | ./android_build_env.sh
-Keys.ENTER | ./ccache.sh
+            
+            
+    ### lol, dont use snap pls - disabled it again
+        #$s apt purge -y snapd snap-confine && $s apt install -y snapd
+        #$s systemctl enable --now snapd.socket
+        #sleep 5
+        #$s apparmor_parser -r /etc/apparmor.d/*snap-confine*
+        #$s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
+            mkdir -p ~/.wine && $s mkdir -p /root/.wine
+            # echo "127.0.0.1 release.gitkraken.com"  | $s tee -a /etc/hosts # workaround to use kraken with private repos dunno if works
 
-### make sure all is set up right
-$s dpkg --configure -a && $s apt update && $s apt -f upgrade -y --with-new-pkgs && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y && $s apt autoremove -y
+                ### additional config
+                $s systemctl enable fstrim.timer # fstrim is also preconfigured weekly, so we enable the service
+                $s systemctl start fstrim.timer
 
 
-##################################
-####### PPA'S
-### mesa drivers and extras
-#$s add-apt-repository -y ppa:oibaf/graphics-drivers
-#$s add-apt-repository -y ppa:git-core/ppa
-#$s add-apt-repository -y ppa:team-xbmc/ppa
-#$s add-apt-repository -y ppa:team-xbmc/unstable
-#$s add-apt-repository -y ppa:team-xbmc/xbmc-nightly
-#$s add-apt-repository -y ppa:appimagelauncher-team/stable
-
-### fix distro syncing for now (forceful method - for now must be overridden)
-#$s bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu disco main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-xbmc-nightly-*.list'
-#$s bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu cosmic main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-unstable-*.list'
-#$s bash -c 'echo "deb http://ppa.launchpad.net/team-xbmc/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/team-xbmc-ubuntu-ppa-*.list'
-#$s bash -c 'echo "deb http://ppa.launchpad.net/git-core/ppa/ubuntu focal main"  > /etc/apt/sources.list.d/git-core-ubuntu-ppa-*.list'
-#$s sh -c 'echo "deb https://apt.tvheadend.org/stable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
-#$s sh -c 'echo "deb https://apt.tvheadend.org/unstable stretch main" | tee /etc/apt/sources.list.d/tvheadend.list'
-
-### add debian multimedia
-#if grep -q "www.deb-multimedia.org" /etc/apt/sources.list
-#then
-#echo "Flag exists"
-#else
-#$s sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org sid main non-free/g' /etc/apt/sources.list
-#$s sed -i 's/deb [arch=amd64,i386] http://www.deb-multimedia.org unstable main non-free/g' /etc/apt/sources.list
-#fi
-
-### kali
-#if grep -q "kali-dev" /etc/apt/sources.list
-#then
-#echo "Flag exists"
-#else
-#$s echo '
-#deb http://http.kali.org/kali kali-debian-picks main non-free contrib
-#deb http://http.kali.org/kali debian-testing main non-free contrib
-#deb http://http.kali.org/kali kali-dev main non-free contrib
-#deb http://http.kali.org/kali kali-experimental main non-free contrib
-#deb http://http.kali.org/kali kali-last-snapshot main non-free contrib
-#' | $s tee -a /etc/apt/sources.list
-#fi
-
-### add debian experimental
-#if grep -q "debian experimental main" /etc/apt/sources.list
-#then
-#echo "Flag exists"
-#else
-#$s sed -i 's/#deb http://http.debian.net/debian experimental main contrib non-free/g' /etc/apt/sources.list
-#fi
-
-### add debian unstable repos
-#if grep -q 'deb http://deb.debian.org/debian/ unstable main contrib non-free' /etc/apt/sources.list
-#then
-#echo "Flag exists"
-#else
-#$s echo '# debian unstable repos - will break distro' | $s tee -a /etc/apt/sources.list
-#$s echo '# only use for rare individual packages' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
-#fi
-
-### add llvm repos
-#if grep -q 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' /etc/apt/sources.list
-#then
-#echo "Flag exists"
-#else
-#$s echo '### llvm git repos' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb http://apt.llvm.org/unstable/ llvm-toolchain main' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb-src http://apt.llvm.org/unstable/ llvm-toolchain main' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal main' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal main' | $s tee -a /etc/apt/sources.list
-#fi
-
-####### THANAS PACKAGES #############################################################################
-#####################################################################################################
-### thanas build env, vulkan drivers, codecs and extras
-echo -e "${yellow}"              #
-echo THANAS PACKAGES             #
-echo -e "${restore}"             #
-##################################
-$s apt update
-$s aptitude update
-
-# openwrt
-sudo apt install build-essential ecj fastjar file flex g++ gcc-multilib g++-multilib gawk gettext git git-core java-propose-classpath libelf-dev libncurses5-dev libncursesw5-dev libssl-dev swig python3 python3-distutils subversion unzip wget zlib1g-dev rsync qemu-utils -y
-
-apt install lldb lld clang clangd llvm llvm-dev -y
-
-# LLVM
-apt-get install libllvm-16-ocaml-dev libllvm16 llvm-16 llvm-16-dev llvm-16-doc llvm-16-examples llvm-16-runtime -y
-# Clang and co
-apt-get install clang-16 clang-tools-16 clang-16-doc libclang-common-16-dev libclang-16-dev libclang1-16 clang-format-16 python3-clang-16 clangd-16 clang-tidy-16 -y
-# libfuzzer
-apt-get install libfuzzer-16-dev -y
-# lldb
-apt-get install lldb-16 -y
-# lld (linker)
-apt-get install lld-16 -y
-# libc++
-apt-get install libc++-16-dev libc++abi-16-dev -y
-# OpenMP
-apt-get install libomp-16-dev -y
-# libclc
-apt-get install libclc-16-dev -y
-# libunwind
-apt-get install libunwind-16-dev -y
-# mlir
-apt-get install libmlir-16-dev mlir-16-tools -y
-
-$s $ins adb fastboot
-
-#$s $ins lldb
-
-#$s $ins lldb-13
-
-#$s $ins clang-format clang-tidy clang-tools clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev libllvm-ocaml-dev libomp-dev libomp lld lldb llvm-dev llvm-runtime llvm python-clang
-
-#$s $ins gcc-11 gcc-11-arm-linux-gnueabi gcc-11-aarch64-linux-gnu binutils binutils-dev \
-#libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
-
-sudo apt -f install binutils-dev -y -t experimental
-#virt-manager
 
 
-### npm
-$s $apt npm && $s $apt && $s npm cache clean -f && $s npm cache clean -f && $s npm install npm@latest -g
+    ### <<<< ALL PKGLIST.SH >>>> - color pkglist installation so user is aware of part, scripts can be found externally and be executed isolated for troubleshooting >
+        if [ $INSTALLBUILDENV = true ] ; then $s sh pkglist0.sh ; fi
+         $s sh pkglist.sh
 
-### list mesa drivers seperately
-#$s $ins vulkan-tools libd3dadapter9-mesa libd3dadapter9-mesa-dev libegl-mesa0 libegl1-mesa-dev libgl1-mesa-dev libgl1-mesa-dri libgl1-mesa-glx libglapi-mesa libgles2-mesa-dev libglu1-mesa libglu1-mesa-dev libglx-mesa0 libosmesa6 libosmesa6-dev mesa-common-dev mesa-vdpau-drivers mesa-vulkan-drivers mir-client-platform-mesa-dev vulkan-utils mesa-opencl-icd
 
-### kali full packages
-#$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources
-#$s apt remove -y lime-forensics-dkms
-#$s $ins routersploit
+        echo -e "${restore}"
+        $s dpkg-reconfigure -f noninteractive unattended-upgrades
+        $s apt-get remove --purge texlive-fonts-recommended-doc texlive-latex-base-doc texlive-latex-extra-doc texlive-latex-recommended-doc texlive-pictures-doc texlive-pstricks-doc
+        $s systemctl enable --now rngd apparmor firewalld ufw fail2ban
+        
+        
 
-### ...
-#$s $ins gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-10-aarch64-linux-gnu gcc-10-arm-linux-gnueabi
-#$s $ins gcc-multilib
-#$s $ins gcc-10-multilib
-#$s $ins gcc-10-x86-64-linux-gnu-base gcc-9-x86-64-linux-gnu-base
-#$s $ins binutils-mips-linux-gnu
 
-### ram cache stuff
-#$s $ins zlib1g zlib1g-dev libcryptsetup12 libcryptsetup-dev libjansson4 libjansson-dev
-
-### kde kali
-#$s $ins muon kde-baseapps kde-plasma-desktop plasma-browser-integration
-
-### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-### SELECT EXPLICITLY FOR KDE PLASMA DESKTOP ENVIRONMENT! needs manual enabling from within settings
-$s apt install -y plasma-workspace-wayland kwayland-integration wayland-protocols -t experimental
-$s apt install -y net-tools
-### allow root privilege under wayland and supress output
-#if grep -q "xhost +si:localuser:root >/dev/null" ~/.bashrc
-#then
-#echo "Flag exists"
-#else
-#$s sed -i "\$axhost +si:localuser:root >/dev/null" ~/.bashrc
-#fi
-### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-### TEMPORARILY ADD DEBIAN USNTABLE REPOS TO GET SOME PACKAGES!!!
-#$s echo 'deb http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
-#$s echo 'deb-src http://deb.debian.org/debian/ unstable main contrib non-free' | $s tee -a /etc/apt/sources.list
-#sleep 5
-#$s apt update --allow-insecure-repositories
-
-### REMOVE DEBIAN UNSTABLE REPOS AGAIN
-#$s sed -i 's+deb http://deb.debian.org/debian/ unstable main contrib non-free+#deb http://deb.debian.org/debian/ unstable main contrib non-free+g' /etc/apt/sources.list
-#$s sed -i 's+deb-src http://deb.debian.org/debian/ unstable main contrib non-free+#deb-src http://deb.debian.org/debian/ unstable main contrib non-free+g' /etc/apt/sources.list
-
-### .exe files for wine
-#mkdir -p ~/wine && cd ~/wine
-#wget https://winscp.net/download/files/202005080143368dd0551d11a66577d4727edb0182a2/WinSCP-5.17.5-Portable.zip
-#unzip -o WinSCP*
-#rm -rf license* readme* WinSCP*.zip WinSCP*.com
-
-### usb stuff
-#$s add-apt-repository -y ppa:mkusb/ppa
-#$s apt update
-#$s apt -f install --install-recommends -y mkusb mkusb-nox usb-pack-efi
-
-### extra .deb packages
+    ### <<<< SCRIPT NEARING ITS END >>>> - check tasksel, mirrors, services and extra prior to finalizing >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 cd $source
-
-wget https://release.gitkraken.com/linux/gitkraken-amd64.deb
-$s dpkg -i gitkraken*
-$s $apt && $s apt --fix-broken install -y
-rm -rf gitkraken*
-
-#wget https://dl.google.com/dl/earth/client/current/google-earth-pro-stable_current_amd64.deb
-#$s dpkg -i google-earth-pro*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf google-earth-pro*
-
-#wget https://www.realvnc.com/download/file/viewer.files/VNC-Viewer-6.20.529-Linux-x64.deb
-#$s dpkg -i VNC-V*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf VNC-V*
-
-#wget http://ftp.br.debian.org/debian/pool/main/d/diffuse/diffuse_0.4.8-4_all.deb
-#$s dpkg -i diffuse*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf diffuse*
-
-#wget https://atom.io/download/deb
-#$s dpkg -i deb*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf deb*
-
-#wget https://launchpad.net/~teejee2008/+archive/ubuntu/ppa/+files/ukuu_18.9.3-0~201902031503~ubuntu18.04.1_amd64.deb
-#$s dpkg -i ukuu*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf ukuu*
-
-#wget https://download.teamviewer.com/download/linux/teamviewer_amd64.deb
-#$s dpkg -i teamviewer*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf teamviewer*
-
-#wget https://github.com/shiftkey/desktop/releases/download/release-2.4.1-linux2/GitHubDesktop-linux-2.4.1-linux2.deb
-#$s dpkg -i GitHubDesktop*
-#$s $apt && $s apt --fix-broken install -y
-#rm -rf GitHubDesktop*
-
-wget https://github.com/GitCredentialManager/git-credential-manager/releases/download/v2.0.785/gcm-linux_amd64.2.0.785.deb
-$s dpkg -i gcm-linux*
-$s $apt && $s apt --fix-broken install -y
-rm -rf gcm-linux*
+        #$a kali-tweaks		# pick individual kali tools if needed
+        #$s tasksel              # recheck setup and potentially modify. packages get changed constantly and this setup isnt being maintained constantly. even if it is not seriously. so make sure kde is fully installed prior to upgrading...
 
 
-####### GIT CONFIGURATION ###########################################################################
-#####################################################################################################
-### your git name & email - unhash and set up for personal usage
-
-#git config --global user.name thanasxda
-#git config --global user.email 15927885+thanasxda@users.noreply.github.com
-curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
-sh ./install-from-source.sh &&
-git-credential-manager-core configure
-git config --global credential.credentialStore secretservice
-
-### ensure packages are well installed
-#$s apt update && $s $apt && $s apt --fix-broken install -y
-
-### enable snap
-$s apt purge -y snapd snap-confine && $s apt install -y snapd
-$s systemctl enable --now snapd.socket
-if grep -q "export PATH" ~/.bashrc
-then
-echo "Flag exists"
-else
-$s sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.bashrc
-fi
-sleep 5
-$s apparmor_parser -r /etc/apparmor.d/*snap-confine*
-$s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
-#$s snap install ngrok
-
-### language
-#f grep -q " LC_ALL=en_US.UTF-8" ~/.bashrc
-#then
-#echo "Flag exists"
-#else
-#$s sed -i "\$aexport LC_CTYPE=en_US.UTF-8" ~/.bashrc
-#$s sed -i "\$aexport LC_ALL=en_US.UTF-8" ~/.bashrc
-#fi
-
-###### GITHUB REPOSITORIES ##########################################################################
-#####################################################################################################
-### git stuff                    #
-echo -e "${yellow}"              #
-echo GIT EXTRAS                  #
-echo -e "${restore}"             #
-##################################
-#cd $git
-
-### whereisbssid script
-#git clone --depth=1 https://github.com/Trackbool/WhereIsBSSID.git
-
-### prebuilt llvm tc with lto=full pgo polly support
-#cd $tc
-
-#git clone --depth=1 https://github.com/TwistedPrime/twisted-clang.git
-#mv twisted-clang clang
-#cd $source
-#kubuntu-restricted-extras ubuntu-restricted-extras android-tools-fastboot libavcodec-extra58
-#$s $ins muon  autoconf autoconf-archive autogen automake autopoint autotools-dev bash bc binfmt-support binutils-dev bison build-essential bzip2 ca-certificates ccache clang clang llvm llvm-dev clangd clang-format clang-tidy clang-tools cmake curl dash dkms dpkg-dev ecj expat fastjar file flatpak flex g++ gawk  gdebi gedit gettext git git-svn gnupg gperf help2man java-propose-classpath lib32ncurses-dev lib32readline-dev lib32z1 lib32z1-dev libbz2-dev libc++-dev libc++abi-dev libc6-dev libc6-dev-i386 libcap-dev libclang-dev libclang1 libclang1 libelf-dev libexpat1-dev libffi-dev libfuzzer-dev libghc-bzlib-dev libgl1-mesa-dev libgmp-dev libjpeg8-dev libllvm-ocaml-dev libllvm-ocaml-dev libllvm liblz4-1 liblz4-1:i386 liblz4-dev liblz4-java liblz4-jni liblz4-tool liblzma-dev liblzma-doc liblzma5 libmpc-dev libmpfr-dev libncurses-dev libncurses5 libncurses5-dev libomp-dev libsdl1.2-dev libssl-dev libtool libtool-bin libvdpau-va-gl1 libvulkan1 libx11-dev libxml2 libxml2-dev libxml2-utils linux-libc-dev linux-tools-common lld lldb llvm llvm-dev llvm-doc llvm-examples llvm-runtime llvm-dev llvm-runtime lzma lzma-alone lzma-dev lzop m4 make maven mesa-opencl-icd mesa-va-drivers mesa-vulkan-drivers nautilus ninja-build ocl-icd-libopencl1 openssh-client optipng patch pigz pkg-config pngcrush python-all-dev python-clang python3.8 python3-distutils qt5-default rsync schedtool shtool snapd squashfs-tools subversion tasksel texinfo txt2man unzip vdpau-driver-all vlc vulkan-utils wget x11proto-core-dev xsltproc yasm zip zlib1g-dev mpc dkms \
-#nautilus plasma-discover-backend-fwupd cpufrequtils ksystemlog libavcodec-extra preload w64codecs ffmpeg \
-#libomp-13-dev llvm-13 llvm clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev \
-#subversion g++ zlib1g-dev build-essential git python python3 python3-distutils libncurses5-dev gawk gettext unzip file libssl-dev wget libelf-dev ecj fastjar java-propose-classpath \
-#f2fs-tools xfsprogs rt-tests net-tools
-
-$s $ins libavcodec-extra libavcodec* x264 x265 \
-
-#$s $ins wine wine32 q4wine \
-#kodi-pvr-hts kodi-x11 kodi-wayland kodi \
-#gimp audacity uget \
-#alien bleachbit atom \
-#libmng2 mencoder libenca0 libvorbisidec1 libdvdcss2 \
-#psensor flatpak plasma-discover-backend-flatpak \
-#fwupd plasma-discover-backend-fwupd \
-#putty shellcheck \
-#gnome-maps minitube packagekit sweeper gnome-disk-utility \
-#prelink irqbalance \
-#links lynx \
-#arch-install-scripts fish \
-#selinux-utils \
-#libreoffice-writer \
-#checkinstall \
-#firmware-mod-kit \
-#nmapsi4 \
-#dolphin-plugins grub-customizer \
-#ccache \
-#adb fastboot \
-#netselect-apt \
-#python3-pip
+	#{     # start 2d part of log and append to latest log
+    $s apt install --reinstall ca-certificates
 
 
+          $s apt upgrade -f -y -t experimental --fix-broken --fix-missing --with-new-pkgs
+          $s apt upgrade -f -y -t kali-bleeding-edge --fix-broken --fix-missing --with-new-pkgs
+          $s apt upgrade -f -y -t kali-experimental --fix-broken --fix-missing --with-new-pkgs
+          $s apt full-upgrade -f -y --fix-broken --fix-missing
+        $s dpkg --configure -a
+        #$s apt clean
+        #$s apt autoclean
+
+                #$s netselect-apt -n     # check out your fastests mirrors, if this messes up sources.list the synced preconfig will automatically refresh them from repo on next reboot
+                #$s systemctl list-unit-files | grep enabled     # check running services after the setup is complete if necessary
+                #$s service --status-all                                       # just read and check. script is easy now
+                #$s systemd-analyze blame
+                #$s stacer
+
+                
+                
+                                
+                
+                
+                
+                
+                
+                
+                
+     # UPDATE: now http3 on latest firefox in this install enabled and preconfigured by default.
+    ### <<<< DNSCRYPT >>>> - add enable and preconfigure cloudflaredoh. do not replace these settings if you want http3 and DoH, in the past buggy dnsscrypt-proxy was needed now it works without. http3 quic protocol only works with brave and is preconfigured in about:flags. also check about:gpu if you need to make changes depending in your hardware. 1.1.1.1/help for doublechecking dns does in fact run over DoH. pllugins for firefox have not been included anymore. 
+    #cause of there being no workaround for remaining unattended and it doesnt support most new features anyway. manually take them if you need them from this setup. preconfiguration for hw acceleration however is included for firefox as well.
+        $a rename
+        #$a dnscrypt-proxy
+        #dnscver="2.1.2"
+        #wget https://github.com/DNSCrypt/dnscrypt-proxy/releases/download/2.1.2/dnscrypt-proxy-linux_x86_64-$dnsver.tar.gz
+        #$s tar -xf dnscrypt-proxy-linux_x86_64-"$dnscver".tar.gz
+        #cd linux-x86_64
+        #$s rename 's/example-/ /' *
+        #$s mv dnscrypt-proxy /usr/sbin/
+        #$s mv * /etc/dnscrypt-proxy
+        #$s systemctl enable dnscrypt-proxy  && $s systemctl start dnscrypt-proxy   #
+        $s systemctl stop --now NetworkManager NetworkManager-wait-online 
+        sleep 2
+        
+echo '[main]
+plugins=ifupdown,keyfile
+dns=none
+rc-manager=unmanaged
+
+[ifupdown]
+managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
+       
+       
+       #
+echo 'nameserver 1.1.1.1
+nameserver 1.0.0.1
+nameserver 127.0.0.1
+options edns0' | $s tee /etc/resolv.conf.override /etc/resolv.conf
+        $s mkdir -p /run/resolvconf
+        
+if grep -q wrt /etc/os-release ; then 
+if ! grep -q edns0 /tmp/resolv.conf.ppp ; then
+echo 'options edns0' | tee -a /etc/resolv.conf.ppp ; fi ; fi
+        
+        
+echo '#!/bin/sh
+sudo mkdir -p /run/resolvconf
+sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
 
 
-sudo apt update
-sudo apt -f install -y aptitude
-#sudo aptitude -f install -y  libomp-13-dev llvm-13 llvm llvm-13 clang-13 lld-13 gcc clang binutils make flex bison bc build-essential libncurses-dev libssl-dev libelf-dev qt5-default libclang-common-13-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
-sudo apt -f --fix-missing install -y
-sudo aptitude -f upgrade -y --with-new-pkgs
+        $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+        $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+        $a uuid-runtime
+        #
+        #/bin/bash -c 'sudo rm -rf "/etc/NetworkManager/system-connections/*'
+        $s rm -rf "/etc/NetworkManager/system-connections/802-11-wireless connection 1" "/etc/NetworkManager/system-connections/Wired connection 1"
+        $s touch "/etc/NetworkManager/system-connections/802-11-wireless connection 1" "/etc/NetworkManager/system-connections/Wired connection 1"
 
-#$s $ins kali-tools-exploitation kali-tools-hardware kali-tools-wireless kali-tools-rfid kali-tools-fuzzing kali-tools-reporting kali-tools-sdr kali-tools-bluetooth kali-tools-social-engineering kali-tools-crypto-stego kali-tools-database kali-tools-voip kali-tools-802-11 kali-tools-post-exploitation kali-tools-sniffing-spoofing kali-tools-top10 kali-tools-reverse-engineering kali-tools-web kali-tools-vulnerability kali-tools-forensics kali-tools-information-gathering kali-tools-windows-resources kali-menu
-$s apt -f --fix-broken install -y
-$s apt -f install -y --fix-missing qt5-style-kvantum*
-$s apt -f install -y --fix-missing plasma-discover-backend*
-$s apt -f install -y --fix-missing firewall* cachefilesd memcached
-$s apt -f --fix-broken install -y
-$s apt -f install -y gstreamer*
+        
+        
+        uuidgen="$(uuidgen)"
+        sleep 1
+        
+        
+echo '[main]
+plugins=ifupdown,keyfile
+dns=none
+#rc-manager=unmanaged
 
-$s $apt --fix-missing kde-config-systemd kde-style-qtcurve-qt5 \
-gstreamer1.0-vaapi \
-sddm-theme-breeze sddm-theme-debian-breeze kde-config-sddm \
-plasma-browser-integration apper kde-config-cron kde-config-plymouth \
-task-greek task-greek-desktop task-greek-kde-desktop kdeplasma-addons-data \
-plasma-desktop plasma-workspace kde-baseapps sddm xserver-xorg kwin-x11 kde-config-systemd plasma-desktop-data libkfontinst5  libkfontinstui5 libkworkspace5-5 libnotificationmanager1 libtaskmanager6abi1 kwin-x11 plasma-workspace kinfocenter
-$s apt upgrade --with-new-pkgs -y #-t Debian_Unstable
-$s apt -f --fix-broken install -y
-$s apt -f --fix-missing install -y
-$s apt full-upgrade -y -t Debian_Unstable
-$s $apt full-upgrade
-
-$s apt -f remove -y chromium firefox-esr imagemagick konqueror \
-intel-microcode amd64-microcode \
-plasma-discover-backend-*-dbgsym \
-gstreamer*dbg
+[ifupdown]
+managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
+        #
+echo 'nameserver 1.1.1.1
+nameserver 1.0.0.1
+nameserver 127.0.0.1
+options edns0' | $s tee /etc/resolv.conf.override /etc/resolv.conf
 
 
-### make sure all is set up right
-$s dpkg --configure -a && $s apt update && $s apt -f --fix-broken install -y && $s apt -f --fix-missing install -y
-$s apt upgrade --with-new-pkgs -y
-$s pkcon refresh && $s pkcon update -y
-$s apt upgrade --with-new-pkgs -y -t experimental
-#$s $ins apt-listbugs apt-listchanges apt-cacher
-$s $ins -y plasma-discover-backend-fwupd plasma-discover-backend-snap plasma-discover-backend-flatpak fwupd
-#$s apt -f install --fix-missing --fix-broken -y wine wine32 wine64 q4wine -t experimental
-$s dpkg --configure -a
-$s $ins prelink -y
+        
+        $s mkdir -p /run/resolvconf
+        
+        
 
-#$s $ins -y kali-tools-802-11 kali-tools-bluetooth kali-tools-crypto-stego kali-tools-database kali-tools-exploitation kali-tools-forensics kali-tools-fuzzing kali-tools-gpu kali-tools-hardware kali-tools-information-gathering kali-tools-passwords kali-tools-post-exploitation kali-tools-reverse-engineering kali-tools-sniffing-spoofing kali-tools-social-engineering kali-tools-top10 kali-tools-vulnerability kali-tools-wireless
-$s $ins -y firmware-linux-nonfree firmware-linux-free firmware-misc-nonfree firmware-linux irqbalance
-$s apt update
-#$s apt -f install -y -t experimental binutils binutils-dev gcc-11 gcc-11-aarch64-linux-gnu gcc-11-arm-linux-gnueabi
-$s apt -f install -y -t experimental plasma-desktop kde-plasma-desktop task-kde-desktop kde-baseapps kio
-$s apt -f install -y jitterentropy-rngd rng-tools5 kmod
-systemctl enable jitterentropy
-$s apt upgrade -y -t experimental
-$s apt autoremove -y
-$s apt clean
-$s apt autoclean
-$s pkcon update -y
-$s prelink -amR
-#cd $basiclinuxsetup
-#$s cp McMojave.tar.xz /tmp/
-#$s cp -a .local ~/
+        echo '#!/bin/sh
+sudo mkdir -p /run/resolvconf
+sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
 
-####### SETUP FINISHED ##############################################################################
-#####################################################################################################
-#echo -e "${magenta}"                                                                                #
-#echo ...                                                                                            #
-#echo DONE WITH BASIC SETUP! COMPILING AND AUTO INSTALLING THANAS-x86-64-KERNEL                      #
-#echo ...                                                                                            #
-#echo -e "${restore}"                                                                                #
-#####################################################################################################
 
-####### KERNEL COMPILATION/INSTALLATION #############################################################
-#####################################################################################################
-### auto compile and install thanas x86-64 kernel on latest llvm
-### can be done isolated as well on any distro, use ./build.sh
-#cd $git
-#git clone --depth=1 https://github.com/thanasxda/thanas-x86-64-kernel.git
-#cd thanas-x86-64-kernel && $s chmod 755 *.sh
-###### MANUALLY INSTALL LLVM/CLANG-11 POLLY SUPPORT FOR NOW
-### do this prior to clang-11 installation so that if support will officially come
-### it will be overridden by the official latest clang libraries
-#echo -e "${yellow}"
-#echo "Adding support for clang-11 polly..."
-#echo ""
-#polly=/usr/lib/llvm-11/lib
-#$s mkdir -p $polly
-#$s \cp -rf LLVMPolly.so $polly/
-#echo "done!"
-#echo -e "${restore}"
-#./1*
+        
+        $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+        $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+        $a uuid-runtime
+        #
+        $s rm -rf "/etc/NetworkManager/system-connections/*"
+        $s rm -rf '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+        $s touch '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+        $s chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+        $s chmod 0666 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+        
+        
 
-exit
+        uuidgen="$(uuidgen)"
+        sleep 1
+        
+
+echo '[connection]
+id=802-11-wireless connection 1
+uuid=
+type=wifi
+metered=2
+zone=block
+
+[wifi]
+# cloned-mac-address=1A:76:38:6B:A9:A1 # leave disabled handled by macchanger
+mode=infrastructure
+ssid=YourWifiHere
+
+[ipv4]
+dns=1.1.1.1;1.0.0.1;
+dns-search=
+ignore-auto-dns=true
+method=auto
+
+[ipv6]
+addr-gen-mode=stable-privacy
+method=disabled
+
+[proxy]' | $s tee '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+
+
+
+        $s sed -i '/uuid/c\uuid='"$uuidgen"'' "/etc/NetworkManager/system-connections/802-11-wireless connection 1"
+        
+        
+
+
+echo '[connection]
+id=Wired connection 1
+uuid=
+type=ethernet
+metered=2
+zone=block
+
+[ethernet]
+# cloned-mac-address=CA:11:D1:A5:7E:1D # leave disabled handled by macchanger
+
+[ipv4]
+dns=1.1.1.1;1.0.0.1;
+dns-search=
+ignore-auto-dns=true
+method=auto
+
+[ipv6]
+addr-gen-mode=stable-privacy
+method=disabled
+
+[proxy]' | $s tee '/etc/NetworkManager/system-connections/Wired connection 1'
+
+
+
+        $s sed -i 's/uuid/uuid='"$uuidgen"'/g' '/etc/NetworkManager/system-connections/Wired connection 1'
+        
+        
+
+        $s chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+        $s chmod 0600 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+        
+        
+        
+    #$s systemctl unmask NetworkManager-wait-online 
+    #$s systemctl stop --now NetworkManager NetworkManager-wait-online 
+    #$s systemctl enable --now NetworkManager NetworkManager-wait-online 
+    #$s systemctl restart --now NetworkManager NetworkManager-wait-online 
+    #$s systemctl stop NetworkManager-wait-online && $s systemctl mask NetworkManager-wait-online
+    
+
+    
+
+    $s apt remove -f -y remove resolvconf dnsmasq
+    
+    
+   
+   
+            $s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
+                
+                
+                
+                cd $basicsetup
+                ### sync more preconfig that wasnt convenient prior to pkg installation
+                    $s rsync -v -K -a --force --include=".*" system.conf /etc/systemd/system.conf
+                    $s rsync -v -K -a --force --include=".*" journald.conf /etc/systemd/journald.conf
+                
+                
+                
+                
+                
+            ### run preconfiguration script and meanwhile update /etc/hosts with blocklist and dns optimizations
+                $s sh /etc/rc.local $sl # execute copied init.sh which now is /etc/rc.local
+                $s sh /etc/update_hosts.sh $sl     # remember we have executed the init.sh which is rc.local which includes stock pihole blocklists, so during setup we execute an update
+                $s fc-cache -rfv
+
+                
+                
+                
+                
+                    ### disable and mask unneeded services
+$s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups                
+                
+$s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups    
+
+
+
+    $s update-initramfs -u -k all
+    $s mkinitramfs -c lz4 -o /boot/initrd.img-*
+    
+    # switch to dracut
+    #$a dracut
+    #$s dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f --no-early-microcode
+    
+    
+    
+        ### <<<< DISK MAINTENANCE >>>> - as this script is for me i want to reduce clutter, for ease of maintenance edit yourself. im on xfs. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        #$s rm -rf $source/tmp
+        #git reset --hard    # reset and clean up source
+        #git clean -xfd
+        #$s passwd -l root # remove root account, use init=/bin/bash instead as parameter in grub
+        
+        
+        echo -e "${magenta}" && echo "Finalizing with fstrim / ... be patient." && echo -e "${yellow}"
+    
+
+           # $s xfs_repair -f /dev/$hdd
+           # $s xfs_fsr -f /dev/$hdd
+           # $s xfs_repair -f /dev/$nvme
+           # $s xfs_fsr -f /dev/$nvme
+         
+            #wget http://ftp.de.debian.org/debian/pool/main/p/prelink/execstack_0.0.20131005-1+b10_amd64.deb
+            #$s dpkg -i execstack*.deb
+            #wget http://ftp.de.debian.org/debian/pool/main/p/prelink/prelink_0.0.20131005-1+b10_amd64.deb
+            #$s dpkg -i prelink*.deb
+            #$s apt -f -y install
+            #$s prelink -amfR
+
+            $s fstrim /
+
+
+
+
+
+
+####################################################### display header ####
+echo -e "${magenta}" && echo ".::BASIC-LINUX-SETUP::."
+echo -e "${yellow}" && echo "DONE - WAKE UP...!..." && echo "" && echo ""
+###########################################################################
+###########################################################################
+
+
+	echo " .:::: "$(uname -a)" ::::." && echo "" && echo "" ### display kernel setup for log after installation
+	#echo "        STOP BLS_LOG" && echo ""
+
+
+
+
+
+	# stop first part of log again for stdin
+	#} 2>&1 | tee ~/Desktop/BLS-LOGS/BLS_LOG-`date +%Y-%m-%d.%H:%M:%S`.log
+
+		# stop 2d log
+		#} 2>&1 | tee -a $(ls -t ~/Desktop/BLS-LOGS/BLS_LOG* | head -1)
+		
+DATE_END=$(date +"%s") ; DIFF=$(($DATE_END - $DATE_START))
+echo "Setup took: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds to complete." && echo "" && echo ""
+read -p "    !!!!!! PRESS < ENTER > TO REBOOT Ctrl+C TO CANCEL !!!!!!!    "     ### REBOOT
+
+
+        reboot
+
+
 
 #####################################################################################################
 ####### END #########################################################################################

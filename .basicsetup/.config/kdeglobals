@@ -3,14 +3,14 @@ update_info=filepicker.upd:filepicker-remove-old-previews-entry,fonts_global.upd
 
 [ColorEffects:Disabled]
 ChangeSelectionColor=
-Color=112,111,110
+Color=56,56,56
 ColorAmount=0
 ColorEffect=0
 ContrastAmount=0.65
 ContrastEffect=1
 Enable=
 IntensityAmount=0.1
-IntensityEffect=0
+IntensityEffect=2
 
 [ColorEffects:Inactive]
 ChangeSelectionColor=true
@@ -19,32 +19,32 @@ ColorAmount=0.025
 ColorEffect=2
 ContrastAmount=0.1
 ContrastEffect=2
-Enable=true
+Enable=false
 IntensityAmount=0
 IntensityEffect=0
 
 [Colors:Button]
-BackgroundAlternate=102,102,105
-BackgroundNormal=102,102,105
-DecorationFocus=170,170,170
-DecorationHover=150,150,150
-ForegroundActive=255,128,224
-ForegroundInactive=160,160,160
-ForegroundLink=46,184,230
-ForegroundNegative=240,1,1
-ForegroundNeutral=255,221,0
+BackgroundAlternate=125,100,182
+BackgroundNormal=77,77,77
+DecorationFocus=146,110,228
+DecorationHover=146,110,228
+ForegroundActive=146,110,228
+ForegroundInactive=105,105,105
+ForegroundLink=146,110,228
+ForegroundNegative=218,68,83
+ForegroundNeutral=255,109,0
 ForegroundNormal=255,255,255
-ForegroundPositive=128,255,128
-ForegroundVisited=255,102,102
+ForegroundPositive=1,162,153
+ForegroundVisited=0,188,212
 
 [Colors:Complementary]
 BackgroundAlternate=48,48,48
 BackgroundNormal=40,40,40
-DecorationFocus=30,146,255
-DecorationHover=61,174,230
-ForegroundActive=246,116,0
+DecorationFocus=146,110,228
+DecorationHover=146,110,228
+ForegroundActive=146,110,228
 ForegroundInactive=175,176,179
-ForegroundLink=61,174,230
+ForegroundLink=146,110,228
 ForegroundNegative=237,21,21
 ForegroundNeutral=201,206,59
 ForegroundNormal=239,240,241
@@ -52,72 +52,74 @@ ForegroundPositive=17,209,22
 ForegroundVisited=61,174,230
 
 [Colors:Selection]
-BackgroundAlternate=195,195,198
-BackgroundNormal=195,195,198
-DecorationFocus=170,170,170
-DecorationHover=150,150,150
-ForegroundActive=255,128,224
-ForegroundInactive=160,160,160
-ForegroundLink=46,184,230
-ForegroundNegative=240,1,1
-ForegroundNeutral=255,221,0
-ForegroundNormal=0,0,0
-ForegroundPositive=128,255,128
-ForegroundVisited=255,102,102
+BackgroundAlternate=116,91,174
+BackgroundNormal=116,91,174
+DecorationFocus=146,110,228
+DecorationHover=146,110,228
+ForegroundActive=146,110,228
+ForegroundInactive=255,255,255
+ForegroundLink=146,110,228
+ForegroundNegative=218,68,83
+ForegroundNeutral=255,109,0
+ForegroundNormal=255,255,255
+ForegroundPositive=1,162,153
+ForegroundVisited=189,195,199
 
 [Colors:Tooltip]
-BackgroundAlternate=0,0,0
-BackgroundNormal=0,0,0
-DecorationFocus=170,170,170
-DecorationHover=150,150,150
-ForegroundActive=255,128,224
-ForegroundInactive=225,225,225
-ForegroundLink=46,184,230
-ForegroundNegative=240,1,1
-ForegroundNeutral=255,221,0
-ForegroundNormal=255,255,255
-ForegroundPositive=128,255,128
-ForegroundVisited=255,102,102
+BackgroundAlternate=40,40,40
+BackgroundNormal=40,40,40
+DecorationFocus=146,110,228
+DecorationHover=146,110,228
+ForegroundActive=146,110,228
+ForegroundInactive=105,105,105
+ForegroundLink=146,110,228
+ForegroundNegative=218,68,83
+ForegroundNeutral=255,109,0
+ForegroundNormal=223,223,223
+ForegroundPositive=1,162,153
+ForegroundVisited=0,188,212
 
 [Colors:View]
-BackgroundAlternate=50,50,50
-BackgroundNormal=40,40,40
-DecorationFocus=170,170,170
-DecorationHover=150,150,150
-ForegroundActive=255,128,224
-ForegroundInactive=160,160,160
-ForegroundLink=46,184,230
-ForegroundNegative=240,1,1
-ForegroundNeutral=255,221,0
-ForegroundNormal=255,255,255
-ForegroundPositive=128,255,128
-ForegroundVisited=255,102,102
+BackgroundAlternate=48,48,48
+BackgroundNormal=48,48,48
+DecorationFocus=146,110,228
+DecorationHover=146,110,228
+ForegroundActive=146,110,228
+ForegroundInactive=105,105,105
+ForegroundLink=146,110,228
+ForegroundNegative=218,68,83
+ForegroundNeutral=255,109,0
+ForegroundNormal=223,223,223
+ForegroundPositive=1,162,153
+ForegroundVisited=0,188,212
 
 [Colors:Window]
-BackgroundAlternate=51,50,48
-BackgroundNormal=51,50,48
-DecorationFocus=170,170,170
-DecorationHover=150,150,150
-ForegroundActive=255,128,224
-ForegroundInactive=160,160,160
-ForegroundLink=46,184,230
-ForegroundNegative=240,1,1
-ForegroundNeutral=255,221,0
-ForegroundNormal=255,255,255
-ForegroundPositive=128,255,128
-ForegroundVisited=255,102,102
+BackgroundAlternate=48,48,48
+BackgroundNormal=40,40,40
+DecorationFocus=146,110,228
+DecorationHover=146,110,228
+ForegroundActive=146,110,228
+ForegroundInactive=105,105,105
+ForegroundLink=146,110,228
+ForegroundNegative=218,68,83
+ForegroundNeutral=255,109,0
+ForegroundNormal=223,223,223
+ForegroundPositive=1,162,153
+ForegroundVisited=0,188,212
 
 [DirSelect Dialog]
 DirSelectDialog Size=811,573
 History Items[$e]=file:$HOME/.config/qtcurve,file:$HOME/.local/share/plasma/look-and-feel/com.github.vinceliuice.ChromeOS-dark,file:$HOME
 
 [General]
+AccentColor=146,110,228
 BrowserApplication[$e]=brave-browser-nightly.desktop
-ColorScheme=KvMojave
+ColorSchemeHash=c198fa7d1896b2ebf8e3c2668f8833b26c94997c
+LastUsedCustomAccentColor=146,110,228
 Name=ChromeOSDark
 XftAntialias=true
 XftHintStyle=hintfull
-XftSubPixel=rgb
+XftSubPixel=none
 dbfile=~/.mozilla/firefox/zk1bmsw3.default/places.sqlite
 fixed=Hack,9,-1,5,50,0,0,0,0,0
 font=Noto Sans,10,-1,5,50,0,0,0,0,0,Condensed
@@ -151,21 +153,28 @@ Show Full Path=false
 Show Inline Previews=true
 Show Preview=false
 Show Speedbar=true
-Show hidden files=false
+Show hidden files=true
 Sort by=Name
 Sort directories first=true
+Sort hidden files last=true
 Sort reversed=false
 Speedbar Width=138
 View Style=DetailTree
 
+[KScreen]
+XwaylandClientsScale=true
+
 [PreviewSettings]
 MaximumRemoteSize=0
 
+[QtQuickRendererSettings]
+SceneGraphBackend=opengl
+
 [WM]
-activeBackground=61,62,67
-activeBlend=59,60,65
+activeBackground=40,40,40
+activeBlend=40,40,40
 activeFont=Noto Sans,10,-1,5,50,0,0,0,0,0,Condensed
-activeForeground=255,255,255
-inactiveBackground=61,62,67
-inactiveBlend=59,60,65
-inactiveForeground=150,150,150
+activeForeground=223,223,223
+inactiveBackground=40,40,40
+inactiveBlend=40,40,40
+inactiveForeground=105,105,105

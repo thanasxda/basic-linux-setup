@@ -1,39 +1,47 @@
 ### debian
-deb [arch=amd64,i386] https://debian.ipacct.com/debian/ unstable main contrib non-free
-deb [arch=amd64,i386] https://debian.ipacct.com/debian/ testing main contrib non-free
-deb [arch=amd64,i386] https://debian.ipacct.com/debian/ sid main contrib non-free
-deb [arch=amd64,i386 trusted=yes] https://debian.ipacct.com/debian/ experimental main contrib non-free
+deb [arch=amd64,i386 trusted=yes] http://debian.ipacct.com/debian/ testing-updates main contrib non-free
+deb [arch=amd64,i386] http://debian.ipacct.com/debian/ testing main contrib non-free
+deb [arch=amd64,i386] http://debian.ipacct.com/debian/ sid main contrib non-free
+deb [arch=amd64,i386] http://debian.ipacct.com/debian/ unstable main contrib non-free
+deb [arch=amd64,i386 trusted=yes] http://debian.ipacct.com/debian/ experimental main contrib non-free
 
 ### debian-multimedia
-deb [arch=amd64,i386] https://www.deb-multimedia.org/ unstable main non-free
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ testing main non-free
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ sid main non-free
+deb [arch=amd64,i386] https://www.deb-multimedia.org/ unstable main non-free
 deb [arch=amd64,i386 trusted=yes] https://www.deb-multimedia.org/ experimental main non-free
 
 ### kali
 deb [arch=amd64,i386] https://kali.download/kali kali-rolling main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-dev main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-last-snapshot main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-experimental main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-bleeding-edge main contrib non-free
 deb [arch=amd64,i386] https://kali.download/kali kali-debian-picks main non-free contrib
 deb [arch=amd64,i386] https://kali.download/kali debian-testing main non-free contrib
-deb [arch=amd64,i386] https://kali.download/kali kali-dev main non-free contrib
-deb [arch=amd64,i386] https://kali.download/kali kali-experimental main non-free contrib
-deb [arch=amd64,i386] https://kali.download/kali kali-last-snapshot main non-free contrib
+
+### git
+deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages testing main
+deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages sid main
+deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages unstable main
 
 ### llvm
 deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main
 
-### git
-deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages sid main
-deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages testing main
-deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages unstable main
-
 ### kde
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma525/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma525/Debian_Testing/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Testing/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Testing/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other/Debian_Unstable/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Testing/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/frameworks/Debian_Unstable/ ./
-deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Next/ ./
+
+### kde - addresses need to be constantly updated from repository link
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps2208/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/apps2208/Debian_Unstable/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma525/Debian_Testing/ ./
+deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma525/Debian_Unstable/ ./
+#deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma526/Debian_Testing/ ./
+#deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma526/Debian_Unstable/ ./

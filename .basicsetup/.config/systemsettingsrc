@@ -4,7 +4,7 @@ detailViewIconSize=0
 [MainWindow]
 Height 1200=700
 MenuBar=Disabled
-State=AAAA/wAAAAD9AAAAAAAABAAAAAK8AAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgAAAAAA/////wAAAAAAAAAA
+RestorePositionForNextInstance=false
 ToolBarsMovable=Disabled
 
 [Open-with settings]
