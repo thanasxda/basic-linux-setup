@@ -1,15 +1,50 @@
+[General]
+Allow Tab Scrolling=true
+Auto Hide Tabs=true
+Close After Last=true
+Days Meta Infos=30
+Elide Tab Text=false
+Expand Tabs=false
+Modified Notification=false
+Mouse back button action=0
+Mouse forward button action=0
+Recent File List Entry Count=10
+Restore Window Configuration=true
+Save Meta Infos=true
+Show Full Path in Title=false
+Show Menu Bar=true
+Show Status Bar=true
+Show Tab Bar=true
+Show Tabs Close Button=true
+Show Url Nav Bar=false
+Startup Session=manual
+Stash new unsaved files=true
+Stash unsaved file changes=false
+Tab Double Click New Document=true
+Tab Middle Click Close Document=true
+Tabbar Tab Limit=0
+
 [General Options]
 ShowMenuBar=true
 ShowPath=false
 ShowStatusBar=true
 
+[KFileDialog Settings]
+detailViewIconSize=16
+
 [KTextEditor Document]
 Allow End of Line Detection=true
+Auto Detect Indent=true
+Auto Reload If State Is In Version Control=true
+Auto Save=false
+Auto Save Interval=0
+Auto Save On Focus Out=false
 BOM=false
 Backup Local=false
 Backup Prefix=
 Backup Remote=false
 Backup Suffix=~
+Camel Cursor=true
 Encoding=UTF-8
 End of Line=0
 Indent On Backspace=true
@@ -20,7 +55,7 @@ Indentation Width=4
 Keep Extra Spaces=false
 Line Length Limit=10000
 Newline at End of File=true
-On-The-Fly Spellcheck=false
+On-The-Fly Spellcheck=true
 Overwrite Mode=false
 PageUp/PageDown Moves Cursor=false
 Remove Spaces=0
@@ -43,6 +78,10 @@ Fallback Encoding=ISO 8859-15
 
 [KTextEditor Renderer]
 Animate Bracket Matching=false
+Auto Color Theme Selection=true
+Color Theme=Breeze Dark
+Font=Hack,9,-1,5,50,0,0,0,0,0
+Line Height Multiplier=1
 Schema=Normal
 Show Indentation Lines=false
 Show Whole Bracket Expression=false
@@ -53,8 +92,10 @@ Allow Mark Menu=true
 Auto Brackets=false
 Auto Center Lines=0
 Auto Completion=true
+Auto Completion Preselect First Entry=true
 Backspace Remove Composed Characters=false
 Bookmark Menu Sorting=0
+Bracket Match Preview=false
 Chars To Enclose Selection=
 Default Mark Type=1
 Dynamic Word Wrap=true
@@ -62,6 +103,7 @@ Dynamic Word Wrap Align Indent=80
 Dynamic Word Wrap At Static Marker=false
 Dynamic Word Wrap Indicators=1
 Dynamic Wrap not at word boundaries=false
+Enable Tab completion=false
 Fold First Line=false
 Folding Bar=true
 Folding Preview=true
@@ -70,8 +112,10 @@ Input Mode=0
 Keyword Completion=true
 Line Modification=false
 Line Numbers=false
+Max Clipboard History Entries=20
 Maximum Search History Size=100
 Mouse Paste At Cursor Position=false
+Multiple Cursor Modifier=134217728
 Persistent Selection=false
 Scroll Bar Marks=false
 Scroll Bar Mini Map All=true
@@ -80,10 +124,21 @@ Scroll Bar MiniMap=true
 Scroll Bar Preview=true
 Scroll Past End=false
 Search/Replace Flags=140
+Shoe Line Ending Type in Statusbar=false
+Show Documentation With Completion=true
+Show File Encoding=true
+Show Focus Frame Around Editor=true
+Show Folding Icons On Hover Only=true
 Show Line Count=false
 Show Scrollbars=0
+Show Statusbar Dictionary=true
+Show Statusbar Highlighting Mode=true
+Show Statusbar Input Mode=true
+Show Statusbar Line Column=true
+Show Statusbar Tab Settings=true
 Show Word Count=false
 Smart Copy Cut=false
+Statusbar Line Column Compact Mode=true
 Text Drag And Drop=true
 User Sets Of Chars To Enclose Selection=
 Vi Input Mode Steal Keys=false
@@ -92,9 +147,10 @@ Word Completion=true
 Word Completion Minimal Word Length=3
 Word Completion Remove Tail=true
 
+
 [MainWindow]
 State=AAAA/wAAAAD9AAAAAAAAAoAAAAGnAAAABAAAAAQAAAAIAAAACPwAAAABAAAAAgAAAAEAAAAWAG0AYQBpAG4AVABvAG8AbABCAGEAcgEAAAAA/////wAAAAAAAAAA
 ToolBarsMovable=Disabled
 
-[Recent Files]
-
+[UiSettings]
+ColorScheme=Breeze-Dark

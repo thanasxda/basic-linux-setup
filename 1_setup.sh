@@ -172,7 +172,7 @@ cd $tmp
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install kexec-tools'
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install macchanger'
                     #xdotool key Left | xdotool key KP_Enter | xdotool key Left | xdotool key KP_Enter | $s dpkg-reconfigure kexec-tools
-                    $a libc6 ; $a kexec-tools ; $s dpkg-reconfigure --frontend readline kexec-tools --force ; $a libpam-systemd ; $a macchanger
+                    $a libc6 ; $a kexec-tools insserv ; $s dpkg-reconfigure --frontend readline insserv kexec-tools --force ; $a libpam-systemd ; $a macchanger
             $a deb-multimedia-keyring
             #$a ubuntu-archive-keyring
             #$a gnome-keyring
@@ -464,7 +464,8 @@ cd $source
 echo '[main]
 plugins=ifupdown,keyfile
 dns=none
-rc-manager=unmanaged
+#rc-manager=unmanaged
+systemd-resolved=false
 
 [ifupdown]
 managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
@@ -505,6 +506,7 @@ echo '[main]
 plugins=ifupdown,keyfile
 dns=none
 #rc-manager=unmanaged
+systemd-resolved=false
 
 [ifupdown]
 managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
@@ -647,16 +649,18 @@ $s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common a
                 
 $s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups    
 
-
+$s systemctl enable --now dbus-broker
 
     $s update-initramfs -u -k all
     $s mkinitramfs -c lz4 -o /boot/initrd.img-*
     
     # switch to dracut
-    #$a dracut
-    #$s dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f --no-early-microcode
+    $a dracut
+    $s dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f # --no-early-microcode
     
+    $s systemctl disable --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
     
+    $s systemctl mask --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
     
         ### <<<< DISK MAINTENANCE >>>> - as this script is for me i want to reduce clutter, for ease of maintenance edit yourself. im on xfs. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         #$s rm -rf $source/tmp

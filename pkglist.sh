@@ -114,6 +114,7 @@ $a mlir-$llver-tools
 $a binwalk
 $a firmware-mod-kit
 $a atom-beta
+$a nmap
 fi
  
 $a apparmor
@@ -234,8 +235,8 @@ echo -e "${restore}"
 #$a initramfs-tools initramfs-tools-core klibc-utils cryptsetup cryptsetup-bin dmeventd dmraid kpartx libdevmapper-event1.02.1 libdmraid1.0.0.rc16 liblvm2cmd2.03 lvm2 mdadm thin-provisioning-tools
 
 # remove stuff
-$rem intel-microcode
-$rem amd64-microcode
+#$rem intel-microcode
+#$rem amd64-microcode
 $rem akonadi-server
 $rem openssh-server
 $rem ubuntu-archive-keyring
@@ -248,9 +249,13 @@ $rem firefox-esr
 $a *qtgstreamer*
 $a xinit
 $a preload
+$a dbus-broker
 
 $a efibootmgr systemd-boot systemd-boot-efi
 
+$a kde-config-plymouth
+$a kde-config-updates
+$a partitionmanager
 $a kali-desktop-kde
 
 

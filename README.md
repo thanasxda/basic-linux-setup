@@ -240,7 +240,18 @@ If you mess up your fstab boot through another partition or live usb and use __g
 ```
 sudo mount -o remount,rw $rootfs /
 ```
-If somehow you mess up grub and end up at the grub rescue screen unable to boot, either recover through the __chroot__ script on this repo or manually. Alternatively if you do not have another partition to recover from or a live usb check information like [this](https://help.ubuntu.com/community/Grub2/Troubleshooting#Search_.26_Set). Remember __you do not need to format__.
+If somehow you mess up grub and end up at the grub rescue screen unable to boot, either recover through the __chroot__ script on this repo or manually. Alternatively if you do not have another partition to recover from or a live usb check information like [this](https://help.ubuntu.com/community/Grub2/Troubleshooting#Search_.26_Set). Remember __you do not need to format__. Underneath an example of how to restore when the latest initramfs didn't boot:
+```
+set prefix=(hd0,gpt2)
+set root=(hd0,gpt2)
+insmod normal
+normal
+set
+insmod linux
+linux /vmlinuz.old root=/dev/sda2 ro
+initrd /initrd.img.old
+boot
+```
 
 If somehow you cant boot due to ending up at a screen which reads busybox what fixes usually is performing a file system check, depending on file system ofcourse. Underneath example:
 ```

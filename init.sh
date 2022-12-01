@@ -38,17 +38,18 @@ s="sudo"
         dns62="2606:4700:4700::1001"
       # preferred address to ping
         ping="1.1.1.1"
-
+ 
 
 
 
 
       ### < STORAGE >
-      # - linux storage devices
+      # - linux storage devices only used for hdparm. wildcard picks up all 
         hdd="/dev/sd*"
         nvme="/dev/nvme*"
         #rootfs="/dev/sda2"
-
+     # in case of using dracut
+        raid="no"
 
 
 
@@ -221,6 +222,7 @@ root hard sigpending unlimited
 * hard stack unlimited
 root soft stack unlimited
 root hard stack unlimited' | tee /etc/security/limits.conf ; fi
+sysctl -w vm.nr_hugepages=16
 
 if ! grep -q "524288" /etc/systemd/system.conf ; then
 echo 'DefaultLimitNOFILE=524288' | tee -a /etc/systemd/system.conf /etc/systemd/user.conf ; fi
@@ -335,7 +337,7 @@ x8=" acpi=force pci_aspm=force pcie_bus_perf lapic apm=on"
 # numa
 x9=" workqueue.disable_numa numa_balancing=disable numa=off"
 # cpu microcode
-x10=" dis_ucode_ldr"
+#x10=" dis_ucode_ldr"
 # delays
 x11=" boot_delay=0 carrier_timeout=1 io_delay=none rootdelay=0"
 # cpu stuff
@@ -368,16 +370,17 @@ x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ;
 #
 x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup mce=off_ce enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 noreplace-smp disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=on powersave=off"
 #
-x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0"
+x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe"
 #
-
 x27=" ip=:::::::$dns1:$dns2:"
+#
+x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
                                         # https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
 
-                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27")"
+                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28")"
 
                                         export par="splash quiet$bootargvars"
 
@@ -432,10 +435,10 @@ x6="$(wget --random-wait $u6 --connect-timeout=10 --continue -4 --retry-connrefu
 $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 || echo fail
 
               ### yours
-              l1="$(list1)"
-              l2="$(list2)"
-              l3="$(list3)"
-              l4="$(list4)"
+              l1="$list1"
+              l2="$list2"
+              l3="$list3"
+              l4="$list4"
               c1="$(wget --random-wait $l1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
               c2="$(wget --random-wait $l2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
               c3="$(wget --random-wait $l3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
@@ -508,9 +511,8 @@ done'
   ### < BLOCKLISTS >
   ### if NOT wrt, update /etc/hosts weekly - script in /etc/update_hosts.sh & cronjob
     # add script /etc/update_hosts.sh
-    blsync="$(echo "$blocklist" | tee /etc/update_hosts.sh)"
-
     if ! grep wrt /etc/os-release ; then
+    blsync="$(echo "$blocklist" | tee /etc/update_hosts.sh)"
     if systemctl list-unit-files | grep -q anacron ; then
     if ! grep update_hosts.sh /etc/anacrontabs ; then echo "@weekly sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
     elif ! grep update_hosts.sh /etc/crontab /etc/crontab/root ; then echo "0 0 * * 0 root sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/crontab /etc/crontabs/root && "$blsync" ; fi ; fi
@@ -821,14 +823,27 @@ APT::Periodic::Update-Package-Lists "1";
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::AutoFixInterruptedDpkg "true";
 Unattended-Upgrade::MinimalSteps "true";' | tee -a /etc/apt/apt.conf.d/50unattended-upgrades ; fi
-if ! grep -q 'bantine = 3600' /etc/fail2ban/jail.local ; then
+if ! grep -q 'bantine = 1d' /etc/fail2ban/jail.local ; then
 echo '[DEFAULT]
-bantime = 3600
+banaction = nftables
+banaction_allports = nftables[type=allports]
+bantime = 1d
 findtime = 600
 maxretry = 5
 enabled = true
 [sshd]
-enabled = false' | tee /etc/fail2ban/jail.local ; fi
+enabled = true
+filter    = sshd
+banaction = iptables
+backend   = systemd
+maxretry  = 5
+findtime  = 1d
+bantime   = 2w
+ignoreip  = 127.0.0.1/8' | tee /etc/fail2ban/jail.local ; fi
+if ! grep -q failregex /etc/fail2ban/filter.d/fwdrop.local ; then
+echo '[Definition]
+failregex = ^.*DROP_.*SRC=<ADDR> DST=.*$
+journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     sed -i 's/pam_permit.so/pam_limits.so/g' /etc/pam.d/common-session /etc/pam.d/common-session-noninteractive
     sed -i 's/#LLMNR=yes/LLMNR=no/g' /etc/systemd/resolved.conf
     sed -i 's/# SHA_CRYPT_MIN_ROUNDS 5000/SHA_CRYPT_MIN_ROUNDS 5000/g' /etc/login.defs
@@ -847,7 +862,13 @@ urngd
 haveged
 EOL
 fi
-
+        sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' /etc/init.d/rc
+        # prevent ssh bruteforce
+ iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
+ --hitcount 4 --rttl -j DROP
+        # config dracut as well in case of not using initramfs-tools - note mdadm probably is raid
+                dracflags='hostonly=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf='"$raid"' lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no kernel_cmdline='"$par"' compress=lz4 hostonly_cmdline=yes'
+        if [ ! $(cat /etc/dracut.conf.d/*debian.conf) = $dracflags ] ; then echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
 
 
     ### < START PARAMETER CONFIG >
@@ -882,6 +903,7 @@ echo "1" > /proc/sys/dev/cnss/randomize_mac
 # general and omit debugging android, x86 and more
 /etc/init.d/syslogd stop
 sysctl dev.em.0.debug=0
+echo 0 > /sys/kernel/profiling
 echo 0 > /sys/kernel/tracing/tracing_on
 echo "0 0 0 0" > /proc/sys/kernel/printk
 echo "0" > /proc/sys/debug/exception-trace
@@ -1129,16 +1151,47 @@ echo '500000' > /sys/kernel/debug/wakeup_granularity_ns
 echo '40000' > /sys/kernel/debug/latency_ns
 
 echo "5000" > /sys/power/pm_freeze_timeout
-echo "CACHE_HOT_BUDDY" >> /sys/kernel/debug/sched_features
-echo "NO_FBT_STRICT_ORDER" >> /sys/kernel/debug/sched_features
-echo "LAST_BUDDY" >> /sys/kernel/debug/sched_features
-echo "NEXT_BUDDY" >> /sys/kernel/debug/sched_features
-echo "NO_GENTLE_FAIR_SLEEPERS" >> /sys/kernel/debug/sched_features
-echo "NO_RT_RUNTIME_SHARE" >> /sys/kernel/debug/sched_features
-echo "NO_TTWU_QUEUE" >> /sys/kernel/debug/sched_features
-echo "NO_LB_BIAS" >> /sys/kernel/debug/sched_features
 
-if grep -q droid /etc/os-release ; then  echo "ENERGY_AWARE" >> /sys/kernel/debug/sched_features && echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features && echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features ; else echo "NO_ENERGY_AWARE" >> /sys/kernel/debug/sched_features && echo "NO_WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features && echo "NO_AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features ; fi
+
+echo "START_DEBIT" >> /sys/kernel/debug/sched/features
+echo "LAST_BUDDY" >> /sys/kernel/debug/sched/features
+echo "CACHE_HOT_BUDDY" >> /sys/kernel/debug/sched/features
+echo "NO_HRTICK" >> /sys/kernel/debug/sched/features
+echo "NO_HRTICK_DL" >> /sys/kernel/debug/sched/features
+echo "NO_DOUBLE_TICK" >> /sys/kernel/debug/sched/features
+echo "NONTASK_CAPACITY" >> /sys/kernel/debug/sched/features
+echo "NO_TTWU_QUEUE" >> /sys/kernel/debug/sched/features
+echo "NO_SIS_PROP" >> /sys/kernel/debug/sched/features
+echo "SIS_UTIL" >> /sys/kernel/debug/sched/features
+echo "NO_WARN_DOUBLE_CLOCK" >> /sys/kernel/debug/sched/features
+echo "RT_PUSH_IPI" >> /sys/kernel/debug/sched/features
+echo "NO_RT_RUNTIME_SHARE" >> /sys/kernel/debug/sched/features
+echo "LB_MIN" >> /sys/kernel/debug/sched/features
+echo "ATTACH_AGE_LOAD" >> /sys/kernel/debug/sched/features
+echo "WA_IDLE" >> /sys/kernel/debug/sched/features
+echo "WA_WEIGHT" >> /sys/kernel/debug/sched/features
+echo "WA_BIAS" >> /sys/kernel/debug/sched/features
+echo "UTIL_EST" >> /sys/kernel/debug/sched/features
+echo "UTIL_EST_FASTUP" >> /sys/kernel/debug/sched/features
+echo "NO_LATENCY_WARN" >> /sys/kernel/debug/sched/features
+echo "ALT_PERIOD" >> /sys/kernel/debug/sched/features
+echo "BASE_SLICE" >> /sys/kernel/debug/sched/features
+echo "NO_FBT_STRICT_ORDER" >> /sys/kernel/debug/sched/features
+echo "NEXT_BUDDY" >> /sys/kernel/debug/sched/features
+echo "NO_GENTLE_FAIR_SLEEPERS" >> /sys/kernel/debug/sched/features
+echo "NO_LB_BIAS" >> /sys/kernel/debug/sched/features
+echo "NO_ENERGY_AWARE" >> /sys/kernel/debug/sched/features
+echo "NO_WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched/features
+echo "NO_AFFINE_WAKEUPS" >> /sys/kernel/debug/sched/features
+
+if grep -q droid /etc/os-release ; then
+echo "ENERGY_AWARE" >> /sys/kernel/debug/sched/features
+echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched/features
+echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched/features
+echo "ENERGY_AWARE" >> /sys/kernel/debug/sched_features
+echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features
+echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features ; fi
+
 
 echo 2 > /proc/irq/49/smp_affinity
 echo 2 > /proc/irq/50/smp_affinity
@@ -1160,7 +1213,7 @@ echo "1" > /proc/sys/vm/oom_dump_tasks
 echo "1" > /proc/sys/vm/oom_kill_allocating_task
 echo "1200000000" > /proc/sys/vm/stat_interval
 echo "50" > /proc/sys/vm/vfs_cache_pressure
-echo "9" > /proc/sys/vm/swappiness
+echo "10" > /proc/sys/vm/swappiness
 echo 0 > /proc/sys/vm/compaction_proactiveness
 sysctl -e -w kernel.panic_on_oops=0
 sysctl -e -w kernel.panic=0
@@ -1392,7 +1445,6 @@ fs.aio-nr = 0
 fs.binfmt_misc.status = enabled
 fs.dentry-state = 65495 42448   45      0       39102   0
 fs.dir-notify-enable = 0
-fs.dir-notify-enable = 0
 fs.epoll.max_user_watches = 435556
 fs.fanotify.max_queued_events = 16384
 fs.fanotify.max_user_groups = 128
@@ -1405,8 +1457,6 @@ fs.inotify.max_queued_events = 16384
 fs.inotify.max_user_instances = 128
 fs.inotify.max_user_watches = 14905
 fs.lease-break-time = 20
-fs.lease-break-time = 5
-fs.leases-enable = 1
 fs.leases-enable = 1
 fs.mount-max = 100000
 fs.mqueue.msg_default = 10
@@ -1956,18 +2006,18 @@ net.unix.max_dgram_qlen = 512
 sk_rcvbuf = 125336
 sysctl -w kernel.core_pattern='|/bin/false'
 sysctl.net.core.busy_poll = 50
-user.max_cgroup_namespaces = 7642
-user.max_fanotify_groups = 128
-user.max_fanotify_marks = 15849
-user.max_inotify_instances = 128
-user.max_inotify_watches = 14905
-user.max_ipc_namespaces = 7642
-user.max_mnt_namespaces = 7642
-user.max_net_namespaces = 7642
-user.max_pid_namespaces = 7642
-user.max_time_namespaces = 7642
-user.max_user_namespaces = 7642
-user.max_uts_namespaces = 7642
+#user.max_cgroup_namespaces = 7642
+#user.max_fanotify_groups = 128
+#user.max_fanotify_marks = 15849
+#user.max_inotify_instances = 128
+#user.max_inotify_watches = 14905
+#user.max_ipc_namespaces = 7642
+#user.max_mnt_namespaces = 7642
+#user.max_net_namespaces = 7642
+#user.max_pid_namespaces = 7642
+#user.max_time_namespaces = 7642
+#user.max_user_namespaces = 7642
+#user.max_uts_namespaces = 7642
 vm.admin_reserve_kbytes = 8192
 vm.block_dump = 0
 vm.compact_unevictable_allowed = 1
@@ -1981,7 +2031,7 @@ vm.dirty_writeback_centisecs = 100
 vm.dirtytime_expire_seconds = 43200
 vm.extfrag_threshold = 750
 vm.hugetlb_optimize_vmemmap = 1
-vm.hugetlb_shm_group = 0
+vm.hugetlb_shm_group = 1
 vm.laptop_mode = 0
 vm.legacy_va_layout = 0
 vm.lowmem_reserve_ratio = 8   4     2      0       0
@@ -1989,7 +2039,7 @@ vm.max_map_count = 1600000
 vm.memory_failure_early_kill = 0
 vm.memory_failure_recovery = 1
 vm.min_free_kbytes = 5571
-vm.min_slab_ratio = 5
+vm.min_slab_ratio = 30
 vm.min_unmapped_ratio = 1
 vm.mmap_min_addr = 65536
 vm.mmap_rnd_bits = 28
@@ -2008,7 +2058,7 @@ vm.panic_on_oom = 0
 vm.percpu_pagelist_high_fraction = 0
 vm.reap_mem_on_sigkill = 1
 vm.stat_interval = 1200000000
-vm.swappiness = 9
+vm.swappiness = 10
 vm.unprivileged_userfaultfd = 0
 vm.user_reserve_kbytes = 60896
 vm.vfs_cache_pressure = 50
@@ -2153,7 +2203,9 @@ mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.compose
 # stop akonadi-server
 $s sed -i 's/StartServer.*/StartServer=false/' /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/akonadi/akonadiserverrc
 
-
+#resolution=$(echo $(xrandr --current | head -n 6 | tail -n 1 | awk '{print $1}'))
+resolution=$(echo $(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//'))
+sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE='"$resolution"'/g' /etc/default/grub
 
 
 
@@ -2213,6 +2265,12 @@ if ! grep -q 'needs_root_rights = no' /etc/X11/Xwrapper.config ; then echo 'need
 
 
 
+if [ $raid = yes ] ; then systemctl enable $(systemctl list-unit-files | grep mda | awk '{print $1}' | awk -v RS=  '{$1=$1}1' | sed 's/\mdadm-waitidle.service//') ; fi
+
+
+
+
+
 
 
 # kde environment variables
@@ -2239,7 +2297,8 @@ export POWERSHELL_TELEMETRY_OPTOUT=1
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export __GL_YIELD=USLEEP
 export KWIN_DRM_PREFER_COLOR_DEPTH=24
-export KDE_NO_IPV6=0
+export KDE_NO_IPV6=1
+export KDE_USE_IPV6=no
   #export KDEWM=kwin_gles
   #export KWIN_OPENGL_INTERFACE=egl_wayland
   #export XDG_SESSION_TYPE=wayland
@@ -2257,8 +2316,21 @@ export KDE_NO_IPV6=0
   #export KWIN_FORCE_LANCZOS=0' | $s tee /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh && $s chmod +x /etc/profile.d/kwin.sh && $s chmod +x /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}'
 )"/.config/plasma-workspace/env/kwin_env.sh
 
-if [ $ipv6 = on ] ; then if ! grep -q ipv6 /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; then sed -i 's/export KDE_NO_IPV6=/export KDE_NO_IPV6=1/g' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; else sed -i 's/export KDE_NO_IPV6=/export KDE_NO_IPV6=0/g' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh fi ; fi
+if [ $ipv6 = on ] 
+then 
+sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=1' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh 
+else 
+sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; fi 
 
+if [ $ipv6 = on ]
+then 
+sed -i 's/user_pref("network.dns.disableIPv6", true);/user_pref("network.dns.disableIPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
+sed -i 's/user_pref("network.notify.IPv6", false);/user_pref("network.notify.IPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
+else
+sed -i 's/user_pref("network.dns.disableIPv6", false);/user_pref("network.dns.disableIPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
+sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js ; fi
 
 
 
@@ -2537,7 +2609,7 @@ gsettings set org.gnome.desktop.background color-shading-type vertical
 gsettings set org.gnome.mutter experimental-features '["dma-buf-screen-sharing"]'
 fi
 
-fi ; fi
+fi 
 
 #########  DEBIAN ONLY SECTION STOPPED EHRE ###############
 
@@ -2803,11 +2875,16 @@ if grep -q wrt /etc/os-release && grep -q "ppp" $iface ; then modprobe pppox ppp
 
 
 # blacklist
-if ! grep -q pcspkr /etc/modprobe.d/nomisc.conf ; then
+if ! grep -q mac_hid /etc/modprobe.d/nomisc.conf ; then
 echo 'blacklist pcspkr
 blacklist snd_pcsp
 blacklist lpc_ich
-blacklist gpio-ich' | tee /etc/modprobe.d/nomisc.conf ; fi
+blacklist gpio-ich
+blacklist iTCO_wdt
+blacklist joydev
+blacklist mousedev
+blacklist mac_hid
+blacklist uvcvideo' | tee /etc/modprobe.d/nomisc.conf ; fi
 
 
   #
