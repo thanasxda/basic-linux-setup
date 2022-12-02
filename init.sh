@@ -38,6 +38,8 @@ s="sudo"
         dns62="2606:4700:4700::1001"
       # preferred address to ping
         ping="1.1.1.1"
+        scsi="off"
+        cec="off"
  
 
 
@@ -182,6 +184,8 @@ sudo sed -i '\''s/PERCENT.*/PERCENT=40/g'\'' /etc/default/zramswap; fi'
 
 # if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
+vm.overcommit_memory = 3
+overcommit=3
 vm.nr_overcommit_hugepages = 3
 kernel.shmmni = 16000000
 kernel.shmall = 350000000
@@ -190,7 +194,13 @@ sysctl -w vm.nr_overcommit_hugepages=3
 sysctl -w kernel.shmmni=16000000
 sysctl -w kernel.shmall=350000000
 sysctl -w kernel.shmmax=1000000000
+echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
+echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
+hugepages="16"
+sysctl -w vm.nr_hugepages=16
+
 if ! grep -q '* soft nofile 524288' /etc/security/limits.conf ; then
 echo '* hard nofile 524288
 * soft nofile 524288
@@ -222,12 +232,16 @@ root hard sigpending unlimited
 * hard stack unlimited
 root soft stack unlimited
 root hard stack unlimited' | tee /etc/security/limits.conf ; fi
-sysctl -w vm.nr_hugepages=16
 
 if ! grep -q "524288" /etc/systemd/system.conf ; then
 echo 'DefaultLimitNOFILE=524288' | tee -a /etc/systemd/system.conf /etc/systemd/user.conf ; fi
 
 if ! grep -q "wrt\|tv" /etc/os-release ; then
+
+hpages=' kvm.nx_huge_pages=off transparent_hugepage=never'
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
 
 # 8gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -ge 8 ] ; then
@@ -237,14 +251,15 @@ echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hugepages=$(nproc --all)
-hugepages="640"
+hugepages="512"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=640
+sysctl -w vm.nr_hugepages=512
 #echo 'soft memlock 1024000
 #hard memlock 1024000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=4000000000
 sysctl -w kernel.shmmni=64000000
-sysctl -w kernel.shmall=100000000 
+sysctl -w kernel.shmall=100000000
+overcommit=3
 sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 16 gb
@@ -273,46 +288,51 @@ sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 4gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
-devshm=",size=2G"
-vmalloc="512"
-hugepages="256"
+devshm=",size=512m"
+vmalloc="128"
+hugepages="64"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=512
+sysctl -w vm.nr_hugepages=64
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=2000000000 
+sysctl -w kernel.shmmax=2000000000
+overcommit=3
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 2 ] ; then
-devshm=",size=1G"
-vmalloc="256"
-hugepages="256"
+devshm=",size=128m"
+vmalloc="128"
+hugepages="32"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=256
+sysctl -w vm.nr_hugepages=32
+echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
+echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
+hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=40 zswap.zpool=z3fold zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
-sysctl -w kernel.shmmax=1000000000 
+sysctl -w kernel.shmmax=1000000000
+overcommit=2
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 1 ] ; then
-hugepages="64"
-hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=64
-devshm=",size=512m"
+devshm=",size=64m"
 vmalloc="128"
+hugepages="16"
+hugepagesz="2MB"
+sysctl -w vm.nr_hugepages=16
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
-sysctl -w kernel.shmmax=500000000 
+sysctl -w kernel.shmmax=500000000
+overcommit=1
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # all mem amounts but not generic devices
-hpages=' kvm.nx_huge_pages=off transparent_hugepage=never'
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
-echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
+# removed
+fi
 
 
 # bootarg scripting for options # in a weird order due to my own testing # be careful with spacing, i think it lead me to bootloop. edit flags during grub boot to boot if it fails. dunno if this was reason, part is really buggy but as is underneath stable.
@@ -354,7 +374,7 @@ x14=" rcu_nocb_poll sysfs.deprecated=0 vt.default_utf8=1 nf_conntrack.acct=0"
 #
 x15=" nodelayacct preempt=full kunit.enable=0 kmemleak=off"
 #
-x16=" vsyscall=none highres=off clk_ignore_unused cec_disable"
+x16=" vsyscall=none highres=off clk_ignore_unused"
 #
 x17=" debugfs=off cpu_init_udelay=1 csdlock_debug=0 nopku hugetlb_free_vmemmap=on memtest=0 noresume"
 # manually set irq, disable irqbalancer
@@ -373,21 +393,23 @@ x23="$( if dmesg | grep -q iwlwifi ; then echo " iwlmvm_power_scheme=2" ; fi)"
 #
 x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
 #
-x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup mce=off_ce enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 noreplace-smp disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=on powersave=off"
+x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 noreplace-smp disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=on powersave=off"
 #
-x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe"
+x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M logo.nologo printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0"
 #
 x27=" ip=:::::::$dns1:$dns2:"
 #
 x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
+#
+x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
                                         # https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
 
-                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28")"
+                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29")"
 
-                                        export par="splash quiet$bootargvars"
+                                        export par="quiet$bootargvars"
 
 # notes for myself
 #test diff extra in test
@@ -882,8 +904,12 @@ fi
         #echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi 
 
         # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps'
-  
-  
+    
+    scsiblack=$(if [ $scsi = off ] ; then 
+    echo 'scsi_mod
+scsi_common
+sd_mod' ; fi)
+    cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
   
   
   
@@ -1237,7 +1263,7 @@ echo 2 > /proc/irq/50/smp_affinity
 ### fs & vm etc
 echo 1 > /proc/sys/vm/page_lock_unfairness
 echo 0 > /proc/sys/vm/zone_reclaim_mode
-echo 3 > /proc/sys/vm/overcommit_memory
+echo $overcommit > /proc/sys/vm/overcommit_memory
 echo 100 > /proc/sys/vm/overcommit_ratio
 echo 0 > /proc/sys/vm/page-cluster
 echo "1" /proc/sys/fs/leases-enable
@@ -2067,7 +2093,7 @@ vm.dirty_background_ratio = 90
 vm.dirty_expire_centisecs = 500
 vm.dirty_ratio = 90
 vm.dirty_writeback_centisecs = 100
-vm.dirtytime_expire_seconds = 43200
+#vm.dirtytime_expire_seconds = 43200
 vm.extfrag_threshold = 750
 vm.hugetlb_optimize_vmemmap = 1
 vm.hugetlb_shm_group = 1
@@ -2075,7 +2101,7 @@ vm.laptop_mode = 0
 vm.legacy_va_layout = 0
 vm.lowmem_reserve_ratio = 8   4     2      0       0
 vm.max_map_count = 1600000
-vm.memory_failure_early_kill = 0
+vm.memory_failure_early_kill = 1
 vm.memory_failure_recovery = 1
 vm.min_free_kbytes = 5571
 vm.min_slab_ratio = 30
@@ -2083,13 +2109,13 @@ vm.min_unmapped_ratio = 1
 vm.mmap_min_addr = 65536
 vm.mmap_rnd_bits = 28
 vm.mmap_rnd_compat_bits = 8
-vm.nr_overcommit_hugepages = 3
+vm.nr_overcommit_hugepages = $overcommit
 vm.numa_stat = 0
 vm.numa_zonelist_order = Node
 vm.oom_dump_tasks = 1
 vm.oom_kill_allocating_task = 1
 #vm.overcommit_kbytes = 0
-vm.overcommit_memory = 3
+vm.overcommit_memory = $overcommit
 vm.overcommit_ratio = 100
 vm.page-cluster = 0
 vm.page_lock_unfairness = 1
@@ -2104,7 +2130,7 @@ vm.vfs_cache_pressure = 50
 vm.watermark_boost_factor = 15000
 vm.watermark_scale_factor = 200
 vm.zone_reclaim_mode = 0
-include = latency-performance
+#include = latency-performance
 
 
 
@@ -2467,7 +2493,8 @@ export LIBGL_DRI2_DISABLE=1
 export __GL_YIELD=USLEEP
 
 export VAAPI_MPEG4_ENABLED
-export CONFIG_SND_HDA_PREALLOC_SIZE=32
+if [ ! "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
+export CONFIG_SND_HDA_PREALLOC_SIZE=64 ; fi
 
 export ANV_ENABLE_PIPELINE_CACHE=1
 export __GL_SHADER_DISK_CACHE=1
@@ -2853,59 +2880,7 @@ for i in /proc/irq/*; do $(if [ -d $i ]; then echo '1' | sudo tee $i/smp_affinit
 
 
 
-
-
-
-#######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
-if [ $script_autoupdate = yes ] ; then
-# if online
-ping "$ping" -c 2
-if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
-# if debian
-if grep -q "debian" /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local && cp /etc/rc.local /etc/sysctl.conf ; cp /etc/rc.local /etc/sysctl.d/sysctl.conf ; fi
-# if wrt
-if grep -q "wrt" /etc/os-release ; then echo "*BLS*=OPENWRT found" &&
-grep -q "ping "$ping" -c 2" /etc/rc.local
-if [ $? -eq 1 ]; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && chmod +x /etc/rc.local && if ! grep -q thanas /etc/sysctl.conf ; then cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf ; fi &&  mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; else echo "*BLS*=rc.local up to date"; fi; fi
-# general devices and other distros
-elif ping "$ping" -c 2
-[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; fi ; fi
-#######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
-
-
-        ### < RANDOM PER DEVICE STUFF >
-
-
-
-disableserv=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
-maskdisable=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | grep -v "mask" | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
-
-startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled | awk '{print $1}')
-maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
-
-# dunno if mdadm is needed for raid. checkout to be sure
-if ! grep -q wrt /etc/os-release ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
-systemctl stop $disableserv
-systemctl disable $disableserv
-systemctl mask $maskdisable
-
-	"$ipv6"net.ipv6.conf.all.disable_ipv6 = 1
-	"$ipv6"net.ipv6.conf.default.disable_ipv6 = 1
-	"$ipv6"net.ipv6.conf.lo.disable_ipv6 = 1
-	"$ipv6"net.ipv6.conf.all.accept_ra = 0
-
-	if [ ! $ipv6 = on ] ; then
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-net.ipv6.conf.all.accept_ra = 0
-fi ; fi
-
-#systemctl unmask $maskenable
-systemctl start --now $startserv
-systemctl enable $startserv
-
-
+    ### < RANDOM PER DEVICE STUFF >
 
 
     ### modprobe kmods
@@ -2917,7 +2892,7 @@ if grep -q wrt /etc/os-release && grep -q "ppp" $iface ; then modprobe pppox ppp
 
 
 # blacklist
-if ! grep -q mac_hid /etc/modprobe.d/nomisc.conf ; then
+if ! grep -q magol /etc/modprobe.d/nomisc.conf ; then
 echo 'blacklist pcspkr
 blacklist snd_pcsp
 blacklist lpc_ich
@@ -2926,7 +2901,9 @@ blacklist iTCO_wdt
 blacklist joydev
 blacklist mousedev
 blacklist mac_hid
-blacklist uvcvideo' | tee /etc/modprobe.d/nomisc.conf ; fi
+blacklist uvcvideo
+'"$scsiblack"'
+'"$cecblack"'' | tee /etc/modprobe.d/nomisc.conf ; fi
 
 
   #
@@ -2968,6 +2945,98 @@ if ! grep -q wrt /etc/os-release && [ ! $ipv6 = on ] ; then echo "blacklist ipv6
 
 #journalctl --vacuum-size=100M
 #journalctl --vacuum-time=2weeks
+
+
+# daily fstrim
+if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
+if [ $script_autoupdate = yes ] ; then
+# if online
+ping "$ping" -c 2
+if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
+# if debian
+if grep -q "debian" /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local && cp /etc/rc.local /etc/sysctl.conf ; cp /etc/rc.local /etc/sysctl.d/sysctl.conf ; fi
+# if wrt
+if grep -q "wrt" /etc/os-release ; then echo "*BLS*=OPENWRT found" &&
+grep -q "ping "$ping" -c 2" /etc/rc.local
+if [ $? -eq 1 ]; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && chmod +x /etc/rc.local && if ! grep -q thanas /etc/sysctl.conf ; then cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf ; fi &&  mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; else echo "*BLS*=rc.local up to date"; fi; fi
+# general devices and other distros
+elif ping "$ping" -c 2
+[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; fi ; fi
+#######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ### < SERVICES >
+
+
+
+disableserv=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
+maskdisable=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | grep -v "mask" | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
+
+startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled | awk '{print $1}')
+maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
+
+# dunno if mdadm is needed for raid. checkout to be sure
+if ! grep -q wrt /etc/os-release ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
+systemctl stop $disableserv
+systemctl disable $disableserv
+systemctl mask $maskdisable
+
+	"$ipv6"net.ipv6.conf.all.disable_ipv6 = 1
+	"$ipv6"net.ipv6.conf.default.disable_ipv6 = 1
+	"$ipv6"net.ipv6.conf.lo.disable_ipv6 = 1
+	"$ipv6"net.ipv6.conf.all.accept_ra = 0
+
+	if [ ! $ipv6 = on ] ; then
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+net.ipv6.conf.all.accept_ra = 0
+fi ; fi
+
+#systemctl unmask $maskenable
+systemctl start --now $startserv
+systemctl enable $startserv
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### c compiler exports ... no more o3? for future of script stuff if i ever will work on it... unfinished
@@ -3079,9 +3148,6 @@ fi
 
 
 
-
-# daily fstrim
-if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi
 
 
 
