@@ -205,6 +205,7 @@ $a rtirq-init
 $a rename
 $a anacron
 $a lz4
+$a arch-install-scripts
 
 
 

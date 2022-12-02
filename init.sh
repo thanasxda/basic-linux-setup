@@ -49,7 +49,7 @@ s="sudo"
         nvme="/dev/nvme*"
         #rootfs="/dev/sda2"
      # in case of using dracut
-        raid="no"
+        #raid="no"
 
 
 
@@ -134,7 +134,7 @@ s="sudo"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
        swap="sw,lazytime"
-
+                                                              
 
 
 
@@ -237,8 +237,9 @@ echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hugepages=$(nproc --all)
-hugepagesz="128MB"
-sysctl -w vm.nr_hugepages=$(nproc --all)
+hugepages="640"
+hugepagesz="2MB"
+sysctl -w vm.nr_hugepages=640
 #echo 'soft memlock 1024000
 #hard memlock 1024000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=4000000000
@@ -250,7 +251,9 @@ sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-2)" -ge 16 ] ; then
 devshm=",size=6G"
 vmalloc="512"
-hugepagesz="256MB"
+hugepages="1024"
+hugepagesz="2MB"
+sysctl -w vm.nr_hugepages=1024
 #echo 'soft memlock 2048000
 #hard memlock 2048000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=6000000000 
@@ -260,7 +263,9 @@ sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-2)" -ge 32 ] ; then
 devshm=",size=12G"
 vmalloc="1024"
-hugepagesz="512MB"
+hugepages="2048"
+hugepagesz="2MB"
+sysctl -w vm.nr_hugepages=2048
 #echo 'soft memlock 4096000
 #hard memlock 4096000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=12000000000 
@@ -269,10 +274,10 @@ sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 # less than 4gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
 devshm=",size=2G"
-vmalloc="256"
-hugepages="128"
-hugepagesz="4MB"
-sysctl -w vm.nr_hugepages=128
+vmalloc="512"
+hugepages="256"
+hugepagesz="2MB"
+sysctl -w vm.nr_hugepages=512
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=2000000000 
@@ -282,9 +287,9 @@ sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 2 ] ; then
 devshm=",size=1G"
 vmalloc="256"
-hugepages="128"
+hugepages="256"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=128
+sysctl -w vm.nr_hugepages=256
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=40 zswap.zpool=z3fold zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
@@ -293,9 +298,9 @@ sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 1 ] ; then
-hugepages="50"
+hugepages="64"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=50
+sysctl -w vm.nr_hugepages=64
 devshm=",size=512m"
 vmalloc="128"
 #echo 'soft memlock 102400
@@ -316,7 +321,7 @@ echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
 
 # cpu amd or intel
-x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
+x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=disable kvm-amd.avic=1 amd_iommu_intr=vapic notsx" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=disable kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # mitigations
 x1="$(if [ $mitigations = off ] ; then
 echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb mmio_stale_data=off nospectre_bhb" ; fi)"
@@ -349,7 +354,7 @@ x14=" rcu_nocb_poll sysfs.deprecated=0 vt.default_utf8=1 nf_conntrack.acct=0"
 #
 x15=" nodelayacct preempt=full kunit.enable=0 kmemleak=off"
 #
-x16=" vsyscall=none highres=on clk_ignore_unused cec_disable"
+x16=" vsyscall=none highres=off clk_ignore_unused cec_disable"
 #
 x17=" debugfs=off cpu_init_udelay=1 csdlock_debug=0 nopku hugetlb_free_vmemmap=on memtest=0 noresume"
 # manually set irq, disable irqbalancer
@@ -402,7 +407,9 @@ x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
        echo manual > /sys/class/drm/card0/device/power_dpm_force_performance_level
        echo $perfamdgpu > /sys/class/drm/card0/device/power_dpm_force_performance_level
 
-
+droidresolv=$(if grep -q droid /etc/os-release ; then echo "/etc/system/resolv.conf" ; fi)
+droidhosts=$(if grep -q droid /etc/os-release ; then echo "/etc/system/hosts" ; fi)
+droidfstab=$(if grep -q droid /etc/os-release ; then echo "/etc/vendor/fstab" ; fi)
 
   ### < ADDITIONAL BLOCKLISTS FOR HOSTS FILE > - not on openwrt
         list1=
@@ -424,8 +431,8 @@ ping "$ping" -c 2
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
-echo '\''no-resolv\nbogus-priv\nfilterwin2k\nstop-dns-rebind\ndomain-needed\nno-dhcp-interface=lo\ncache-size=1500\nlocal-ttl=300\nneg-ttl=120\n127.0.0.1 localhost\noptions rotate timeout:1 attempts:3 single-request-reopen no-tld-query\n::1 localhost'\'' | tee /etc/hosts
-echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts
+echo '\''no-resolv\nbogus-priv\nfilterwin2k\nstop-dns-rebind\ndomain-needed\nno-dhcp-interface=lo\ncache-size=1500\nlocal-ttl=300\nneg-ttl=120\n127.0.0.1 localhost\noptions rotate timeout:1 attempts:3 single-request-reopen no-tld-query\n::1 localhost'\'' | tee /etc/hosts "$droidhosts"
+echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts "$droidhosts"
 x1="$(wget --random-wait $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
 x2="$(wget --random-wait $u2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
 x3="$(wget --random-wait $u3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
@@ -592,11 +599,11 @@ $s update-grub
 
   ### < FSTAB UPDATE >
   ### fstab update
-    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab
-    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab
-    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab
-    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab
-    $s sed -i 's/swap .*/swap     '"$swap"' 0 0/g' /etc/fstab
+    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/swap .*/swap     '"$swap"' 0 0/g' /etc/fstab $droidfstab
 
 
 
@@ -610,12 +617,12 @@ $s update-grub
 
   ### fstab tmpfs on ram
     tmpfsadd=$(if grep -q "tmpfs" /etc/fstab ; then echo "*BLS*=TMPFS found not applying to /etc/fstab."; else echo "*BLS*=TMPFS added to /etc/fstab." &&
-    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab
-    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab
-    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab
-    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a /etc/fstab
-    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab
-    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab ; fi)
+    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
+    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
+    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
+    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a /etc/fstab $droidfstab
+    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
+    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab ; fi)
     #$s echo 'tmpfs    /var/log    tmpfs    '"$tmpfs"',mode=1755,size=10m  0 0' | $s tee -a /etc/fstab
     #$s echo 'tmpfs    /var/spool  tmpfs    '"$tmpfs"',mode=1750,size=4m   0 0' | $s tee -a /etc/fstab
  ### check if zram to avoid tmpfs on ram
@@ -624,16 +631,16 @@ $s update-grub
  $tmpfsadd # and then there was tmpfs for all.
 
   ### update tmpfs values
-    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab
-    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab
-    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab
-    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' /etc/fstab
-    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab
-    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab
+    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
 
-    sed -i 's/noatime/lazytime/g' /etc/fstab*
-    sed -i 's/nodiratime/lazytime/g' /etc/fstab*
-    sed -i 's/relatime/lazytime/g' /etc/fstab*
+    sed -i 's/noatime/lazytime/g' /etc/fstab* $droidfstab
+    sed -i 's/nodiratime/lazytime/g' /etc/fstab* $droidfstab
+    sed -i 's/relatime/lazytime/g' /etc/fstab* $droidfstab
 
 
 
@@ -731,7 +738,6 @@ multi on' | tee -a /etc/host.conf ; fi
 
 
 
-
   # dns
     if ! grep -q "$dns61" /etc/resolv.conf ; then
 echo 'nameserver "$dns1"
@@ -739,16 +745,18 @@ nameserver "$dns2"
 nameserver 127.0.0.1
 #nameserver ::1
 #nameserver "$dns61"
-#nameserver "$dns62"' | tee /etc/resolv.conf ; fi
+#nameserver "$dns62"' | tee /etc/resolv.conf $droidresolv ; fi
 
 if [ $ipv6 = on ] ; then sed -i 's/#nameserver ::1
 #nameserver "$dns61"
 #nameserver "$dns62"/nameserver ::1
 nameserver "$dns61"
-nameserver "$dns62"/g' /etc/resolv/conf ; fi
+nameserver "$dns62"/g' /etc/resolv/conf $droidresolv ; fi
 
     if ! grep -q edns0 /etc/resolv.conf ; then
-    echo 'options edns0' | tee -a /etc/resolv.conf ; fi
+    echo 'options edns0' | tee -a /etc/resolv.conf $droidresolv ; fi
+
+
 
   if ! grep -q "filterwin2k " /etc/hosts ; then
 echo 'no-resolv
@@ -762,9 +770,9 @@ local-ttl=300
 neg-ttl=120
 options rotate timeout:1 attempts:3 single-request-reopen no-tld-query
 127.0.0.1 localhost
-::1 localhost' | tee -a /etc/hosts ; fi
-    if ! grep -a "127.0.1.1 "$(cat /etc/hostname)"" /etc/hosts ; then
-    echo "127.0.1.1 "$(cat /etc/hostname)"" | tee -a /etc/hosts ; fi
+::1 localhost' | tee -a /etc/hosts $droidhosts ; fi
+    if ! grep -a "127.0.1.1 "$(cat /etc/hostname)"" /etc/hosts $droidhosts ; then
+    echo "127.0.1.1 "$(cat /etc/hostname)"" | tee -a /etc/hosts $droidhosts ; fi
 
 
   # clean
@@ -866,12 +874,24 @@ fi
         # prevent ssh bruteforce
  iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
-        # config dracut as well in case of not using initramfs-tools - note mdadm probably is raid
-                dracflags='hostonly=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf='"$raid"' lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no kernel_cmdline='"$par"' compress=lz4 hostonly_cmdline=yes'
-        if [ ! $(cat /etc/dracut.conf.d/*debian.conf) = $dracflags ] ; then echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
+ 
+        # config dracut as well in case of not using initramfs-tools - note mdadm probably is raid. reconsidering it probably isnt so no harm. dracut buggy. just use google do ur own homework. setup already to big for me
+            #if grep -q debian /etc/os-release ; then 
+            #dracflags="hostonly=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf='$raid' lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no kernel_cmdline='mitigations=$mitigations' compress=lz4 hostonly_cmdline=yes"
+        #if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then 
+        #echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi 
 
-
-    ### < START PARAMETER CONFIG >
+        # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps'
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  ### < START PARAMETER CONFIG >
 
 #
 echo "N" > /sys/module/rt2800soc/parameters/nohwcrypt
@@ -885,7 +905,6 @@ echo '1' > /proc/sys/crypto/fips_enabled
 
 echo 1 > /sys/kernel/mm/ksm/run
 echo 1 > /sys/kernel/mm/ksm/merge_across_nodes
-
 
 
 
@@ -1138,17 +1157,32 @@ echo 500000 > /sys/kernel/debug/sched/min_granularity_ns
 echo 500000 > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo 8 > /sys/kernel/debug/sched/nr_migrate
 
+# different path under 5.10
 sysctl -w kernel.sched_scaling_enable=1
 sysctl /proc/sys/kernel/sched_scaling_enable=1
-sysctl /proc/sys/kernel/sched_tunable_scaling=2
+sysctl /proc/sys/kernel/sched_tunable_scaling=0
 sysctl /proc/sys/kernel/sched_child_runs_first=1
 sysctl /proc/sys/kernel/sched_min_granularity_ns=500000
 sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=500000
-sysctl /proc/sys/kernel/sched_latency_ns=2000
+sysctl /proc/sys/kernel/sched_latency_ns=40000
+sysctl -w kernel.sched_scaling_enable=1
+sysctl /proc/sys/kernel/debug/sched/scaling_enable=1
+sysctl /proc/sys/kernel/debug/sched/tunable_scaling=0
+sysctl /proc/sys/kernel/debug/sched/child_runs_first=1
+sysctl /proc/sys/kernel/debug/sched/min_granularity_ns=500000
+sysctl /proc/sys/kernel/debug/sched/wakeup_granularity_ns=500000
+sysctl /proc/sys/kernel/debug/sched/latency_ns=40000
 echo '2' > /sys/kernel/debug/tunable_scaling
-echo '500000' > /sys/kernel/debug/min_granularity_ns
-echo '500000' > /sys/kernel/debug/wakeup_granularity_ns
-echo '40000' > /sys/kernel/debug/latency_ns
+echo '500000' > /sys/kernel/debug/sched/min_granularity_ns
+echo '500000' > /sys/kernel/debug/sched/wakeup_granularity_ns
+echo '40000' > /sys/kernel/debug/sched/latency_ns
+echo 0 > /proc/sys/kernel/debug/sched/min_task_util_for_colocation
+echo 32 > /proc/sys/kernel/debug/sched/nr_migrate
+echo 0 > /proc/sys/kernel/sched_min_task_util_for_colocation
+echo 32 > /proc/sys/kernel/sched_nr_migrate
+echo off > /proc/sys/kernel/printk_devkmsg
+
+
 
 echo "5000" > /sys/power/pm_freeze_timeout
 
@@ -1183,15 +1217,20 @@ echo "NO_LB_BIAS" >> /sys/kernel/debug/sched/features
 echo "NO_ENERGY_AWARE" >> /sys/kernel/debug/sched/features
 echo "NO_WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched/features
 echo "NO_AFFINE_WAKEUPS" >> /sys/kernel/debug/sched/features
+echo "NO_NORMALIZED_SLEEPER" >> /sys/kernel/debug/sched/features
 
 if grep -q droid /etc/os-release ; then
 echo "ENERGY_AWARE" >> /sys/kernel/debug/sched/features
 echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched/features
 echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched/features
+echo "NO_NORMALIZED_SLEEPER" >> /sys/kernel/debug/sched/features
 echo "ENERGY_AWARE" >> /sys/kernel/debug/sched_features
 echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features
-echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features ; fi
+echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features 
+echo "NO_NORMALIZED_SLEEPER" >> /sys/kernel/debug/sched_features; fi
 
+echo 3 > /sys/bus/workqueue/devices/writeback/cpumask
+echo 3 > /sys/devices/virtual/workqueue/cpumask
 
 echo 2 > /proc/irq/49/smp_affinity
 echo 2 > /proc/irq/50/smp_affinity
@@ -1208,10 +1247,10 @@ echo "1" > /proc/sys/vm/compact_unevictable_allowed
 echo "90" > /proc/sys/vm/dirty_background_ratio
 echo "500" > /proc/sys/vm/dirty_expire_centisecs
 echo "90" > /proc/sys/vm/dirty_ratio
-echo "100" > /proc/sys/vm/dirty_writeback_centisecs
+echo "1000" > /proc/sys/vm/dirty_writeback_centisecs
 echo "1" > /proc/sys/vm/oom_dump_tasks
 echo "1" > /proc/sys/vm/oom_kill_allocating_task
-echo "1200000000" > /proc/sys/vm/stat_interval
+echo "60" > /proc/sys/vm/stat_interval
 echo "50" > /proc/sys/vm/vfs_cache_pressure
 echo "10" > /proc/sys/vm/swappiness
 echo 0 > /proc/sys/vm/compaction_proactiveness
@@ -1630,7 +1669,7 @@ net.core.bpf_jit_enable = 1
 net.core.bpf_jit_harden = 0
 net.core.bpf_jit_kallsyms = 0
 net.core.bpf_jit_limit = 264241152
-net.core.busy_poll = 0
+net.core.busy_poll = 50
 net.core.busy_read = 50
 net.core.default_qdisc = $qdisc
 net.core.dev_weight = 64
@@ -2057,7 +2096,7 @@ vm.page_lock_unfairness = 1
 vm.panic_on_oom = 0
 vm.percpu_pagelist_high_fraction = 0
 vm.reap_mem_on_sigkill = 1
-vm.stat_interval = 1200000000
+vm.stat_interval = 60
 vm.swappiness = 10
 vm.unprivileged_userfaultfd = 0
 vm.user_reserve_kbytes = 60896
@@ -2065,6 +2104,7 @@ vm.vfs_cache_pressure = 50
 vm.watermark_boost_factor = 15000
 vm.watermark_scale_factor = 200
 vm.zone_reclaim_mode = 0
+include = latency-performance
 
 
 
@@ -2459,8 +2499,9 @@ export __GL_MaxFramesAllowed="$(xrandr --current | tail -n 2 | head -n 1 | awk -
   #export MESA_LOADER_DRIVER_OVERRIDE=iris
 
 
-export OBS_USE_EGL=1 com.obsproject.Studio
-export OBS_USE_EGL=1 obs
+#export OBS_USE_EGL=1 com.obsproject.Studio
+#export OBS_USE_EGL=1 obs
+export OBS_USE_EGL=1 
 
 if [ $XDG_SESSION_TYPE = x11 ] ; then export MOZ_X11_EGL=1 ; export MOZ_ENABLE_WAYLAND=0 ;fi
 if [ $XDG_SESSION_TYPE = wayland ] ; then export MOZ_ENABLE_WAYLAND=1 ; export MOZ_X11_EGL=0 ; fi
@@ -2611,7 +2652,7 @@ fi
 
 fi 
 
-#########  DEBIAN ONLY SECTION STOPPED EHRE ###############
+#########  DEBIAN ONLY SECTION STOPPED HERE ###############
 
 
 
@@ -2655,6 +2696,7 @@ echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
 echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
 echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
 echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
+echo 1 > /dev/stune/top-app/schedtune.prefer_idle
 
 umount /vendor || true
 mount -o rw /dev/block/bootdevice/by-name/vendor /vendor

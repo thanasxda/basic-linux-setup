@@ -240,6 +240,13 @@ If you mess up your fstab boot through another partition or live usb and use __g
 ```
 sudo mount -o remount,rw $rootfs /
 ```
+If somehow you messed up your fstab and need to restore it easiest method underneath:
+```
+sudo apt update && sudo apt -f install -y arch-install-scripts
+genfstab -U / > /etc/fstab
+# To restore the flags
+sudo sh init.sh
+```
 If somehow you mess up grub and end up at the grub rescue screen unable to boot, either recover through the __chroot__ script on this repo or manually. Alternatively if you do not have another partition to recover from or a live usb check information like [this](https://help.ubuntu.com/community/Grub2/Troubleshooting#Search_.26_Set). Remember __you do not need to format__. Underneath an example of how to restore when the latest initramfs didn't boot:
 ```
 set prefix=(hd0,gpt2)
