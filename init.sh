@@ -450,12 +450,12 @@ u3="http://sysctl.org/cameleon/hosts"
 u4="https://zeustracker.abuse.ch/blocklist.php"
 u5="https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt"
 u6="https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt"
-ping "$ping" -c 2
+ping '"$ping"' -c 2
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
-echo '\''no-resolv\nbogus-priv\nfilterwin2k\nstop-dns-rebind\ndomain-needed\nno-dhcp-interface=lo\ncache-size=1500\nlocal-ttl=300\nneg-ttl=120\n127.0.0.1 localhost\noptions rotate timeout:1 attempts:3 single-request-reopen no-tld-query\n::1 localhost'\'' | tee /etc/hosts "$droidhosts"
-echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts "$droidhosts"
+echo '\''no-resolv\nlocal-use\nbogus-priv\nfilterwin2k\nstop-dns-rebind\ndomain-needed\nno-dhcp-interface=lo\ncache-size=8196\nlocal-ttl=300\nneg-ttl=120\n127.0.0.1 localhost\noptions rotate timeout:1 attempts:3 single-request-reopen no-tld-query\n::1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
+echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
 x1="$(wget --random-wait $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
 x2="$(wget --random-wait $u2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
 x3="$(wget --random-wait $u3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
@@ -465,10 +465,10 @@ x6="$(wget --random-wait $u6 --connect-timeout=10 --continue -4 --retry-connrefu
 $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 || echo fail
 
               ### yours
-              l1="$list1"
-              l2="$list2"
-              l3="$list3"
-              l4="$list4"
+              l1='"$list1"'
+              l2='"$list2"'
+              l3='"$list3"'
+              l4='"$list4"'
               c1="$(wget --random-wait $l1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
               c2="$(wget --random-wait $l2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
               c3="$(wget --random-wait $l3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
@@ -783,6 +783,7 @@ nameserver "$dns62"/g' /etc/resolv/conf $droidresolv ; fi
 
   if ! grep -q "filterwin2k " /etc/hosts ; then
 echo 'no-resolv
+local-use
 bogus-priv
 filterwin2k
 stop-dns-rebind
@@ -816,9 +817,11 @@ options rotate timeout:1 attempts:3 single-request-reopen no-tld-query
   # gpg workaround
     $s rsync --ignore-existing /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
 
-  # hdd write caching
+  # hdd write caching and power management
     $s hdparm -W 1 $hdd
     $s hdparm -W 1 $nvme
+    $s hdparm -B 254 $hdd
+    $s hdparm -B 254 $nvme
 
 
   # more ALL RANDOM STUFF GOES HERE
@@ -1005,6 +1008,7 @@ for i in $(find /sys/ -name enable_event_log); do echo "0" > $i; done
 for i in $(find /sys/ -name log_ecn_error); do echo "0" > $i; done
 for i in $(find /sys/ -name snapshot_crashdumper); do echo "0" > $i; done
 echo "0" > /sys/module/logger/parameters/log_mode
+echo "0" > /sys/kernel/logger_mode/logger_mode
 
 
 
@@ -2191,7 +2195,7 @@ echo '<driconf>
          <option name="force_s3tc_enable" value="true"/>
          <option name="precise_trig" value="true"/>
          <option name="tcl_mode" value="3"/>
-         <option name="fthrottle_mode" value="2"/>
+         <option name="fthrottle_mode" value="1"/>
          <option name="vblank_mode" value="0" />
       </application>
    </device>
@@ -2200,7 +2204,7 @@ echo '<driconf>
          <option name="force_s3tc_enable" value="true"/>
          <option name="precise_trig" value="true"/>
          <option name="tcl_mode" value="3"/>
-         <option name="fthrottle_mode" value="2"/>
+         <option name="fthrottle_mode" value="1"/>
          <option name="vblank_mode" value="0" />
       </application>
    </device>
@@ -2419,7 +2423,8 @@ LayoutName=org.kde.breeze.desktop
 TouchBorderActivate=9
 
 [Windows]
-ElectricBorders=0
+ElectricBorders=1
+BorderlessMaximizedWindows=false
 
 [org.kde.kdecoration2]
 BorderSize=Large
@@ -2693,6 +2698,8 @@ export READELF=llvm-readelf'"$cclm"'
 export OBJSIZE=llvm-size'"$cclm"'
 export STRIP=llvm-strip'"$cclm"'
 
+export QT_STYLE_OVERRIDE=kvantum
+export GTK_USE_PORTAL=1
 
 export OBS_USE_EGL=1 
 
@@ -2720,57 +2727,31 @@ for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i
 ### IF ANDROID
 # android props etc
 if grep "droid" /etc/os-release ; then
-setprop persist.radio.add_power_save 1
-setprop video.accelerate.hw 1
-setprop debug.hwui.renderer vulkan
-setprop sys.use_fifo_ui 1
-setprop net.tcp.buffersize.default 6144,87380,1048576,6144,87380,524288
-setprop net.tcp.buffersize.wifi 524288,1048576,2097152,524288,1048576,2097152
-setprop net.tcp.buffersize.umts 6144,87380,1048576,6144,87380,524288
-setprop net.tcp.buffersize.gprs 6144,87380,1048576,6144,87380,524288
-setprop net.tcp.buffersize.edge 6144,87380,524288,6144,16384,262144
-setprop net.tcp.buffersize.hspa 6144,87380,524288,6144,16384,262144
-setprop net.tcp.buffersize.lte 524288,1048576,2097152,524288,1048576,2097152
-setprop net.tcp.buffersize.hsdpa 6144,87380,1048576,6144,87380,1048576
-setprop net.tcp.buffersize.evdo_b 6144,87380,1048576,6144,87380,1048576
-# echo 10 > /sys/class/thermal/thermal_message/sconfig
-killall -9 android.process.media
-killall -9 mediaserver
-echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
-echo "0-$(nproc -all)" > /dev/cpuset/top-app/cpus
-echo "0-$(nproc -all)" /dev/cpuset/foreground/cpus
-echo "0" > /dev/cpuset/restricted/cpus
-echo "0" > /sys/module/workqueue/parameters/power_efficient
-echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
-echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
-echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
-write /sys/module/lpm_levels/parameters/sleep_disabled "N" 2>/dev/null
-echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
-echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
-echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
-echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
-echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
-echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
-echo 1 > /dev/stune/top-app/schedtune.prefer_idle
-
-umount /vendor || true
-mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-sed -i 's/noatime/lazytime/g' /vendor/etc/fstab*
-sed -i 's/nodiratime/lazytime/g' /vendor/etc/fstab*
-sed -i 's/relatime/lazytime/g' /vendor/etc/fstab*
-umount /vendor || true
-mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
-
-### for older devices only, most doesnt apply
-for part in system data
-do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
-else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
-if ! grep -q "force_hw_ui=true" /system/build.prop ; then
-echo '#boot.fps=20
+prop='#boot.fps=20
 #debug.egl.hw=1
 #debug.egl.profiler=1
+persist.sys.scrollingcache=3
+persist.radio.add_power_save=1
+video.accelerate.hw=1
+debug.hwui.renderer=vulkan
+sys.use_fifo_ui=1
+net.tcp.buffersize.default=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.wifi=524288,1048576,2097152,524288,1048576,2097152
+net.tcp.buffersize.umts=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.gprs=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.edge=6144,87380,524288,6144,16384,262144
+net.tcp.buffersize.hspa=6144,87380,524288,6144,16384,262144
+net.tcp.buffersize.lte=524288,1048576,2097152,524288,1048576,2097152
+net.tcp.buffersize.hsdpa=6144,87380,1048576,6144,87380,1048576
+net.tcp.buffersize.evdo_b=6144,87380,1048576,6144,87380,1048576
+logcat.live=disable
+debugtool.anrhistory=0
+profiler.debugmonitor=false
+profiler.launch=false
+profiler.hung.dumpdobugreport=false
+persist.android.strictmode=0
+persist.sys.purgeable_assets=1
+ro.config.hw_quickpoweron=true
 dalvik.vm.dexopt-flags=m=y
 dalvik.vm.heapgrowthlimit=512m
 dalvik.vm.heapsize=1024m
@@ -2778,7 +2759,6 @@ dalvik.vm.heapstartsize=5m
 dalvik.vm.verify-bytecode=false
 debug.composition.type=vulkan
 debug.enabletr=true
-debug.hwui.renderer=vulkan
 debug.kill_allocating_task=0
 debug.overlayui.enable=1
 debug.performance.tuning=1
@@ -2801,16 +2781,6 @@ media.stagefright.enable-qcp=true
 media.stagefright.enable-record=true
 media.stagefright.enable-scan=true
 mpq.audio.decode=true
-net.tcp.buffersize.default 6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.edge 6144,87380,524288,6144,16384,262144
-net.tcp.buffersize.evdo_b 6144,87380,1048576,6144,87380,1048576
-net.tcp.buffersize.gprs 6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.hsdpa 6144,87380,1048576,6144,87380,1048576
-net.tcp.buffersize.hspa 6144,87380,524288,6144,16384,262144
-net.tcp.buffersize.lte 524288,1048576,2097152,524288,1048576,2097152
-net.tcp.buffersize.umts 6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.wifi 524288,1048576,2097152,524288,1048576,2097152
-persist.radio.add_power_save 1
 persist.service.lgospd.enable=0
 persist.service.pcsync.enable=0
 persist.sys.composition.type=vulkan
@@ -2860,15 +2830,63 @@ ro.ril.htcmaskw1=14449
 ro.sf.compbypass.enable=0
 ro.telephony.call_ring.delay=0
 ro.vold.umsdirtyratio=20
-sys.use_fifo_ui 1
 touch.pressure.scale=0.1
-video.accelerate.hw 1
 vm.dirty_background_ratio=90
 vm.dirty_ratio=90
 vm.min_free_kbytes=4096
 vm.vfs_cache_pressure=50
 wifi.supplicant_scan_interval=180
-windowsmgr.max_events_per_sec=244' >> /system/build.prop ; fi
+windowsmgr.max_events_per_sec=244'
+
+for i in $(echo $prop) ; do
+setprop $($i | sed 's/=/ /g' | awk '{print $1, $2}') ; done
+
+busybox sysctl -w fs.inotify.max_queued_events=32768
+busybox sysctl -w fs.inotify.max_user_instances=256
+busybox sysctl -w fs.inotify.max_user_watches=16384
+
+# echo 10 > /sys/class/thermal/thermal_message/sconfig
+
+killall -9 android.process.media
+killall -9 mediaserver
+
+echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
+echo "0-$(nproc -all)" > /dev/cpuset/top-app/cpus
+echo "0-$(nproc -all)" /dev/cpuset/foreground/cpus
+echo "0" > /dev/cpuset/restricted/cpus
+echo "0" > /sys/module/workqueue/parameters/power_efficient
+echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
+
+write /sys/module/lpm_levels/parameters/sleep_disabled "N" 2>/dev/null
+
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
+
+echo 1 > /dev/stune/top-app/schedtune.prefer_idle
+
+umount /vendor || true
+mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
+sed -i 's/noatime/lazytime/g' /vendor/etc/fstab*
+sed -i 's/nodiratime/lazytime/g' /vendor/etc/fstab*
+sed -i 's/relatime/lazytime/g' /vendor/etc/fstab*
+umount /vendor || true
+mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
+
+### for older devices only, most doesnt apply
+for part in system data
+do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
+else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
+
+if ! grep -q "force_hw_ui=true" /system/build.prop ; then
+echo "$prop" >> /system/build.prop ; fi
 fstrim /data;
 fstrim /cache;
 fstrim /system;
@@ -3070,7 +3088,7 @@ systemctl enable $startserv
 
 
 ### c compiler exports ... no more o3? for future of script stuff if i ever will work on it... unfinished
-
+if [ skip = false ] ; then
 if echo $CC | grep -q "gcc\|llvm\|clang" ; then
 
 if [ $ARCH = x86 ] ; then export opt=native ; fi
@@ -3172,6 +3190,7 @@ ccl=llvm-"$(apt-cache search llvm | awk '{print $1}' | grep "llvm-.*-runtime" | 
 if [ $CC = gcc ] ; then export CC=$ccg ; fi
 
 if [ $CC = llvm ] ; then export CC=$ccl ; fi
+fi
 fi
 
 
