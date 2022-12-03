@@ -46,219 +46,207 @@ cd $tmp
 $a pip
 $s pip install requests
 
-$a libdvdcss2
-$a mencoder
-$a libvorbisidec1
+$a libdvdcss2 \
+mencoder \
+ibvorbisidec1 \
+libavcodec59
 
-$a libavcodec59
-
-$rem kali-linux-default
-$rem kali-linux-headless
-$rem kali-tools-top10
+$rem kali-linux-default \
+ kali-linux-headless \
+ kali-tools-top10
 
 
 
 # wine
-#$a q4wine
-#$a wine
-#$a wine32
-#$a wine64
-#$a winetricks
+$a q4wine \
+ wine \
+ wine32 \
+ wine64 \
+ winetricks
 
-$a flatpak
-$a fwupd
-$a git
-$a links
-$a mpv
-$a muon
-$a openssh-client
-$a putty
-$a rng-tools5
-$a rt-tests
-$a shellcheck
-$a tasksel
-$a uget
-$a ccache
+$a flatpak \
+ fwupd \
+ git \
+ links \
+ mpv \
+ muon \
+ openssh-client \
+ putty \
+ rng-tools5 \
+ rt-tests \
+ shellcheck \
+ tasksel \
+ uget \
+ ccache \
+ ksmtuned \
+ libxgks2 \
+ libmkl-def \
+ kerneltop \
+ blktool \
+ tuned-utils 
 
 
 #if [ $INSTALLBUILDENV = true ] ; then
 # llvm
-$a libllvm-$llver-ocaml-dev
-$a libllvm$llver
-$a llvm-$llver
-$a llvm-$llver-dev
-$a llvm-$llver-doc
-$a llvm-$llver-examples
-$a llvm-$llver-runtime
-$a clang-$llver
-$a clang-tools-$llver
-$a clang-$llver-doc
-$a libclang-common-$llver-dev
-$a libclang-$llver-dev
-$a libclang1-$llver
-$a clang-format-$llver
-$a python3-clang-$llver
-$a clangd-$llver
-$a clang-tidy-$llver
-$a libfuzzer
-$a libfuzzer-$llver-dev
-$a lldb-$llver
-$a lld-$llver
-$a libc++-$llver-dev
-$a libc++abi-$llver-dev
-$a libomp-$llver-dev
-$a libclc-$llver-dev
-$a libunwind-$llver-dev
-$a libmlir-$llver-dev
-$a mlir-$llver-tools
-$a binwalk
-$a firmware-mod-kit
-$a atom-beta
-$a nmap
-#fi
+$a libllvm-$llver-ocaml-dev \
+ libllvm$llver \
+ llvm-$llver \
+ llvm-$llver-dev \
+ llvm-$llver-examples \
+ llvm-$llver-runtime \
+ clang-$llver \
+ clang-tools-$llver \
+ libclang-common-$llver-dev \
+ libclang-$llver-dev \
+ libclang1-$llver \
+ clang-format-$llver \
+ python3-clang-$llver \
+ clangd-$llver \
+ clang-tidy-$llver \
+ libfuzzer \
+ libfuzzer-$llver-dev \
+ lldb-$llver \
+ lld-$llver \
+ libc++-$llver-dev \
+ libc++abi-$llver-dev \
+ libomp-$llver-dev \
+ libclc-$llver-dev \
+ libunwind-$llver-dev \
+ libmlir-$llver-dev \
+ mlir-$llver-tools
  
-$a apparmor
-$a cachefilesd
-$a cpufrequtils
-$a diffuse
-$a dkms
-$a firmware-amd-graphics
-$a firmware-linux
-$a firmware-linux-free
-$a firmware-linux-nonfree
-$a firmware-misc-nonfree
-$a haveged
-$a hdparm
-$a jitterentropy-rngd
-$a kmod
-$a net-tools
-$a wireless-regdb
-$a xinit
-$a kali-linux-firmware
-$a kali-linux-core
-$a kali-tweaks
-$a kali-defaults
-$a kali-defaults-desktop
-$a htop
-$a qapt-deb-installer
+
+#fi
+$a binwalk \
+ firmware-mod-kit \
+ atom-beta \
+ nmap \
+ apparmor \
+ cachefilesd \
+ cpufrequtils \
+ diffuse \
+ dkms \
+ firmware-amd-graphics \
+ firmware-linux \
+ firmware-linux-free \
+ firmware-linux-nonfree \
+ firmware-misc-nonfree \
+ haveged \
+ hdparm \
+ jitterentropy-rngd \
+ kmod \
+ net-tools \
+ wireless-regdb \
+ xinit \
+ kali-linux-firmware \
+ kali-linux-core \
+ kali-tweaks \
+ kali-defaults \
+ kali-defaults-desktop \
+ htop \
+ qapt-deb-installer
 
 # minimal compilers
-$a llvm-$llver -t experimental
-$a gcc-$gccver -t experimental
+$a llvm-$llver -t experimental \
+ gcc-$gccver -t experimental
 
-$a libosmesa6 
-$a libd3dadapter9-mesa
-$a libegl-mesa0
-$a libgl1-mesa-dri
-$a libgl1-mesa-glx
-$a libglapi-mesa
-$a libgles2-mesa
-$a libglu1-mesa
-$a ocl-icd-libopencl1
-$a libvulkan1
-$a mesa-opencl-icd
-$a mir-client-platform-mesa5
-$a libglx-mesa0 
-$a mir-platform-graphics-mesa-x16
-$a glx-alternative-mesa
-$a libegl1-mesa
-$a libglapi-mesa
-$a libglapi-mesa
-$a libwayland-egl1-mesa
-$a mesa-utils
-$a mesa-utils-bin
-$a mesa-utils-extra
+$a libosmesa6 \
+ libd3dadapter9-mesa \
+ libegl-mesa0 \
+ libgl1-mesa-dri \
+ libgl1-mesa-glx \
+ libglapi-mesa \
+ libgles2-mesa \
+ libglu1-mesa \
+ ocl-icd-libopencl1 \
+ libvulkan1 \
+ mesa-opencl-icd \
+ mir-client-platform-mesa5 \
+ libglx-mesa0 \
+ mir-platform-graphics-mesa-x16 \
+ glx-alternative-mesa \
+ libegl1-mesa \
+ libglapi-mesa \
+ libwayland-egl1-mesa \
 
-$a ffmpeg
-$a mesa-vdpau-drivers
-$a libvdpau-va-gl1
-$a va-driver-all
-$a vdpau-driver-all
-$a w64codecs
-$a x264
-$a x265
-
-$a libgl1-mesa-dri 
-$a mesa-vulkan-drivers 
-$a mesa-va-drivers 
-$a libvulkan-dev 
-$a mesa-utils 
-$a vulkan-tools 
-$a mesa-common-dev 
-$a mesa-vdpau-drivers 
+$a mesa-utils \
+ mesa-utils-bin \
+ ffmpeg \
+ mesa-vdpau-drivers \
+ libvdpau-va-gl1 \
+ va-driver-all \
+ vdpau-driver-all \
+ w64codecs \
+ x264 \
+ x265 \
+ libgl1-mesa-dri \
+ mesa-vulkan-drivers \
+ mesa-va-drivers \
+ libvulkan-dev \
+ mesa-utils \
+ vulkan-tools \
+ mesa-common-dev \
+ mesa-vdpau-drivers 
 
 
 # kernel
 #$a "$(apt search linux-image-6.*-rt-amd64-unsigned | awk '{print $1}' | grep "linux-image-.*-rt-amd64-unsigned" | tail -n 1 | cut -c1-37)" -t experimental
 #$a linux-image-$kernelv-kali*-rt-amd64 -t kali-experimental
-$a linux-image-amd64 -t experimental
+$a linux-image-amd64 -t experimental 
 $a linux-image-6.*-kali3-amd64 -t kali-experimental
 
 
 
-$a ethtool
-$a wireless-tools
-$a rcconf
-$a mc
-$a iw
-$a rtirq-init
-$a rename
-$a anacron
-$a lz4
-$a arch-install-scripts
-
-
-
-
-#$a apper
-
-
-# DO NOT INSTALL ANY OF THIS. KALI ALREADY HAS FULL KDE WITHOUT BLOATING AND THE SEPARATE KDE REPOS ALLOW FOR LATEST VERSIONS. ALL IS GREYED OUT FOR A REASON, UNLESS YOU WANT BENCHMARKING LATENCY TO DOUBLE LITERALLY. CHOOSE WISELY WHAT YOU INSTALL
-$a kde-config-systemd
-$a openbox-kde-session
-
-$a anacron
-$a qt5-style-kvantum-themes qt5-style-kvantum-l10n qt5-style-kvantum
-$a firewall*
-$a dolphin-plugins
-$a sddm
-$a kio-fuse
-$a gstreamer1.0-qt5 gstreamer1.0-plugins-bad
-$a openssl ufw unattended-upgrades fail2ban
-
-
+$a ethtool \
+ wireless-tools \
+ rcconf \
+ mc \
+ iw \
+ rtirq-init \
+ rename \
+ anacron \
+ lz4 \
+ arch-install-scripts \
+ kde-config-systemd \
+ openbox-kde-session \
+ anacron \
+ qt5-style-kvantum-themes qt5-style-kvantum-l10n qt5-style-kvantum \
+ dolphin-plugins \
+ sddm \
+ kio-fuse \
+ gstreamer1.0-qt5 gstreamer1.0-plugins-bad \
+ openssl ufw unattended-upgrades fail2ban
+ 
 #flatpak --noninteractive
 $s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 $fl freetube
 
-echo -e "${restore}"
 
-#$a initramfs-tools initramfs-tools-core klibc-utils cryptsetup cryptsetup-bin dmeventd dmraid kpartx libdevmapper-event1.02.1 libdmraid1.0.0.rc16 liblvm2cmd2.03 lvm2 mdadm thin-provisioning-tools
 
 # remove stuff
 #$rem intel-microcode
 #$rem amd64-microcode
-$rem akonadi-server
-$rem openssh-server
-$rem ubuntu-archive-keyring
-$rem avahi-daemon
-$rem cron
-$rem bluez
-$rem firefox-esr
+$rem akonadi-server \
+ openssh-server \
+ ubuntu-archive-keyring \
+ avahi-daemon \
+ cron \
+ bluez \
+ firefox-esr
 
 
-$a *qtgstreamer*
-$a xinit
-$a preload
-$a dbus-broker
-$a linux-cpupower
-
-$a efibootmgr systemd-boot systemd-boot-efi
-
-$a kde-config-plymouth
-$a kde-config-updates
-$a partitionmanager
-$a kali-desktop-kde
+$a *qtgstreamer* \
+ firewall* \
+ xinit \
+ preload \
+ dbus-broker \
+ linux-cpupower \
+ efibootmgr systemd-boot systemd-boot-efi \
+ kde-config-plymouth \
+ kde-config-updates \
+ partitionmanager \
+ irqbalance \
+ kali-desktop-kde
 
 
 

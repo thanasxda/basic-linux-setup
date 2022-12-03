@@ -115,7 +115,7 @@ If you want to fully stay up to date be sure to check any potential diff changes
 
 For removal of preconfiguration:
 ```
-sudo rm -rf /etc/sysctl.conf && sudo rm -rf /etc/rc.local
+sudo rm -rf /etc/sysctl.conf && sudo rm -rf /etc/sysctl.conf.d/sysctl.conf && sudo rm -rf /etc/rc.local
 ```
 For removal of bootargs:
 ```

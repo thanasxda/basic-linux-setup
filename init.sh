@@ -19,7 +19,7 @@ sleep 10
 # script vars
 s="sudo"
 
- ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> note that most of the underneath options only apply to kernel boot parameters, the rest of this file applies similar options within userspace on kernel. these options are preconfigured to my own preferences for balanced performance. if changing this setup is your goal be sure to check hackbench for latency. didnt try this on android as of yet but i think binaries are #!/system/bin/sh
+ ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> note that most of the underneath options only apply to kernel boot parameters, the rest of this file applies similar options within userspace on kernel. these options are preconfigured to my own preferences for balanced performance. if changing this setup is your goal be sure to check hackbench for latency. didnt try this on android as of yet but i think binaries are #!/system/bin/sh , depends on where busybox is installed.
 
 
       ### < SCRIPT AUTO-UPDATE >
@@ -28,6 +28,9 @@ s="sudo"
       # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
         clean_sources_list_d="yes"
 
+        
+        
+        
       ### < MISC >
       # ipv6 "on" to enable
         ipv6="off"
@@ -38,23 +41,22 @@ s="sudo"
         dns62="2606:4700:4700::1001"
       # preferred address to ping
         ping="1.1.1.1"
-        scsi="off"
-        cec="off"
- 
 
-
-
-
+        
+        
+        
       ### < STORAGE >
       # - linux storage devices only used for hdparm. wildcard picks up all 
-        hdd="/dev/sd*"
+        hdd="/dev/hd*"
+        ssd="/dev/sd*"
         nvme="/dev/nvme*"
+        #blktool
+        strg=$(fdisk -l | grep "Linux filesystem" | awk '{print $1}')
         #rootfs="/dev/sda2"
-     # in case of using dracut
-        #raid="no"
 
 
-
+        
+        
       ### < I/O SCHEDULER >
       # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme
         if ls /dev/nvme* ; then sched="none" ; else sched="bfq" ; fi
@@ -65,7 +67,7 @@ s="sudo"
         if ! grep -q cfq /sys/block/mmc*/queue/scheduler ; then mmcsched="bfq" ; fi
 
 
-
+        
 
       ### < CPU GOVERNOR >
       # - linux kernel cpu governor
@@ -99,7 +101,8 @@ s="sudo"
       # - wireless regulatory settings per country 00 for global
         country="00"
         
-        if grep -q "wrt" /etc/os-release || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
+        # meanwhile serves as list to make me remember how to figure out user
+        if grep -q "wrt" /etc/os-release || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
 
 
 
@@ -147,8 +150,10 @@ s="sudo"
         perfamdgpu="auto" #"performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
         processornocstates="1"
         cpumaxcstate="0"
-
-
+        cec="off"
+        #scsi="off"
+        # in case of using dracut
+        #raid="no"
 
 
 
@@ -184,22 +189,22 @@ sudo sed -i '\''s/PERCENT.*/PERCENT=40/g'\'' /etc/default/zramswap; fi'
 
 # if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
-vm.overcommit_memory = 3
-overcommit=3
-vm.nr_overcommit_hugepages = 3
-kernel.shmmni = 16000000
-kernel.shmall = 350000000
-kernel.shmmax = 1000000000
-sysctl -w vm.nr_overcommit_hugepages=3
-sysctl -w kernel.shmmni=16000000
-sysctl -w kernel.shmall=350000000
-sysctl -w kernel.shmmax=1000000000
+vm.overcommit_memory = 1
+overcommit=1
+vm.nr_overcommit_hugepages = 1
+kernel.shmmni = 1600000
+kernel.shmall = 35000000
+kernel.shmmax = 100000000
+sysctl -w vm.nr_overcommit_hugepages=1
+sysctl -w kernel.shmmni=1600000
+sysctl -w kernel.shmall=35000000
+sysctl -w kernel.shmmax=100000000
 echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
 echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
-hugepages="16"
-sysctl -w vm.nr_hugepages=16
+hugepages="8"
+sysctl -w vm.nr_hugepages=8
 
 if ! grep -q '* soft nofile 524288' /etc/security/limits.conf ; then
 echo '* hard nofile 524288
@@ -310,6 +315,12 @@ echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
 echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
+kernel.shmmni = 16000000
+kernel.shmall = 350000000
+kernel.shmmax = 1000000000
+sysctl -w kernel.shmmni=16000000
+sysctl -w kernel.shmall=350000000
+sysctl -w kernel.shmmax=1000000000
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=40 zswap.zpool=z3fold zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
@@ -324,6 +335,12 @@ vmalloc="128"
 hugepages="16"
 hugepagesz="2MB"
 sysctl -w vm.nr_hugepages=16
+kernel.shmmni = 1600000
+kernel.shmall = 35000000
+kernel.shmmax = 100000000
+sysctl -w kernel.shmmni=1600000
+sysctl -w kernel.shmall=35000000
+sysctl -w kernel.shmmax=100000000
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
 sysctl -w kernel.shmmax=500000000
@@ -341,10 +358,10 @@ fi
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
 
 # cpu amd or intel
-x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=disable kvm-amd.avic=1 amd_iommu_intr=vapic notsx" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=disable kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
+x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=support_acpi_ppc kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # mitigations
 x1="$(if [ $mitigations = off ] ; then
-echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; fi)"
+echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; fi)"
 # logging
 x2=" audit=0 log_priority=0 loglevel=0 mminit_loglevel=0 udev.log_priority=0 rd.udev.log_level=0 udev.log_level=0"
 # security
@@ -370,15 +387,15 @@ x12=" no_entry_flush no_stf_barrier no_uaccess_flush"
 # random extras
 x13=" acpi_osi=Linux align_va_addr=on gcov_persist=0 iommu=pt libahci.ignore_sss=1 nfs.enable_ino64=1 nmi_watchdog=0 no_uaccess_flush nohz=on nowatchdog nvme_core.default_ps_max_latency_us=0 rcupdate.rcu_normal=0 rcupdate.rcu_expedited=1 rcutree.kthread_prio=99 rootflags=lazytime scsi_mod.use_blk_mq=1 skew_tick=1 slab_merge slub_merge support_acpi_ppc usb-storage.quirks=p workqueue.watchdog_thresh=0 xmon=off vdso=1"
 #
-x14=" rcu_nocb_poll sysfs.deprecated=0 vt.default_utf8=1 nf_conntrack.acct=0"
+x14=" sysfs.deprecated=0 vt.default_utf8=1 nf_conntrack.acct=0"
 #
 x15=" nodelayacct preempt=full kunit.enable=0 kmemleak=off"
 #
-x16=" vsyscall=none highres=off clk_ignore_unused"
+x16=" vsyscall=emulate highres=off clk_ignore_unused"
 #
 x17=" debugfs=off cpu_init_udelay=1 csdlock_debug=0 nopku hugetlb_free_vmemmap=on memtest=0 noresume"
 # manually set irq, disable irqbalancer
-x18=" acpi_irq_nobalance noirqbalance irqaffinity=1 acpi=noirq managed_irq ioapicreroute rcutree.use_softirq=0"
+x18=" acpi_irq_balance rcutree.use_softirq=0 irqaffinity=0"
 #
 x19="$( if [ $energef = on ] ; then echo " acpi_sleep=s4_hwsig mem_sleep_default=deep" ; fi)"
 # disable radeon and have just amdgpu workaround for performance degradation in some gpus. need to unlock for manual control of voltages, didnt work for me
@@ -393,29 +410,30 @@ x23="$( if dmesg | grep -q iwlwifi ; then echo " iwlmvm_power_scheme=2" ; fi)"
 #
 x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
 #
-x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=on powersave=off"
+x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
 #
-x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend"
+x26=" mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 S pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend checkreqprot swiotlb=force tp_printk_stop_on_boot printk.devkmsg=off nohalt"
 #
 x27=" ip=:::::::$dns1:$dns2:"
 #
 x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
 #
 x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
+#
+x=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1"
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
                                         # https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
 
-                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29")"
+                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$x")"
 
                                         export par="splash quiet$bootargvars"
 
 # notes for myself
-#test diff extra in test
+#test diff extra in test isolcpus=1-$(nproc --all)  rcu_nocbs=1-$(nproc --all) nohz_full=1-$(nproc --all) driver_async_probe=* init=/init printk.disable_uart=1 noirqbalance irqaffinity=0 acpi=noirq managed_irq ioapicreroute acpi_irq_nobalance
 # nohz_full=1-$(nproc --all) isolcpus=1-$(nproc --all) #intel_idle.max_cstate=9 acpi_irq_balance
-
-# sysfs.deprecated=0 smt=4 rcu_nocb_poll preempt=full parport=0 numa_balancing=disable nodelayacct no_timer_check mem_sleep_default=deep kvm.mmu_audit=0 kunit.enable=0 kmemleak=off intel_idle.max_cstate=9 intel_pstate=per_cpu_perf_limits hwp_only gpt highres=on floppy=0 debugfs=off dis_ucode_ldr disable=1 consoleblank=0 cpu0_hotplug cpu_init_udelay=2000 checkreqprot clk_ignore_unused carrier_timeout=1 cec_disable apm=on agp=0 acpi_pm_good
+# sysfs.deprecated=0 smt=4  preempt=full parport=0 numa_balancing=disable nodelayacct no_timer_check mem_sleep_default=deep kvm.mmu_audit=0 kunit.enable=0 kmemleak=off intel_idle.max_cstate=9 intel_pstate=per_cpu_perf_limits hwp_only gpt highres=on floppy=0 debugfs=off dis_ucode_ldr disable=1 consoleblank=0 cpu0_hotplug cpu_init_udelay=2000 checkreqprot clk_ignore_unused carrier_timeout=1 cec_disable apm=on agp=0 acpi_pm_good
 #test diff extra in stable
 #acpi=force vga=0
 #kvm-intel.vmentry_l1d_flush=never
@@ -819,9 +837,16 @@ options rotate timeout:1 attempts:3 single-request-reopen no-tld-query
 
   # hdd write caching and power management
     $s hdparm -W 1 $hdd
+    $s hdparm -W 1 $ssd
     $s hdparm -W 1 $nvme
     $s hdparm -B 254 $hdd
+    $s hdparm -B 254 $ssd
     $s hdparm -B 254 $nvme
+    
+  # blktool
+  for i in $strg ; do
+  blktool $i wcache on
+  blktool $i dma on ; done
 
 
   # more ALL RANDOM STUFF GOES HERE
@@ -917,8 +942,994 @@ fi
   
   
   
+
+  
   
   ### < START PARAMETER CONFIG >
+##########################################################################################################
+# systunedump --all | sed 's/:/ /g' | awk '{print "echo "$2" > "$1}' > text
+# just dumped this still needs editing
+echo 0 > /proc/sys/abi/vsyscall32
+echo 0 > /proc/sys/debug/exception-trace
+echo 1 > /proc/sys/debug/kprobes-optimization
+echo 0 > /proc/sys/dev/scsi/logging_level
+echo 1 > /proc/sys/dev/tty/ldisc_autoload
+echo 1048576 > /proc/sys/fs/aio-max-nr
+#echo enabled > /proc/sys/fs/binfmt_misc/status
+echo 0 > /proc/sys/fs/dir-notify-enable
+echo 435556 > /proc/sys/fs/epoll/max_user_watches
+echo 16384 > /proc/sys/fs/fanotify/max_queued_events
+echo 128 > /proc/sys/fs/fanotify/max_user_groups
+echo 15849 > /proc/sys/fs/fanotify/max_user_marks
+echo 2097152 > /proc/sys/fs/file-max
+echo 16384 > /proc/sys/fs/inotify/max_queued_events
+echo 128 > /proc/sys/fs/inotify/max_user_instances
+echo 14905 > /proc/sys/fs/inotify/max_user_watches
+echo 20 > /proc/sys/fs/lease-break-time
+echo 1 > /proc/sys/fs/leases-enable
+echo 100000 > /proc/sys/fs/mount-max
+echo 10 > /proc/sys/fs/mqueue/msg_default
+echo 10 > /proc/sys/fs/mqueue/msg_max
+echo 8192 > /proc/sys/fs/mqueue/msgsize_default
+echo 8192 > /proc/sys/fs/mqueue/msgsize_max
+echo 256 > /proc/sys/fs/mqueue/queues_max
+echo 1048576 > /proc/sys/fs/nr_open
+echo 1048576 > /proc/sys/fs/pipe-max-size
+echo 0 > /proc/sys/fs/pipe-user-pages-hard
+echo 16384 > /proc/sys/fs/pipe-user-pages-soft
+echo 1 > /proc/sys/fs/protected_fifos
+echo 1 > /proc/sys/fs/protected_hardlinks
+echo 2 > /proc/sys/fs/protected_regular
+echo 1 > /proc/sys/fs/protected_symlinks
+echo 1 > /proc/sys/fs/quota/warnings
+echo 0 > /proc/sys/fs/suid_dumpable
+echo 0 > /proc/sys/fs/verity/require_signatures
+echo 3 > /proc/sys/fs/xfs/error_level
+echo 3000 > /proc/sys/fs/xfs/filestream_centisecs
+echo 1 > /proc/sys/fs/xfs/inherit_noatime
+echo 1 > /proc/sys/fs/xfs/inherit_nodefrag
+echo 1 > /proc/sys/fs/xfs/inherit_nodump
+echo 0 > /proc/sys/fs/xfs/inherit_nosymlinks
+echo 1 > /proc/sys/fs/xfs/inherit_sync
+echo 0 > /proc/sys/fs/xfs/irix_sgid_inherit
+echo 0 > /proc/sys/fs/xfs/irix_symlink_mode
+echo 0 > /proc/sys/fs/xfs/panic_mask
+echo 1 > /proc/sys/fs/xfs/rotorstep
+echo 300 > /proc/sys/fs/xfs/speculative_cow_prealloc_lifetime
+echo 300 > /proc/sys/fs/xfs/speculative_prealloc_lifetime
+echo 0 > /proc/sys/fs/xfs/stats_clear
+echo 10000 > /proc/sys/fs/xfs/xfssyncd_centisecs
+echo 4 > /proc/sys/kernel/acct
+echo 0 > /proc/sys/kernel/acpi_video_flags
+echo 0 > /proc/sys/kernel/apparmor_display_secid_mode
+echo 0 > /proc/sys/kernel/auto_msgmni
+echo 0 > /proc/sys/kernel/bpf_stats_enabled
+echo 1 > /proc/sys/kernel/cad_pid
+echo |/bin/false > /proc/sys/kernel/core_pattern
+echo 0 > /proc/sys/kernel/core_pipe_limit
+echo 1 > /proc/sys/kernel/core_uses_pid
+echo 0 > /proc/sys/kernel/ctrl-alt-del
+echo 1 > /proc/sys/kernel/dmesg_restrict
+echo none > /proc/sys/kernel/domainname
+echo 0 > /proc/sys/kernel/firmware_config/force_sysfs_fallback
+echo 0 > /proc/sys/kernel/firmware_config/ignore_sysfs_fallback
+echo 0 > /proc/sys/kernel/ftrace_dump_on_oops
+echo 0 > /proc/sys/kernel/ftrace_enabled
+echo 0 > /proc/sys/kernel/hardlockup_all_cpu_backtrace
+echo 0 > /proc/sys/kernel/hardlockup_panic
+echo 0 > /proc/sys/kernel/hung_task_all_cpu_backtrace
+echo 4194304 > /proc/sys/kernel/hung_task_check_count
+echo 0 > /proc/sys/kernel/hung_task_check_interval_secs
+echo 0 > /proc/sys/kernel/hung_task_panic
+echo 0 > /proc/sys/kernel/hung_task_timeout_secs
+echo 10 > /proc/sys/kernel/hung_task_warnings
+echo 3 > /proc/sys/kernel/io_delay_type
+echo 0 > /proc/sys/kernel/kexec_load_disabled
+echo 300 > /proc/sys/kernel/keys/gc_delay
+echo 20000 > /proc/sys/kernel/keys/maxbytes
+echo 200 > /proc/sys/kernel/keys/maxkeys
+echo 259200 > /proc/sys/kernel/keys/persistent_keyring_expiry
+echo 25000000 > /proc/sys/kernel/keys/root_maxbytes
+echo 1000000 > /proc/sys/kernel/keys/root_maxkeys
+echo 0 > /proc/sys/kernel/kptr_restrict
+echo 1024 > /proc/sys/kernel/max_lock_depth
+echo 0 > /proc/sys/kernel/max_rcu_stall_to_panic
+#echo /sbin/modprobe > /proc/sys/kernel/modprobe
+echo 0 > /proc/sys/kernel/modules_disabled
+echo 8192 > /proc/sys/kernel/msgmax
+echo 16384 > /proc/sys/kernel/msgmnb
+echo 32000 > /proc/sys/kernel/msgmni
+echo 0 > /proc/sys/kernel/nmi_watchdog
+echo 44389 > /proc/sys/kernel/ns_last_pid
+echo 0 > /proc/sys/kernel/numa_balancing
+echo 65536 > /proc/sys/kernel/numa_balancing_promote_rate_limit_MBps
+echo 0 > /proc/sys/kernel/oops_all_cpu_backtrace
+echo 65534 > /proc/sys/kernel/overflowgid
+echo 65534 > /proc/sys/kernel/overflowuid
+echo 0 > /proc/sys/kernel/panic
+echo 0 > /proc/sys/kernel/panic_on_io_nmi
+echo 0 > /proc/sys/kernel/panic_on_oops
+echo 0 > /proc/sys/kernel/panic_on_rcu_stall
+echo 0 > /proc/sys/kernel/panic_on_unrecovered_nmi
+echo 0 > /proc/sys/kernel/panic_on_warn
+echo 0 > /proc/sys/kernel/panic_print
+echo 10 > /proc/sys/kernel/perf_cpu_time_max_percent
+echo 8 > /proc/sys/kernel/perf_event_max_contexts_per_stack
+echo 100000 > /proc/sys/kernel/perf_event_max_sample_rate
+echo 127 > /proc/sys/kernel/perf_event_max_stack
+echo 516 > /proc/sys/kernel/perf_event_mlock_kb
+echo -1 > /proc/sys/kernel/perf_event_paranoid
+echo 4194304 > /proc/sys/kernel/pid_max
+#echo /sbin/poweroff > /proc/sys/kernel/poweroff_cmd
+echo 0 > /proc/sys/kernel/print-fatal-signals
+echo 0 > /proc/sys/kernel/printk
+echo 0 > /proc/sys/kernel/printk_delay
+echo off > /proc/sys/kernel/printk_devkmsg
+echo 5 > /proc/sys/kernel/printk_ratelimit
+echo 10 > /proc/sys/kernel/printk_ratelimit_burst
+echo 4096 > /proc/sys/kernel/pty/max
+echo 1024 > /proc/sys/kernel/pty/reserve
+echo 60 > /proc/sys/kernel/random/urandom_min_reseed_secs
+echo 256 > /proc/sys/kernel/random/write_wakeup_threshold
+echo 1 > /proc/sys/kernel/randomize_va_space
+echo 0 > /proc/sys/kernel/real-root-dev
+echo 0 > /proc/sys/kernel/sched_autogroup_enabled
+echo 500 > /proc/sys/kernel/sched_cfs_bandwidth_slice_us
+echo 1 > /proc/sys/kernel/sched_child_runs_first
+echo 500000 > /proc/sys/kernel/sched_deadline_period_max_us
+echo 100 > /proc/sys/kernel/sched_deadline_period_min_us
+echo 0 > /proc/sys/kernel/sched_energy_aware
+echo -1 > /proc/sys/kernel/sched_rr_timeslice_ms
+echo -1 > /proc/sys/kernel/sched_rt_period_us
+echo -1 > /proc/sys/kernel/sched_rt_runtime_us
+echo 0 > /proc/sys/kernel/sched_schedstats
+echo kill_process > /proc/sys/kernel/seccomp/actions_logged
+echo 32000 > /proc/sys/kernel/sem
+echo 0 > /proc/sys/kernel/shm_rmid_forced
+#echo 350000000 > /proc/sys/kernel/shmall
+#echo 1000000000 > /proc/sys/kernel/shmmax
+#echo 4096 > /proc/sys/kernel/shmmni
+echo 0 > /proc/sys/kernel/soft_watchdog
+echo 0 > /proc/sys/kernel/softlockup_all_cpu_backtrace
+echo 0 > /proc/sys/kernel/softlockup_panic
+echo 0 > /proc/sys/kernel/stack_tracer_enabled
+echo 1 > /proc/sys/kernel/sysctl_writes_strict
+echo 0 > /proc/sys/kernel/sysrq
+echo 0 > /proc/sys/kernel/tainted
+echo 0 > /proc/sys/kernel/task_delayacct
+echo 15285 > /proc/sys/kernel/threads-max
+echo 0 > /proc/sys/kernel/timer_migration
+echo 0 > /proc/sys/kernel/traceoff_on_warning
+echo 0 > /proc/sys/kernel/tracepoint_printk
+echo 0 > /proc/sys/kernel/unknown_nmi_panic
+echo 2 > /proc/sys/kernel/unprivileged_bpf_disabled
+echo 1 > /proc/sys/kernel/unprivileged_userns_apparmor_policy
+echo 1 > /proc/sys/kernel/unprivileged_userns_clone
+echo 4294967295 > /proc/sys/kernel/usermodehelper/bset
+echo 4294967295 > /proc/sys/kernel/usermodehelper/inheritable
+echo 0 > /proc/sys/kernel/watchdog
+echo 0 > /proc/sys/kernel/watchdog_cpumask
+echo 60 > /proc/sys/kernel/watchdog_thresh
+echo 0 > /proc/sys/kernel/yama/ptrace_scope
+if ! grep -q wrt /etc/os-release ; then
+echo 1 > /proc/sys/net/core/bpf_jit_enable
+echo 0 > /proc/sys/net/core/bpf_jit_harden
+echo 0 > /proc/sys/net/core/bpf_jit_kallsyms
+echo 264241152 > /proc/sys/net/core/bpf_jit_limit
+echo 50 > /proc/sys/net/core/busy_poll
+echo 50 > /proc/sys/net/core/busy_read
+echo $qdisc > /proc/sys/net/core/default_qdisc
+echo 64 > /proc/sys/net/core/dev_weight
+echo 1 > /proc/sys/net/core/dev_weight_rx_bias
+echo 1 > /proc/sys/net/core/dev_weight_tx_bias
+echo 0 > /proc/sys/net/core/devconf_inherit_init_net
+echo 0 > /proc/sys/net/core/fb_tunnels_only_for_init_net
+echo 0 > /proc/sys/net/core/flow_limit_cpu_bitmap
+echo 4096 > /proc/sys/net/core/flow_limit_table_len
+echo 8 > /proc/sys/net/core/gro_normal_batch
+echo 0 > /proc/sys/net/core/high_order_alloc_disable
+echo 17 > /proc/sys/net/core/max_skb_frags
+echo 10 > /proc/sys/net/core/message_burst
+echo 5 > /proc/sys/net/core/message_cost
+echo 300 > /proc/sys/net/core/netdev_budget
+echo 8000 > /proc/sys/net/core/netdev_budget_usecs
+echo 5000 > /proc/sys/net/core/netdev_max_backlog
+echo 0 > /proc/sys/net/core/netdev_tstamp_prequeue
+echo 10 > /proc/sys/net/core/netdev_unregister_timeout_secs
+echo 65536 > /proc/sys/net/core/optmem_max
+echo 1048576 > /proc/sys/net/core/rmem_default
+echo 16777216 > /proc/sys/net/core/rmem_max
+echo 0 > /proc/sys/net/core/rps_sock_flow_entries
+echo 64 > /proc/sys/net/core/skb_defer_max
+echo 1000 > /proc/sys/net/core/somaxconn
+echo 1 > /proc/sys/net/core/tstamp_allow_data
+echo 1 > /proc/sys/net/core/txrehash
+echo 0 > /proc/sys/net/core/warnings
+echo 1048576 > /proc/sys/net/core/wmem_default
+echo 16777216 > /proc/sys/net/core/wmem_max
+echo 30 > /proc/sys/net/core/xfrm_acq_expires
+echo 10 > /proc/sys/net/core/xfrm_aevent_etime
+echo 2 > /proc/sys/net/core/xfrm_aevent_rseqth
+echo 1 > /proc/sys/net/core/xfrm_larval_drop
+echo 0 > /proc/sys/net/ipv4/cipso_cache_bucket_size
+echo 0 > /proc/sys/net/ipv4/cipso_cache_enable
+echo 0 > /proc/sys/net/ipv4/cipso_rbm_optfmt
+echo 0 > /proc/sys/net/ipv4/cipso_rbm_strictvalid
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_local
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+echo 0 > /proc/sys/net/ipv4/conf/all/arp_accept
+echo 0 > /proc/sys/net/ipv4/conf/all/arp_announce
+echo 1 > /proc/sys/net/ipv4/conf/all/arp_evict_nocarrier
+echo 0 > /proc/sys/net/ipv4/conf/all/arp_filter
+echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+echo 0 > /proc/sys/net/ipv4/conf/all/arp_notify
+echo 0 > /proc/sys/net/ipv4/conf/all/bc_forwarding
+echo 0 > /proc/sys/net/ipv4/conf/all/bootp_relay
+echo 0 > /proc/sys/net/ipv4/conf/all/disable_policy
+echo 0 > /proc/sys/net/ipv4/conf/all/disable_xfrm
+echo 0 > /proc/sys/net/ipv4/conf/all/drop_gratuitous_arp
+echo 0 > /proc/sys/net/ipv4/conf/all/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv4/conf/all/force_igmp_version
+echo 1 > /proc/sys/net/ipv4/conf/all/forwarding
+echo 10000 > /proc/sys/net/ipv4/conf/all/igmpv2_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv4/conf/all/igmpv3_unsolicited_report_interval
+echo 0 > /proc/sys/net/ipv4/conf/all/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv4/conf/all/log_martians
+echo 0 > /proc/sys/net/ipv4/conf/all/medium_id
+echo 0 > /proc/sys/net/ipv4/conf/all/promote_secondaries
+echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp
+echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp_pvlan
+echo 0 > /proc/sys/net/ipv4/conf/all/route_localnet
+echo 1 > /proc/sys/net/ipv4/conf/all/rp_filter
+echo 0 > /proc/sys/net/ipv4/conf/all/secure_redirects
+echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
+echo 1 > /proc/sys/net/ipv4/conf/all/shared_media
+echo 0 > /proc/sys/net/ipv4/conf/all/src_valid_mark
+echo 0 > /proc/sys/net/ipv4/conf/all/tag
+echo 0 > /proc/sys/net/ipv4/conf/default/accept_local
+echo 0 > /proc/sys/net/ipv4/conf/default/accept_redirects
+echo 1 > /proc/sys/net/ipv4/conf/default/accept_source_route
+echo 0 > /proc/sys/net/ipv4/conf/default/arp_accept
+echo 0 > /proc/sys/net/ipv4/conf/default/arp_announce
+echo 1 > /proc/sys/net/ipv4/conf/default/arp_evict_nocarrier
+echo 0 > /proc/sys/net/ipv4/conf/default/arp_filter
+echo 1 > /proc/sys/net/ipv4/conf/default/arp_ignore
+echo 0 > /proc/sys/net/ipv4/conf/default/arp_notify
+echo 0 > /proc/sys/net/ipv4/conf/default/bc_forwarding
+echo 0 > /proc/sys/net/ipv4/conf/default/bootp_relay
+echo 0 > /proc/sys/net/ipv4/conf/default/disable_policy
+echo 0 > /proc/sys/net/ipv4/conf/default/disable_xfrm
+echo 0 > /proc/sys/net/ipv4/conf/default/drop_gratuitous_arp
+echo 0 > /proc/sys/net/ipv4/conf/default/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv4/conf/default/force_igmp_version
+echo 1 > /proc/sys/net/ipv4/conf/default/forwarding
+echo 10000 > /proc/sys/net/ipv4/conf/default/igmpv2_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv4/conf/default/igmpv3_unsolicited_report_interval
+echo 0 > /proc/sys/net/ipv4/conf/default/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv4/conf/default/log_martians
+echo 0 > /proc/sys/net/ipv4/conf/default/medium_id
+echo 0 > /proc/sys/net/ipv4/conf/default/promote_secondaries
+echo 0 > /proc/sys/net/ipv4/conf/default/proxy_arp
+echo 0 > /proc/sys/net/ipv4/conf/default/proxy_arp_pvlan
+echo 0 > /proc/sys/net/ipv4/conf/default/route_localnet
+echo 1 > /proc/sys/net/ipv4/conf/default/rp_filter
+echo 0 > /proc/sys/net/ipv4/conf/default/secure_redirects
+echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects
+echo 1 > /proc/sys/net/ipv4/conf/default/shared_media
+echo 0 > /proc/sys/net/ipv4/conf/default/src_valid_mark
+echo 0 > /proc/sys/net/ipv4/conf/default/tag
+echo 0 > /proc/sys/net/ipv4/conf/eth0/accept_local
+echo 0 > /proc/sys/net/ipv4/conf/eth0/accept_redirects
+echo 1 > /proc/sys/net/ipv4/conf/eth0/accept_source_route
+echo 0 > /proc/sys/net/ipv4/conf/eth0/arp_accept
+echo 0 > /proc/sys/net/ipv4/conf/eth0/arp_announce
+echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_evict_nocarrier
+echo 0 > /proc/sys/net/ipv4/conf/eth0/arp_filter
+echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore
+echo 0 > /proc/sys/net/ipv4/conf/eth0/arp_notify
+echo 0 > /proc/sys/net/ipv4/conf/eth0/bc_forwarding
+echo 0 > /proc/sys/net/ipv4/conf/eth0/bootp_relay
+echo 0 > /proc/sys/net/ipv4/conf/eth0/disable_policy
+echo 0 > /proc/sys/net/ipv4/conf/eth0/disable_xfrm
+echo 0 > /proc/sys/net/ipv4/conf/eth0/drop_gratuitous_arp
+echo 0 > /proc/sys/net/ipv4/conf/eth0/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv4/conf/eth0/force_igmp_version
+echo 1 > /proc/sys/net/ipv4/conf/eth0/forwarding
+echo 10000 > /proc/sys/net/ipv4/conf/eth0/igmpv2_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv4/conf/eth0/igmpv3_unsolicited_report_interval
+echo 0 > /proc/sys/net/ipv4/conf/eth0/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv4/conf/eth0/log_martians
+echo 0 > /proc/sys/net/ipv4/conf/eth0/medium_id
+echo 0 > /proc/sys/net/ipv4/conf/eth0/promote_secondaries
+echo 0 > /proc/sys/net/ipv4/conf/eth0/proxy_arp
+echo 0 > /proc/sys/net/ipv4/conf/eth0/proxy_arp_pvlan
+echo 0 > /proc/sys/net/ipv4/conf/eth0/route_localnet
+echo 2 > /proc/sys/net/ipv4/conf/eth0/rp_filter
+echo 0 > /proc/sys/net/ipv4/conf/eth0/secure_redirects
+echo 0 > /proc/sys/net/ipv4/conf/eth0/send_redirects
+echo 1 > /proc/sys/net/ipv4/conf/eth0/shared_media
+echo 0 > /proc/sys/net/ipv4/conf/eth0/src_valid_mark
+echo 0 > /proc/sys/net/ipv4/conf/eth0/tag
+echo 0 > /proc/sys/net/ipv4/conf/lo/accept_local
+echo 1 > /proc/sys/net/ipv4/conf/lo/accept_redirects
+echo 1 > /proc/sys/net/ipv4/conf/lo/accept_source_route
+echo 0 > /proc/sys/net/ipv4/conf/lo/arp_accept
+echo 0 > /proc/sys/net/ipv4/conf/lo/arp_announce
+echo 1 > /proc/sys/net/ipv4/conf/lo/arp_evict_nocarrier
+echo 0 > /proc/sys/net/ipv4/conf/lo/arp_filter
+echo 0 > /proc/sys/net/ipv4/conf/lo/arp_ignore
+echo 0 > /proc/sys/net/ipv4/conf/lo/arp_notify
+echo 0 > /proc/sys/net/ipv4/conf/lo/bc_forwarding
+echo 0 > /proc/sys/net/ipv4/conf/lo/bootp_relay
+echo 1 > /proc/sys/net/ipv4/conf/lo/disable_policy
+echo 1 > /proc/sys/net/ipv4/conf/lo/disable_xfrm
+echo 0 > /proc/sys/net/ipv4/conf/lo/drop_gratuitous_arp
+echo 0 > /proc/sys/net/ipv4/conf/lo/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv4/conf/lo/force_igmp_version
+echo 1 > /proc/sys/net/ipv4/conf/lo/forwarding
+echo 10000 > /proc/sys/net/ipv4/conf/lo/igmpv2_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv4/conf/lo/igmpv3_unsolicited_report_interval
+echo 0 > /proc/sys/net/ipv4/conf/lo/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv4/conf/lo/log_martians
+echo 0 > /proc/sys/net/ipv4/conf/lo/medium_id
+echo 0 > /proc/sys/net/ipv4/conf/lo/promote_secondaries
+echo 0 > /proc/sys/net/ipv4/conf/lo/proxy_arp
+echo 0 > /proc/sys/net/ipv4/conf/lo/proxy_arp_pvlan
+echo 0 > /proc/sys/net/ipv4/conf/lo/route_localnet
+echo 0 > /proc/sys/net/ipv4/conf/lo/rp_filter
+echo 1 > /proc/sys/net/ipv4/conf/lo/secure_redirects
+echo 1 > /proc/sys/net/ipv4/conf/lo/send_redirects
+echo 1 > /proc/sys/net/ipv4/conf/lo/shared_media
+echo 0 > /proc/sys/net/ipv4/conf/lo/src_valid_mark
+echo 0 > /proc/sys/net/ipv4/conf/lo/tag
+echo 7 > /proc/sys/net/ipv4/fib_multipath_hash_fields
+echo 0 > /proc/sys/net/ipv4/fib_multipath_hash_policy
+echo 0 > /proc/sys/net/ipv4/fib_multipath_use_neigh
+echo 0 > /proc/sys/net/ipv4/fib_notify_on_flag_change
+echo 524288 > /proc/sys/net/ipv4/fib_sync_mem
+echo 0 > /proc/sys/net/ipv4/fwmark_reflect
+echo 0 > /proc/sys/net/ipv4/icmp_echo_enable_probe
+echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+echo 0 > /proc/sys/net/ipv4/icmp_errors_use_inbound_ifaddr
+echo 1 > /proc/sys/net/ipv4/icmp_ignore_bogus_error_responses
+echo 0 > /proc/sys/net/ipv4/icmp_msgs_burst
+echo 0 > /proc/sys/net/ipv4/icmp_msgs_per_sec
+echo 0 > /proc/sys/net/ipv4/icmp_ratelimit
+echo 0 > /proc/sys/net/ipv4/icmp_ratemask
+echo 0 > /proc/sys/net/ipv4/igmp_link_local_mcast_reports
+echo 100 > /proc/sys/net/ipv4/igmp_max_memberships
+echo 10 > /proc/sys/net/ipv4/igmp_max_msf
+echo 2 > /proc/sys/net/ipv4/igmp_qrv
+echo 600 > /proc/sys/net/ipv4/inet_peer_maxttl
+echo 120 > /proc/sys/net/ipv4/inet_peer_minttl
+echo 65664 > /proc/sys/net/ipv4/inet_peer_threshold
+echo 0 > /proc/sys/net/ipv4/ip_autobind_reuse
+echo 64 > /proc/sys/net/ipv4/ip_default_ttl
+echo 0 > /proc/sys/net/ipv4/ip_dynaddr
+echo 1 > /proc/sys/net/ipv4/ip_early_demux
+echo 1 > /proc/sys/net/ipv4/ip_forward
+echo 1 > /proc/sys/net/ipv4/ip_forward_update_priority
+echo 0 > /proc/sys/net/ipv4/ip_forward_use_pmtu
+echo 30000 > /proc/sys/net/ipv4/ip_local_port_range
+echo 0 > /proc/sys/net/ipv4/ip_no_pmtu_disc
+echo 0 > /proc/sys/net/ipv4/ip_nonlocal_bind
+echo 1024 > /proc/sys/net/ipv4/ip_unprivileged_port_start
+echo 4194304 > /proc/sys/net/ipv4/ipfrag_high_thresh
+echo 446464 > /proc/sys/net/ipv4/ipfrag_low_thresh
+echo 64 > /proc/sys/net/ipv4/ipfrag_max_dist
+echo 0 > /proc/sys/net/ipv4/ipfrag_secret_interval
+echo 24 > /proc/sys/net/ipv4/ipfrag_time
+echo 100 > /proc/sys/net/ipv4/neigh/default/anycast_delay
+echo 0 > /proc/sys/net/ipv4/neigh/default/app_solicit
+echo 30 > /proc/sys/net/ipv4/neigh/default/base_reachable_time
+echo 30000 > /proc/sys/net/ipv4/neigh/default/base_reachable_time_ms
+echo 5 > /proc/sys/net/ipv4/neigh/default/delay_first_probe_time
+echo 30 > /proc/sys/net/ipv4/neigh/default/gc_interval
+echo 60 > /proc/sys/net/ipv4/neigh/default/gc_stale_time
+echo 32 > /proc/sys/net/ipv4/neigh/default/gc_thresh1
+echo 1024 > /proc/sys/net/ipv4/neigh/default/gc_thresh2
+echo 2048 > /proc/sys/net/ipv4/neigh/default/gc_thresh3
+echo 5000 > /proc/sys/net/ipv4/neigh/default/interval_probe_time_ms
+echo 100 > /proc/sys/net/ipv4/neigh/default/locktime
+echo 0 > /proc/sys/net/ipv4/neigh/default/mcast_resolicit
+echo 3 > /proc/sys/net/ipv4/neigh/default/mcast_solicit
+echo 80 > /proc/sys/net/ipv4/neigh/default/proxy_delay
+echo 64 > /proc/sys/net/ipv4/neigh/default/proxy_qlen
+echo 100 > /proc/sys/net/ipv4/neigh/default/retrans_time
+echo 1000 > /proc/sys/net/ipv4/neigh/default/retrans_time_ms
+echo 3 > /proc/sys/net/ipv4/neigh/default/ucast_solicit
+echo 101 > /proc/sys/net/ipv4/neigh/default/unres_qlen
+echo 212992 > /proc/sys/net/ipv4/neigh/default/unres_qlen_bytes
+echo 100 > /proc/sys/net/ipv4/neigh/eth0/anycast_delay
+echo 0 > /proc/sys/net/ipv4/neigh/eth0/app_solicit
+echo 30 > /proc/sys/net/ipv4/neigh/eth0/base_reachable_time
+echo 30000 > /proc/sys/net/ipv4/neigh/eth0/base_reachable_time_ms
+echo 5 > /proc/sys/net/ipv4/neigh/eth0/delay_first_probe_time
+echo 60 > /proc/sys/net/ipv4/neigh/eth0/gc_stale_time
+echo 5000 > /proc/sys/net/ipv4/neigh/eth0/interval_probe_time_ms
+echo 100 > /proc/sys/net/ipv4/neigh/eth0/locktime
+echo 0 > /proc/sys/net/ipv4/neigh/eth0/mcast_resolicit
+echo 3 > /proc/sys/net/ipv4/neigh/eth0/mcast_solicit
+echo 80 > /proc/sys/net/ipv4/neigh/eth0/proxy_delay
+echo 64 > /proc/sys/net/ipv4/neigh/eth0/proxy_qlen
+echo 100 > /proc/sys/net/ipv4/neigh/eth0/retrans_time
+echo 1000 > /proc/sys/net/ipv4/neigh/eth0/retrans_time_ms
+echo 3 > /proc/sys/net/ipv4/neigh/eth0/ucast_solicit
+echo 101 > /proc/sys/net/ipv4/neigh/eth0/unres_qlen
+echo 212992 > /proc/sys/net/ipv4/neigh/eth0/unres_qlen_bytes
+echo 100 > /proc/sys/net/ipv4/neigh/lo/anycast_delay
+echo 0 > /proc/sys/net/ipv4/neigh/lo/app_solicit
+echo 30 > /proc/sys/net/ipv4/neigh/lo/base_reachable_time
+echo 30000 > /proc/sys/net/ipv4/neigh/lo/base_reachable_time_ms
+echo 5 > /proc/sys/net/ipv4/neigh/lo/delay_first_probe_time
+echo 60 > /proc/sys/net/ipv4/neigh/lo/gc_stale_time
+echo 5000 > /proc/sys/net/ipv4/neigh/lo/interval_probe_time_ms
+echo 100 > /proc/sys/net/ipv4/neigh/lo/locktime
+echo 0 > /proc/sys/net/ipv4/neigh/lo/mcast_resolicit
+echo 3 > /proc/sys/net/ipv4/neigh/lo/mcast_solicit
+echo 80 > /proc/sys/net/ipv4/neigh/lo/proxy_delay
+echo 64 > /proc/sys/net/ipv4/neigh/lo/proxy_qlen
+echo 100 > /proc/sys/net/ipv4/neigh/lo/retrans_time
+echo 1000 > /proc/sys/net/ipv4/neigh/lo/retrans_time_ms
+echo 3 > /proc/sys/net/ipv4/neigh/lo/ucast_solicit
+echo 101 > /proc/sys/net/ipv4/neigh/lo/unres_qlen
+echo 212992 > /proc/sys/net/ipv4/neigh/lo/unres_qlen_bytes
+echo 1 > /proc/sys/net/ipv4/nexthop_compat_mode
+echo 100 > /proc/sys/net/ipv4/ping_group_range
+echo 1 > /proc/sys/net/ipv4/raw_l3mdev_accept
+echo 1250 > /proc/sys/net/ipv4/route/error_burst
+echo 250 > /proc/sys/net/ipv4/route/error_cost
+echo 8 > /proc/sys/net/ipv4/route/gc_elasticity
+echo 60 > /proc/sys/net/ipv4/route/gc_interval
+echo 0 > /proc/sys/net/ipv4/route/gc_min_interval
+echo 500 > /proc/sys/net/ipv4/route/gc_min_interval_ms
+echo -1 > /proc/sys/net/ipv4/route/gc_thresh
+echo 300 > /proc/sys/net/ipv4/route/gc_timeout
+echo 2147483647 > /proc/sys/net/ipv4/route/max_size
+echo 256 > /proc/sys/net/ipv4/route/min_adv_mss
+echo 552 > /proc/sys/net/ipv4/route/min_pmtu
+echo 600 > /proc/sys/net/ipv4/route/mtu_expires
+echo 5 > /proc/sys/net/ipv4/route/redirect_load
+echo 9 > /proc/sys/net/ipv4/route/redirect_number
+echo 5120 > /proc/sys/net/ipv4/route/redirect_silence
+echo 0 > /proc/sys/net/ipv4/tcp_abort_on_overflow
+echo 1 > /proc/sys/net/ipv4/tcp_adv_win_scale
+echo reno > /proc/sys/net/ipv4/tcp_allowed_congestion_control
+echo 31 > /proc/sys/net/ipv4/tcp_app_win
+echo 0 > /proc/sys/net/ipv4/tcp_autocorking
+echo 1024 > /proc/sys/net/ipv4/tcp_base_mss
+echo 2147483647 > /proc/sys/net/ipv4/tcp_challenge_ack_limit
+echo 0 > /proc/sys/net/ipv4/tcp_child_ehash_entries
+echo 1000000 > /proc/sys/net/ipv4/tcp_comp_sack_delay_ns
+echo 44 > /proc/sys/net/ipv4/tcp_comp_sack_nr
+echo 100000 > /proc/sys/net/ipv4/tcp_comp_sack_slack_ns
+echo $tcp_con > /proc/sys/net/ipv4/tcp_congestion_control
+echo 1 > /proc/sys/net/ipv4/tcp_dsack
+echo 1 > /proc/sys/net/ipv4/tcp_early_demux
+echo 2 > /proc/sys/net/ipv4/tcp_early_retrans
+echo 1 > /proc/sys/net/ipv4/tcp_ecn
+echo 1 > /proc/sys/net/ipv4/tcp_ecn_fallback
+echo 1 > /proc/sys/net/ipv4/tcp_fack
+echo 3 > /proc/sys/net/ipv4/tcp_fastopen
+echo 0 > /proc/sys/net/ipv4/tcp_fastopen_blackhole_timeout_sec
+echo 15 > /proc/sys/net/ipv4/tcp_fin_timeout
+echo 1 > /proc/sys/net/ipv4/tcp_frto
+echo 0 > /proc/sys/net/ipv4/tcp_fwmark_accept
+echo 500 > /proc/sys/net/ipv4/tcp_invalid_ratelimit
+echo 15 > /proc/sys/net/ipv4/tcp_keepalive_intvl
+echo 5 > /proc/sys/net/ipv4/tcp_keepalive_probes
+echo 300 > /proc/sys/net/ipv4/tcp_keepalive_time
+echo 0 > /proc/sys/net/ipv4/tcp_l3mdev_accept
+echo 1048576 > /proc/sys/net/ipv4/tcp_limit_output_bytes
+echo 1 > /proc/sys/net/ipv4/tcp_low_latency
+echo 16384 > /proc/sys/net/ipv4/tcp_max_orphans
+echo 300 > /proc/sys/net/ipv4/tcp_max_reordering
+echo 8096 > /proc/sys/net/ipv4/tcp_max_syn_backlog
+echo 2000000 > /proc/sys/net/ipv4/tcp_max_tw_buckets
+echo 22740 > /proc/sys/net/ipv4/tcp_mem
+echo 0 > /proc/sys/net/ipv4/tcp_migrate_req
+echo 300 > /proc/sys/net/ipv4/tcp_min_rtt_wlen
+echo 48 > /proc/sys/net/ipv4/tcp_min_snd_mss
+echo 2 > /proc/sys/net/ipv4/tcp_min_tso_segs
+echo 1 > /proc/sys/net/ipv4/tcp_moderate_rcvbuf
+echo 48 > /proc/sys/net/ipv4/tcp_mtu_probe_floor
+echo 1 > /proc/sys/net/ipv4/tcp_mtu_probing
+echo 1 > /proc/sys/net/ipv4/tcp_no_metrics_save
+echo 1 > /proc/sys/net/ipv4/tcp_no_ssthresh_metrics_save
+echo 4294967295 > /proc/sys/net/ipv4/tcp_notsent_lowat
+echo 0 > /proc/sys/net/ipv4/tcp_orphan_retries
+echo 120 > /proc/sys/net/ipv4/tcp_pacing_ca_ratio
+echo 200 > /proc/sys/net/ipv4/tcp_pacing_ss_ratio
+echo 1800 > /proc/sys/net/ipv4/tcp_probe_interval
+echo 8 > /proc/sys/net/ipv4/tcp_probe_threshold
+echo 1 > /proc/sys/net/ipv4/tcp_recovery
+echo 0 > /proc/sys/net/ipv4/tcp_reflect_tos
+echo 3 > /proc/sys/net/ipv4/tcp_reordering
+echo 1 > /proc/sys/net/ipv4/tcp_retrans_collapse
+echo 3 > /proc/sys/net/ipv4/tcp_retries1
+echo 15 > /proc/sys/net/ipv4/tcp_retries2
+echo 1 > /proc/sys/net/ipv4/tcp_rfc1337
+echo 4096 > /proc/sys/net/ipv4/tcp_rmem
+echo 0 > /proc/sys/net/ipv4/tcp_sack
+echo 0 > /proc/sys/net/ipv4/tcp_slow_start_after_idle
+echo 0 > /proc/sys/net/ipv4/tcp_stdurg
+echo 2 > /proc/sys/net/ipv4/tcp_syn_retries
+echo 2 > /proc/sys/net/ipv4/tcp_synack_retries
+echo 0 > /proc/sys/net/ipv4/tcp_syncookies
+echo 0 > /proc/sys/net/ipv4/tcp_thin_linear_timeouts
+echo 0 > /proc/sys/net/ipv4/tcp_timestamps
+echo 0 > /proc/sys/net/ipv4/tcp_tso_rtt_log
+echo 3 > /proc/sys/net/ipv4/tcp_tso_win_divisor
+echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
+echo 1 > /proc/sys/net/ipv4/tcp_window_scaling
+echo 4096 > /proc/sys/net/ipv4/tcp_wmem
+echo 0 > /proc/sys/net/ipv4/tcp_workaround_signed_windows
+echo 1 > /proc/sys/net/ipv4/udp_early_demux
+echo 0 > /proc/sys/net/ipv4/udp_l3mdev_accept
+echo 45480 > /proc/sys/net/ipv4/udp_mem
+echo 4096 > /proc/sys/net/ipv4/udp_rmem_min
+echo 8192 > /proc/sys/net/ipv4/udp_wmem_min
+echo 32768 > /proc/sys/net/ipv4/xfrm4_gc_thresh
+echo 0 > /proc/sys/net/ipv6/anycast_src_echo_reply
+echo 1 > /proc/sys/net/ipv6/auto_flowlabels
+echo 0 > /proc/sys/net/ipv6/bindv6only
+echo 0 > /proc/sys/net/ipv6/calipso_cache_bucket_size
+echo 0 > /proc/sys/net/ipv6/calipso_cache_enable
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_dad
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_ra
+echo 1 > /proc/sys/net/ipv6/conf/all/accept_ra_defrtr
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_ra_from_local
+echo 1 > /proc/sys/net/ipv6/conf/all/accept_ra_min_hop_limit
+echo 1 > /proc/sys/net/ipv6/conf/all/accept_ra_mtu
+echo 1 > /proc/sys/net/ipv6/conf/all/accept_ra_pinfo
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_ra_rt_info_max_plen
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_ra_rt_info_min_plen
+echo 1 > /proc/sys/net/ipv6/conf/all/accept_ra_rtr_pref
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_redirects
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_source_route
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_untracked_na
+echo 0 > /proc/sys/net/ipv6/conf/all/addr_gen_mode
+echo 1 > /proc/sys/net/ipv6/conf/all/autoconf
+echo 1 > /proc/sys/net/ipv6/conf/all/dad_transmits
+echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6
+echo 0 > /proc/sys/net/ipv6/conf/all/disable_policy
+echo 0 > /proc/sys/net/ipv6/conf/all/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv6/conf/all/drop_unsolicited_na
+echo 1 > /proc/sys/net/ipv6/conf/all/enhanced_dad
+echo 0 > /proc/sys/net/ipv6/conf/all/force_mld_version
+echo 0 > /proc/sys/net/ipv6/conf/all/force_tllao
+echo 0 > /proc/sys/net/ipv6/conf/all/forwarding
+echo 64 > /proc/sys/net/ipv6/conf/all/hop_limit
+echo 0 > /proc/sys/net/ipv6/conf/all/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv6/conf/all/ioam6_enabled
+echo 65535 > /proc/sys/net/ipv6/conf/all/ioam6_id
+echo 4294967295 > /proc/sys/net/ipv6/conf/all/ioam6_id_wide
+echo 0 > /proc/sys/net/ipv6/conf/all/keep_addr_on_down
+echo 16 > /proc/sys/net/ipv6/conf/all/max_addresses
+echo 600 > /proc/sys/net/ipv6/conf/all/max_desync_factor
+echo 10000 > /proc/sys/net/ipv6/conf/all/mldv1_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv6/conf/all/mldv2_unsolicited_report_interval
+echo 1280 > /proc/sys/net/ipv6/conf/all/mtu
+echo 1 > /proc/sys/net/ipv6/conf/all/ndisc_evict_nocarrier
+echo 0 > /proc/sys/net/ipv6/conf/all/ndisc_notify
+echo 0 > /proc/sys/net/ipv6/conf/all/ndisc_tclass
+echo 0 > /proc/sys/net/ipv6/conf/all/optimistic_dad
+echo 0 > /proc/sys/net/ipv6/conf/all/proxy_ndp
+echo 1024 > /proc/sys/net/ipv6/conf/all/ra_defrtr_metric
+echo 3 > /proc/sys/net/ipv6/conf/all/regen_max_retry
+echo 60 > /proc/sys/net/ipv6/conf/all/router_probe_interval
+echo 1 > /proc/sys/net/ipv6/conf/all/router_solicitation_delay
+echo 4 > /proc/sys/net/ipv6/conf/all/router_solicitation_interval
+echo 3600 > /proc/sys/net/ipv6/conf/all/router_solicitation_max_interval
+echo -1 > /proc/sys/net/ipv6/conf/all/router_solicitations
+echo 0 > /proc/sys/net/ipv6/conf/all/rpl_seg_enabled
+echo 0 > /proc/sys/net/ipv6/conf/all/seg6_enabled
+echo 0 > /proc/sys/net/ipv6/conf/all/seg6_require_hmac
+echo 1 > /proc/sys/net/ipv6/conf/all/suppress_frag_ndisc
+echo 86400 > /proc/sys/net/ipv6/conf/all/temp_prefered_lft
+echo 604800 > /proc/sys/net/ipv6/conf/all/temp_valid_lft
+echo 0 > /proc/sys/net/ipv6/conf/all/use_oif_addrs_only
+echo 0 > /proc/sys/net/ipv6/conf/all/use_optimistic
+echo 0 > /proc/sys/net/ipv6/conf/all/use_tempaddr
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_dad
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_ra
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_ra_defrtr
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_ra_from_local
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_ra_min_hop_limit
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_ra_mtu
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_ra_pinfo
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_ra_rt_info_max_plen
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_ra_rt_info_min_plen
+echo 1 > /proc/sys/net/ipv6/conf/default/accept_ra_rtr_pref
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_redirects
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_source_route
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_untracked_na
+echo 0 > /proc/sys/net/ipv6/conf/default/addr_gen_mode
+echo 1 > /proc/sys/net/ipv6/conf/default/autoconf
+echo 1 > /proc/sys/net/ipv6/conf/default/dad_transmits
+echo 1 > /proc/sys/net/ipv6/conf/default/disable_ipv6
+echo 0 > /proc/sys/net/ipv6/conf/default/disable_policy
+echo 0 > /proc/sys/net/ipv6/conf/default/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv6/conf/default/drop_unsolicited_na
+echo 1 > /proc/sys/net/ipv6/conf/default/enhanced_dad
+echo 0 > /proc/sys/net/ipv6/conf/default/force_mld_version
+echo 0 > /proc/sys/net/ipv6/conf/default/force_tllao
+echo 0 > /proc/sys/net/ipv6/conf/default/forwarding
+echo 64 > /proc/sys/net/ipv6/conf/default/hop_limit
+echo 0 > /proc/sys/net/ipv6/conf/default/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv6/conf/default/ioam6_enabled
+echo 65535 > /proc/sys/net/ipv6/conf/default/ioam6_id
+echo 4294967295 > /proc/sys/net/ipv6/conf/default/ioam6_id_wide
+echo 0 > /proc/sys/net/ipv6/conf/default/keep_addr_on_down
+echo 16 > /proc/sys/net/ipv6/conf/default/max_addresses
+echo 600 > /proc/sys/net/ipv6/conf/default/max_desync_factor
+echo 10000 > /proc/sys/net/ipv6/conf/default/mldv1_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv6/conf/default/mldv2_unsolicited_report_interval
+echo 1280 > /proc/sys/net/ipv6/conf/default/mtu
+echo 1 > /proc/sys/net/ipv6/conf/default/ndisc_evict_nocarrier
+echo 0 > /proc/sys/net/ipv6/conf/default/ndisc_notify
+echo 0 > /proc/sys/net/ipv6/conf/default/ndisc_tclass
+echo 0 > /proc/sys/net/ipv6/conf/default/optimistic_dad
+echo 0 > /proc/sys/net/ipv6/conf/default/proxy_ndp
+echo 1024 > /proc/sys/net/ipv6/conf/default/ra_defrtr_metric
+echo 3 > /proc/sys/net/ipv6/conf/default/regen_max_retry
+echo 60 > /proc/sys/net/ipv6/conf/default/router_probe_interval
+echo 1 > /proc/sys/net/ipv6/conf/default/router_solicitation_delay
+echo 4 > /proc/sys/net/ipv6/conf/default/router_solicitation_interval
+echo 3600 > /proc/sys/net/ipv6/conf/default/router_solicitation_max_interval
+echo -1 > /proc/sys/net/ipv6/conf/default/router_solicitations
+echo 0 > /proc/sys/net/ipv6/conf/default/rpl_seg_enabled
+echo 0 > /proc/sys/net/ipv6/conf/default/seg6_enabled
+echo 0 > /proc/sys/net/ipv6/conf/default/seg6_require_hmac
+echo 1 > /proc/sys/net/ipv6/conf/default/suppress_frag_ndisc
+echo 86400 > /proc/sys/net/ipv6/conf/default/temp_prefered_lft
+echo 604800 > /proc/sys/net/ipv6/conf/default/temp_valid_lft
+echo 0 > /proc/sys/net/ipv6/conf/default/use_oif_addrs_only
+echo 0 > /proc/sys/net/ipv6/conf/default/use_optimistic
+echo 0 > /proc/sys/net/ipv6/conf/default/use_tempaddr
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_dad
+echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_ra
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_ra_defrtr
+echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_ra_from_local
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_ra_min_hop_limit
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_ra_mtu
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_ra_pinfo
+echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_ra_rt_info_max_plen
+echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_ra_rt_info_min_plen
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_ra_rtr_pref
+echo 1 > /proc/sys/net/ipv6/conf/eth0/accept_redirects
+echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_source_route
+echo 0 > /proc/sys/net/ipv6/conf/eth0/accept_untracked_na
+echo 1 > /proc/sys/net/ipv6/conf/eth0/addr_gen_mode
+echo 1 > /proc/sys/net/ipv6/conf/eth0/autoconf
+echo 1 > /proc/sys/net/ipv6/conf/eth0/dad_transmits
+echo 1 > /proc/sys/net/ipv6/conf/eth0/disable_ipv6
+echo 0 > /proc/sys/net/ipv6/conf/eth0/disable_policy
+echo 0 > /proc/sys/net/ipv6/conf/eth0/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv6/conf/eth0/drop_unsolicited_na
+echo 1 > /proc/sys/net/ipv6/conf/eth0/enhanced_dad
+echo 0 > /proc/sys/net/ipv6/conf/eth0/force_mld_version
+echo 0 > /proc/sys/net/ipv6/conf/eth0/force_tllao
+echo 0 > /proc/sys/net/ipv6/conf/eth0/forwarding
+echo 64 > /proc/sys/net/ipv6/conf/eth0/hop_limit
+echo 0 > /proc/sys/net/ipv6/conf/eth0/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv6/conf/eth0/ioam6_enabled
+echo 65535 > /proc/sys/net/ipv6/conf/eth0/ioam6_id
+echo 4294967295 > /proc/sys/net/ipv6/conf/eth0/ioam6_id_wide
+echo 0 > /proc/sys/net/ipv6/conf/eth0/keep_addr_on_down
+echo 16 > /proc/sys/net/ipv6/conf/eth0/max_addresses
+echo 600 > /proc/sys/net/ipv6/conf/eth0/max_desync_factor
+echo 10000 > /proc/sys/net/ipv6/conf/eth0/mldv1_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv6/conf/eth0/mldv2_unsolicited_report_interval
+echo 1500 > /proc/sys/net/ipv6/conf/eth0/mtu
+echo 1 > /proc/sys/net/ipv6/conf/eth0/ndisc_evict_nocarrier
+echo 0 > /proc/sys/net/ipv6/conf/eth0/ndisc_notify
+echo 0 > /proc/sys/net/ipv6/conf/eth0/ndisc_tclass
+echo 0 > /proc/sys/net/ipv6/conf/eth0/optimistic_dad
+echo 0 > /proc/sys/net/ipv6/conf/eth0/proxy_ndp
+echo 1024 > /proc/sys/net/ipv6/conf/eth0/ra_defrtr_metric
+echo 3 > /proc/sys/net/ipv6/conf/eth0/regen_max_retry
+echo 60 > /proc/sys/net/ipv6/conf/eth0/router_probe_interval
+echo 1 > /proc/sys/net/ipv6/conf/eth0/router_solicitation_delay
+echo 4 > /proc/sys/net/ipv6/conf/eth0/router_solicitation_interval
+echo 3600 > /proc/sys/net/ipv6/conf/eth0/router_solicitation_max_interval
+echo -1 > /proc/sys/net/ipv6/conf/eth0/router_solicitations
+echo 0 > /proc/sys/net/ipv6/conf/eth0/rpl_seg_enabled
+echo 0 > /proc/sys/net/ipv6/conf/eth0/seg6_enabled
+echo 0 > /proc/sys/net/ipv6/conf/eth0/seg6_require_hmac
+echo 1 > /proc/sys/net/ipv6/conf/eth0/suppress_frag_ndisc
+echo 86400 > /proc/sys/net/ipv6/conf/eth0/temp_prefered_lft
+echo 604800 > /proc/sys/net/ipv6/conf/eth0/temp_valid_lft
+echo 0 > /proc/sys/net/ipv6/conf/eth0/use_oif_addrs_only
+echo 0 > /proc/sys/net/ipv6/conf/eth0/use_optimistic
+echo 0 > /proc/sys/net/ipv6/conf/eth0/use_tempaddr
+echo -1 > /proc/sys/net/ipv6/conf/lo/accept_dad
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra_defrtr
+echo 0 > /proc/sys/net/ipv6/conf/lo/accept_ra_from_local
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra_min_hop_limit
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra_mtu
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra_pinfo
+echo 0 > /proc/sys/net/ipv6/conf/lo/accept_ra_rt_info_max_plen
+echo 0 > /proc/sys/net/ipv6/conf/lo/accept_ra_rt_info_min_plen
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_ra_rtr_pref
+echo 1 > /proc/sys/net/ipv6/conf/lo/accept_redirects
+echo 0 > /proc/sys/net/ipv6/conf/lo/accept_source_route
+echo 0 > /proc/sys/net/ipv6/conf/lo/accept_untracked_na
+echo 0 > /proc/sys/net/ipv6/conf/lo/addr_gen_mode
+echo 1 > /proc/sys/net/ipv6/conf/lo/autoconf
+echo 1 > /proc/sys/net/ipv6/conf/lo/dad_transmits
+echo 1 > /proc/sys/net/ipv6/conf/lo/disable_ipv6
+echo 0 > /proc/sys/net/ipv6/conf/lo/disable_policy
+echo 0 > /proc/sys/net/ipv6/conf/lo/drop_unicast_in_l2_multicast
+echo 0 > /proc/sys/net/ipv6/conf/lo/drop_unsolicited_na
+echo 1 > /proc/sys/net/ipv6/conf/lo/enhanced_dad
+echo 0 > /proc/sys/net/ipv6/conf/lo/force_mld_version
+echo 0 > /proc/sys/net/ipv6/conf/lo/force_tllao
+echo 0 > /proc/sys/net/ipv6/conf/lo/forwarding
+echo 64 > /proc/sys/net/ipv6/conf/lo/hop_limit
+echo 0 > /proc/sys/net/ipv6/conf/lo/ignore_routes_with_linkdown
+echo 0 > /proc/sys/net/ipv6/conf/lo/ioam6_enabled
+echo 65535 > /proc/sys/net/ipv6/conf/lo/ioam6_id
+echo 4294967295 > /proc/sys/net/ipv6/conf/lo/ioam6_id_wide
+echo 0 > /proc/sys/net/ipv6/conf/lo/keep_addr_on_down
+echo 16 > /proc/sys/net/ipv6/conf/lo/max_addresses
+echo 600 > /proc/sys/net/ipv6/conf/lo/max_desync_factor
+echo 10000 > /proc/sys/net/ipv6/conf/lo/mldv1_unsolicited_report_interval
+echo 1000 > /proc/sys/net/ipv6/conf/lo/mldv2_unsolicited_report_interval
+echo 65536 > /proc/sys/net/ipv6/conf/lo/mtu
+echo 1 > /proc/sys/net/ipv6/conf/lo/ndisc_evict_nocarrier
+echo 0 > /proc/sys/net/ipv6/conf/lo/ndisc_notify
+echo 0 > /proc/sys/net/ipv6/conf/lo/ndisc_tclass
+echo 0 > /proc/sys/net/ipv6/conf/lo/optimistic_dad
+echo 0 > /proc/sys/net/ipv6/conf/lo/proxy_ndp
+echo 1024 > /proc/sys/net/ipv6/conf/lo/ra_defrtr_metric
+echo 3 > /proc/sys/net/ipv6/conf/lo/regen_max_retry
+echo 60 > /proc/sys/net/ipv6/conf/lo/router_probe_interval
+echo 1 > /proc/sys/net/ipv6/conf/lo/router_solicitation_delay
+echo 4 > /proc/sys/net/ipv6/conf/lo/router_solicitation_interval
+echo 3600 > /proc/sys/net/ipv6/conf/lo/router_solicitation_max_interval
+echo -1 > /proc/sys/net/ipv6/conf/lo/router_solicitations
+echo 0 > /proc/sys/net/ipv6/conf/lo/rpl_seg_enabled
+echo 0 > /proc/sys/net/ipv6/conf/lo/seg6_enabled
+echo 0 > /proc/sys/net/ipv6/conf/lo/seg6_require_hmac
+echo 1 > /proc/sys/net/ipv6/conf/lo/suppress_frag_ndisc
+echo 86400 > /proc/sys/net/ipv6/conf/lo/temp_prefered_lft
+echo 604800 > /proc/sys/net/ipv6/conf/lo/temp_valid_lft
+echo 0 > /proc/sys/net/ipv6/conf/lo/use_oif_addrs_only
+echo 0 > /proc/sys/net/ipv6/conf/lo/use_optimistic
+echo -1 > /proc/sys/net/ipv6/conf/lo/use_tempaddr
+echo 7 > /proc/sys/net/ipv6/fib_multipath_hash_fields
+echo 0 > /proc/sys/net/ipv6/fib_multipath_hash_policy
+echo 0 > /proc/sys/net/ipv6/fib_notify_on_flag_change
+echo 1 > /proc/sys/net/ipv6/flowlabel_consistency
+echo 0 > /proc/sys/net/ipv6/flowlabel_reflect
+echo 0 > /proc/sys/net/ipv6/flowlabel_state_ranges
+echo 0 > /proc/sys/net/ipv6/fwmark_reflect
+echo 1 > /proc/sys/net/ipv6/icmp/echo_ignore_all
+echo 0 > /proc/sys/net/ipv6/icmp/echo_ignore_anycast
+echo 0 > /proc/sys/net/ipv6/icmp/echo_ignore_multicast
+echo 1000 > /proc/sys/net/ipv6/icmp/ratelimit
+echo 0-1,3-127 > /proc/sys/net/ipv6/icmp/ratemask
+echo 1 > /proc/sys/net/ipv6/idgen_delay
+echo 3 > /proc/sys/net/ipv6/idgen_retries
+echo 16777215 > /proc/sys/net/ipv6/ioam6_id
+echo 72057594037927935 > /proc/sys/net/ipv6/ioam6_id_wide
+echo 4194304 > /proc/sys/net/ipv6/ip6frag_high_thresh
+echo 3145728 > /proc/sys/net/ipv6/ip6frag_low_thresh
+echo 0 > /proc/sys/net/ipv6/ip6frag_secret_interval
+echo 48 > /proc/sys/net/ipv6/ip6frag_time
+echo 0 > /proc/sys/net/ipv6/ip_nonlocal_bind
+echo 2147483647 > /proc/sys/net/ipv6/max_dst_opts_length
+echo 8 > /proc/sys/net/ipv6/max_dst_opts_number
+echo 2147483647 > /proc/sys/net/ipv6/max_hbh_length
+echo 8 > /proc/sys/net/ipv6/max_hbh_opts_number
+echo 64 > /proc/sys/net/ipv6/mld_max_msf
+echo 2 > /proc/sys/net/ipv6/mld_qrv
+echo 100 > /proc/sys/net/ipv6/neigh/default/anycast_delay
+echo 0 > /proc/sys/net/ipv6/neigh/default/app_solicit
+echo 30 > /proc/sys/net/ipv6/neigh/default/base_reachable_time
+echo 30000 > /proc/sys/net/ipv6/neigh/default/base_reachable_time_ms
+echo 5 > /proc/sys/net/ipv6/neigh/default/delay_first_probe_time
+echo 30 > /proc/sys/net/ipv6/neigh/default/gc_interval
+echo 60 > /proc/sys/net/ipv6/neigh/default/gc_stale_time
+echo 128 > /proc/sys/net/ipv6/neigh/default/gc_thresh1
+echo 512 > /proc/sys/net/ipv6/neigh/default/gc_thresh2
+echo 1024 > /proc/sys/net/ipv6/neigh/default/gc_thresh3
+echo 5000 > /proc/sys/net/ipv6/neigh/default/interval_probe_time_ms
+echo 0 > /proc/sys/net/ipv6/neigh/default/locktime
+echo 0 > /proc/sys/net/ipv6/neigh/default/mcast_resolicit
+echo 3 > /proc/sys/net/ipv6/neigh/default/mcast_solicit
+echo 80 > /proc/sys/net/ipv6/neigh/default/proxy_delay
+echo 64 > /proc/sys/net/ipv6/neigh/default/proxy_qlen
+echo 250 > /proc/sys/net/ipv6/neigh/default/retrans_time
+echo 1000 > /proc/sys/net/ipv6/neigh/default/retrans_time_ms
+echo 3 > /proc/sys/net/ipv6/neigh/default/ucast_solicit
+echo 101 > /proc/sys/net/ipv6/neigh/default/unres_qlen
+echo 212992 > /proc/sys/net/ipv6/neigh/default/unres_qlen_bytes
+echo 100 > /proc/sys/net/ipv6/neigh/eth0/anycast_delay
+echo 0 > /proc/sys/net/ipv6/neigh/eth0/app_solicit
+echo 30 > /proc/sys/net/ipv6/neigh/eth0/base_reachable_time
+echo 30000 > /proc/sys/net/ipv6/neigh/eth0/base_reachable_time_ms
+echo 5 > /proc/sys/net/ipv6/neigh/eth0/delay_first_probe_time
+echo 60 > /proc/sys/net/ipv6/neigh/eth0/gc_stale_time
+echo 5000 > /proc/sys/net/ipv6/neigh/eth0/interval_probe_time_ms
+echo 0 > /proc/sys/net/ipv6/neigh/eth0/locktime
+echo 0 > /proc/sys/net/ipv6/neigh/eth0/mcast_resolicit
+echo 3 > /proc/sys/net/ipv6/neigh/eth0/mcast_solicit
+echo 80 > /proc/sys/net/ipv6/neigh/eth0/proxy_delay
+echo 64 > /proc/sys/net/ipv6/neigh/eth0/proxy_qlen
+echo 250 > /proc/sys/net/ipv6/neigh/eth0/retrans_time
+echo 1000 > /proc/sys/net/ipv6/neigh/eth0/retrans_time_ms
+echo 3 > /proc/sys/net/ipv6/neigh/eth0/ucast_solicit
+echo 101 > /proc/sys/net/ipv6/neigh/eth0/unres_qlen
+echo 212992 > /proc/sys/net/ipv6/neigh/eth0/unres_qlen_bytes
+echo 100 > /proc/sys/net/ipv6/neigh/lo/anycast_delay
+echo 0 > /proc/sys/net/ipv6/neigh/lo/app_solicit
+echo 30 > /proc/sys/net/ipv6/neigh/lo/base_reachable_time
+echo 30000 > /proc/sys/net/ipv6/neigh/lo/base_reachable_time_ms
+echo 5 > /proc/sys/net/ipv6/neigh/lo/delay_first_probe_time
+echo 60 > /proc/sys/net/ipv6/neigh/lo/gc_stale_time
+echo 5000 > /proc/sys/net/ipv6/neigh/lo/interval_probe_time_ms
+echo 0 > /proc/sys/net/ipv6/neigh/lo/locktime
+echo 0 > /proc/sys/net/ipv6/neigh/lo/mcast_resolicit
+echo 3 > /proc/sys/net/ipv6/neigh/lo/mcast_solicit
+echo 80 > /proc/sys/net/ipv6/neigh/lo/proxy_delay
+echo 64 > /proc/sys/net/ipv6/neigh/lo/proxy_qlen
+echo 250 > /proc/sys/net/ipv6/neigh/lo/retrans_time
+echo 1000 > /proc/sys/net/ipv6/neigh/lo/retrans_time_ms
+echo 3 > /proc/sys/net/ipv6/neigh/lo/ucast_solicit
+echo 101 > /proc/sys/net/ipv6/neigh/lo/unres_qlen
+echo 212992 > /proc/sys/net/ipv6/neigh/lo/unres_qlen_bytes
+echo 9 > /proc/sys/net/ipv6/route/gc_elasticity
+echo 30 > /proc/sys/net/ipv6/route/gc_interval
+echo 0 > /proc/sys/net/ipv6/route/gc_min_interval
+echo 500 > /proc/sys/net/ipv6/route/gc_min_interval_ms
+echo 1024 > /proc/sys/net/ipv6/route/gc_thresh
+echo 60 > /proc/sys/net/ipv6/route/gc_timeout
+echo 4096 > /proc/sys/net/ipv6/route/max_size
+echo 1220 > /proc/sys/net/ipv6/route/min_adv_mss
+echo 600 > /proc/sys/net/ipv6/route/mtu_expires
+echo 0 > /proc/sys/net/ipv6/route/skip_notify_on_dev_down
+echo 0 > /proc/sys/net/ipv6/seg6_flowlabel
+echo 32768 > /proc/sys/net/ipv6/xfrm6_gc_thresh
+echo 120 > /proc/sys/net/mptcp/add_addr_timeout
+echo 1 > /proc/sys/net/mptcp/allow_join_initial_addr_port
+echo 0 > /proc/sys/net/mptcp/checksum_enabled
+echo 1 > /proc/sys/net/mptcp/enabled
+echo 0 > /proc/sys/net/mptcp/pm_type
+echo 4 > /proc/sys/net/mptcp/stale_loss_cnt
+echo 16384 > /proc/sys/net/netfilter/nf_conntrack_buckets
+echo 1 > /proc/sys/net/netfilter/nf_conntrack_checksum
+echo 1 > /proc/sys/net/netfilter/nf_conntrack_dccp_loose
+echo 64 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_closereq
+echo 64 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_closing
+echo 43200 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_open
+echo 480 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_partopen
+echo 240 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_request
+echo 480 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_respond
+echo 240 > /proc/sys/net/netfilter/nf_conntrack_dccp_timeout_timewait
+echo 2 > /proc/sys/net/netfilter/nf_conntrack_events
+echo 1024 > /proc/sys/net/netfilter/nf_conntrack_expect_max
+echo 4194304 > /proc/sys/net/netfilter/nf_conntrack_frag6_high_thresh
+echo 3145728 > /proc/sys/net/netfilter/nf_conntrack_frag6_low_thresh
+echo 60 > /proc/sys/net/netfilter/nf_conntrack_frag6_timeout
+echo 600 > /proc/sys/net/netfilter/nf_conntrack_generic_timeout
+echo 30 > /proc/sys/net/netfilter/nf_conntrack_gre_timeout
+echo 180 > /proc/sys/net/netfilter/nf_conntrack_gre_timeout_stream
+echo 30 > /proc/sys/net/netfilter/nf_conntrack_icmp_timeout
+echo 30 > /proc/sys/net/netfilter/nf_conntrack_icmpv6_timeout
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_log_invalid
+echo 65536 > /proc/sys/net/netfilter/nf_conntrack_max
+echo 10 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_closed
+echo 3 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_cookie_echoed
+echo 3 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_cookie_wait
+echo 432000 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_established
+echo 210 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_heartbeat_acked
+echo 30 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_heartbeat_sent
+echo 3 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_shutdown_ack_sent
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_shutdown_recd
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_sctp_timeout_shutdown_sent
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_be_liberal
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_ignore_invalid_rst
+echo 1 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
+echo 3 > /proc/sys/net/netfilter/nf_conntrack_tcp_max_retrans
+echo 10 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_close
+echo 60 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_close_wait
+echo 432000 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_established
+echo 120 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_fin_wait
+echo 30 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_last_ack
+echo 300 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_max_retrans
+echo 60 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_syn_recv
+echo 120 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_syn_sent
+echo 120 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_time_wait
+echo 300 > /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_unacknowledged
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_timestamp
+echo 30 > /proc/sys/net/netfilter/nf_conntrack_udp_timeout
+echo 120 > /proc/sys/net/netfilter/nf_conntrack_udp_timeout_stream
+echo 30 > /proc/sys/net/netfilter/nf_flowtable_tcp_timeout
+echo 30 > /proc/sys/net/netfilter/nf_flowtable_udp_timeout
+echo 0 > /proc/sys/net/netfilter/nf_hooks_lwtunnel
+fi
+echo 0 > /proc/sys/net/netfilter/nf_conntrack_acct
+
+echo NONE > /proc/sys/net/netfilter/nf_log/0
+echo NONE > /proc/sys/net/netfilter/nf_log/1
+echo NONE > /proc/sys/net/netfilter/nf_log/10
+echo NONE > /proc/sys/net/netfilter/nf_log/2
+echo NONE > /proc/sys/net/netfilter/nf_log/3
+echo NONE > /proc/sys/net/netfilter/nf_log/4
+echo NONE > /proc/sys/net/netfilter/nf_log/5
+echo NONE > /proc/sys/net/netfilter/nf_log/6
+echo NONE > /proc/sys/net/netfilter/nf_log/7
+echo NONE > /proc/sys/net/netfilter/nf_log/8
+echo NONE > /proc/sys/net/netfilter/nf_log/9
+echo 0 > /proc/sys/net/netfilter/nf_log_all_netns
+echo 65536 > /proc/sys/net/nf_conntrack_max
+echo 512 > /proc/sys/net/unix/max_dgram_qlen
+
+#echo 7670 > /proc/sys/user/max_cgroup_namespaces
+echo 128 > /proc/sys/user/max_fanotify_groups
+echo 15849 > /proc/sys/user/max_fanotify_marks
+echo 128 > /proc/sys/user/max_inotify_instances
+echo 14905 > /proc/sys/user/max_inotify_watches
+#echo 7670 > /proc/sys/user/max_ipc_namespaces
+#echo 7670 > /proc/sys/user/max_mnt_namespaces
+#echo 7670 > /proc/sys/user/max_net_namespaces
+#echo 7670 > /proc/sys/user/max_pid_namespaces
+#echo 7670 > /proc/sys/user/max_time_namespaces
+#echo 7670 > /proc/sys/user/max_user_namespaces
+#echo 7670 > /proc/sys/user/max_uts_namespaces
+echo 8192 > /proc/sys/vm/admin_reserve_kbytes
+echo 1 > /proc/sys/vm/compact_unevictable_allowed
+echo 0 > /proc/sys/vm/compaction_proactiveness
+#echo 0 > /proc/sys/vm/dirty_background_bytes
+echo 90 > /proc/sys/vm/dirty_background_ratio
+#echo 0 > /proc/sys/vm/dirty_bytes
+echo 500 > /proc/sys/vm/dirty_expire_centisecs
+echo 90 > /proc/sys/vm/dirty_ratio
+echo 1000 > /proc/sys/vm/dirty_writeback_centisecs
+echo 43200 > /proc/sys/vm/dirtytime_expire_seconds
+echo 750 > /proc/sys/vm/extfrag_threshold
+echo 1 > /proc/sys/vm/hugetlb_optimize_vmemmap
+echo 1 > /proc/sys/vm/hugetlb_shm_group
+echo 0 > /proc/sys/vm/laptop_mode
+echo 0 > /proc/sys/vm/legacy_va_layout
+echo 8 > /proc/sys/vm/lowmem_reserve_ratio
+echo 1600000 > /proc/sys/vm/max_map_count
+echo 1 > /proc/sys/vm/memory_failure_early_kill
+echo 1 > /proc/sys/vm/memory_failure_recovery
+echo 45056 > /proc/sys/vm/min_free_kbytes
+echo 30 > /proc/sys/vm/min_slab_ratio
+echo 1 > /proc/sys/vm/min_unmapped_ratio
+echo 65536 > /proc/sys/vm/mmap_min_addr
+echo 28 > /proc/sys/vm/mmap_rnd_bits
+echo 8 > /proc/sys/vm/mmap_rnd_compat_bits
+#echo 32 > /proc/sys/vm/nr_hugepages
+#echo 32 > /proc/sys/vm/nr_hugepages_mempolicy
+echo $overcommit > /proc/sys/vm/nr_overcommit_hugepages
+echo 0 > /proc/sys/vm/numa_stat
+echo Node > /proc/sys/vm/numa_zonelist_order
+echo 1 > /proc/sys/vm/oom_dump_tasks
+echo 1 > /proc/sys/vm/oom_kill_allocating_task
+#echo 0 > /proc/sys/vm/overcommit_kbytes
+echo $overcommit > /proc/sys/vm/overcommit_memory
+echo 100 > /proc/sys/vm/overcommit_ratio
+echo 0 > /proc/sys/vm/page-cluster
+echo 1 > /proc/sys/vm/page_lock_unfairness
+echo 0 > /proc/sys/vm/panic_on_oom
+echo 0 > /proc/sys/vm/percpu_pagelist_high_fraction
+echo 60 > /proc/sys/vm/stat_interval
+echo 10 > /proc/sys/vm/swappiness
+echo 0 > /proc/sys/vm/unprivileged_userfaultfd
+echo 60896 > /proc/sys/vm/user_reserve_kbytes
+echo 50 > /proc/sys/vm/vfs_cache_pressure
+echo 15000 > /proc/sys/vm/watermark_boost_factor
+echo 200 > /proc/sys/vm/watermark_scale_factor
+echo 0 > /proc/sys/vm/zone_reclaim_mode
+
 
 #
 echo "N" > /sys/module/rt2800soc/parameters/nohwcrypt
@@ -949,6 +1960,7 @@ echo "1" > /proc/sys/dev/cnss/randomize_mac
 # general and omit debugging android, x86 and more
 /etc/init.d/syslogd stop
 sysctl dev.em.0.debug=0
+echo 0 > /proc/sys/kernel/tracepoint_printk
 echo 0 > /sys/kernel/profiling
 echo 0 > /sys/kernel/tracing/tracing_on
 echo "0 0 0 0" > /proc/sys/kernel/printk
@@ -1213,49 +2225,46 @@ echo off > /proc/sys/kernel/printk_devkmsg
 
 
 echo "5000" > /sys/power/pm_freeze_timeout
-
-
-echo "START_DEBIT" >> /sys/kernel/debug/sched/features
-echo "LAST_BUDDY" >> /sys/kernel/debug/sched/features
-echo "CACHE_HOT_BUDDY" >> /sys/kernel/debug/sched/features
-echo "NO_HRTICK" >> /sys/kernel/debug/sched/features
-echo "NO_HRTICK_DL" >> /sys/kernel/debug/sched/features
-echo "NO_DOUBLE_TICK" >> /sys/kernel/debug/sched/features
-echo "NONTASK_CAPACITY" >> /sys/kernel/debug/sched/features
-echo "NO_TTWU_QUEUE" >> /sys/kernel/debug/sched/features
-echo "NO_SIS_PROP" >> /sys/kernel/debug/sched/features
-echo "SIS_UTIL" >> /sys/kernel/debug/sched/features
-echo "NO_WARN_DOUBLE_CLOCK" >> /sys/kernel/debug/sched/features
-echo "RT_PUSH_IPI" >> /sys/kernel/debug/sched/features
-echo "NO_RT_RUNTIME_SHARE" >> /sys/kernel/debug/sched/features
-echo "LB_MIN" >> /sys/kernel/debug/sched/features
-echo "ATTACH_AGE_LOAD" >> /sys/kernel/debug/sched/features
-echo "WA_IDLE" >> /sys/kernel/debug/sched/features
-echo "WA_WEIGHT" >> /sys/kernel/debug/sched/features
-echo "WA_BIAS" >> /sys/kernel/debug/sched/features
-echo "UTIL_EST" >> /sys/kernel/debug/sched/features
-echo "UTIL_EST_FASTUP" >> /sys/kernel/debug/sched/features
-echo "NO_LATENCY_WARN" >> /sys/kernel/debug/sched/features
-echo "ALT_PERIOD" >> /sys/kernel/debug/sched/features
-echo "BASE_SLICE" >> /sys/kernel/debug/sched/features
-echo "NO_FBT_STRICT_ORDER" >> /sys/kernel/debug/sched/features
-echo "NEXT_BUDDY" >> /sys/kernel/debug/sched/features
-echo "NO_GENTLE_FAIR_SLEEPERS" >> /sys/kernel/debug/sched/features
-echo "NO_LB_BIAS" >> /sys/kernel/debug/sched/features
-echo "NO_ENERGY_AWARE" >> /sys/kernel/debug/sched/features
-echo "NO_WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched/features
-echo "NO_AFFINE_WAKEUPS" >> /sys/kernel/debug/sched/features
-echo "NO_NORMALIZED_SLEEPER" >> /sys/kernel/debug/sched/features
+# some paths changed since 5.10 so double
+# there are more than listed here though:
+# https://github.com/torvalds/linux/blob/master/kernel/sched/features.h
+schedfeatnew=/sys/kernel/debug/sched/features
+schedfeatold=/sys/kernel/debug/sched_features
+echo "START_DEBIT" >> $schedfeatnew >> $schedfeatold
+echo "LAST_BUDDY" >> $schedfeatnew >> $schedfeatold
+echo "CACHE_HOT_BUDDY" >> $schedfeatnew >> $schedfeatold
+echo "NO_HRTICK" >> $schedfeatnew >> $schedfeatold
+echo "NO_HRTICK_DL" >> $schedfeatnew >> $schedfeatold
+echo "NO_DOUBLE_TICK" >> $schedfeatnew >> $schedfeatold
+echo "NONTASK_CAPACITY" >> $schedfeatnew >> $schedfeatold
+echo "RT_RUNTIME_GREED" >> $schedfeatnew >> $schedfeatold
+echo "NO_TTWU_QUEUE" >> $schedfeatnew >> $schedfeatold
+echo "NO_SIS_PROP" >> $schedfeatnew >> $schedfeatold
+echo "SIS_UTIL" >> $schedfeatnew >> $schedfeatold
+echo "NO_WARN_DOUBLE_CLOCK" >> $schedfeatnew >> $schedfeatold
+echo "RT_PUSH_IPI" >> $schedfeatnew >> $schedfeatold
+echo "NO_RT_RUNTIME_SHARE" >> $schedfeatnew >> $schedfeatold
+echo "LB_MIN" >> $schedfeatnew >> $schedfeatold
+echo "ATTACH_AGE_LOAD" >> $schedfeatnew >> $schedfeatold
+echo "WA_IDLE" >> $schedfeatnew >> $schedfeatold
+echo "WA_WEIGHT" >> $schedfeatnew >> $schedfeatold
+echo "WA_BIAS" >> $schedfeatnew >> $schedfeatold
+echo "UTIL_EST" >> $schedfeatnew >> $schedfeatold
+echo "UTIL_EST_FASTUP" >> $schedfeatnew >> $schedfeatold
+echo "NO_LATENCY_WARN" >> $schedfeatnew >> $schedfeatold
+echo "ALT_PERIOD" >> $schedfeatnew >> $schedfeatold
+echo "BASE_SLICE" >> $schedfeatnew >> $schedfeatold
+echo "NO_FBT_STRICT_ORDER" >> $schedfeatnew >> $schedfeatold
+echo "NEXT_BUDDY" >> $schedfeatnew >> $schedfeatold
+echo "NO_GENTLE_FAIR_SLEEPERS" >> $schedfeatnew >> $schedfeatold
+echo "NO_LB_BIAS" >> $schedfeatnew >> $schedfeatold
+echo "NO_ENERGY_AWARE" >> $schedfeatnew >> $schedfeatold
+echo "WAKEUP_PREEMPTION" >> $schedfeatnew >> $schedfeatold
+echo "AFFINE_WAKEUPS" >> $schedfeatnew >> $schedfeatold
+echo "NO_NORMALIZED_SLEEPER" >> $schedfeatnew >> $schedfeatold
 
 if grep -q droid /etc/os-release ; then
-echo "ENERGY_AWARE" >> /sys/kernel/debug/sched/features
-echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched/features
-echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched/features
-echo "NO_NORMALIZED_SLEEPER" >> /sys/kernel/debug/sched/features
-echo "ENERGY_AWARE" >> /sys/kernel/debug/sched_features
-echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features
-echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features 
-echo "NO_NORMALIZED_SLEEPER" >> /sys/kernel/debug/sched_features; fi
+echo "ENERGY_AWARE" >> $schedfeatnew >> $schedfeatold ; fi
 
 echo 3 > /sys/bus/workqueue/devices/writeback/cpumask
 echo 3 > /sys/devices/virtual/workqueue/cpumask
@@ -2502,7 +3511,7 @@ export KDE_IS_PRELINKED=1
 export KDE_UTF8_FILENAMES=1
 export KDE_MALLOC=1
 export KDE_NOUNLOAD=1
-export PLASMA_PRELOAD_POLICY=adaptive
+export PLASMA_PRELOAD_POLICY=none
 export PLASMA_ENABLE_QML_DEBUG=0
 export KDE_DEBUG=0
 export DRI_PRIME=1
@@ -2550,7 +3559,7 @@ fi
 #########  DEBIAN ONLY SECTION STOPPED HERE ###############
 
 if ! grep -q wrt /etc/os-release ; then
-    cclm="-16"
+    if grep -q debian /etc/os-release ; then cclm="-16" ; fi
 # /etc/environment variables
 # test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
 # for more info: https://docs.mesa3d.org/envvars.html 
@@ -2584,7 +3593,7 @@ export PROTON_NO_ESYNC=1
 export STEAM_FRAME_FORCE_CLOSE=0
 export VKD3D_CONFIG=no_upload_hvv
 export DXVK_ASYNC=1
-
+#export GCC_SPECS=
 export SDL_VIDEODRIVER=wayland
 export KIRIGAMI_LOWPOWER_HARDWARE=1
 export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
@@ -2679,7 +3688,7 @@ export __GL_VRR_ALLOWED=1
   #export LIBGL_DRI3_DISABLE=1
   #export MESA_LOADER_DRIVER_OVERRIDE=iris
 export RTLD_LAZY=1
-export LD_BIND_NOW=1
+export LD_BIND_NOW=0
 #export LD_DEBUG=0
 export LD_DEBUG_OUTPUT=0
 #export LD_AUDIT=0
@@ -2921,7 +3930,7 @@ echo "Y" > /sys/module/sync/parameters/fsync_enabled
 
 # IRQ
 # manually set irq but not working for me - but already set as kernel parameter in bootargs so delete irqbalance. hijacking /proc/cmdline probably doesnt do anything on other devices. unless the kernel is compiled with support to pickup on parameters which isnt the case of openwrt. double check if parameters get applied. otherwise its only true for x86
-for i in /proc/irq/*; do $(if [ -d $i ]; then echo '1' | sudo tee $i/smp_affinity || true ; else echo '1' | sudo tee $i || true ; fi) ; done
+#for i in /proc/irq/*; do $(if [ -d $i ]; then echo '1' | sudo tee $i/smp_affinity || true ; else echo '1' | sudo tee $i || true ; fi) ; done
 
 
 
@@ -2967,8 +3976,6 @@ if systemctl list-unit-files | grep -q anacron ; then systemctl disable cron && 
 
 
 
-# disable bluetooth for all but android
-if ! grep -q droid /etc/os-release ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
 
 
 
@@ -3033,6 +4040,8 @@ elif ping "$ping" -c 2
 
 
 
+# disable bluetooth for all but android
+if ! grep -q droid /etc/os-release ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
 
 
 
