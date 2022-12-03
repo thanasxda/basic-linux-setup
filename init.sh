@@ -296,7 +296,7 @@ sysctl -w vm.nr_hugepages=64
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=2000000000
-overcommit=3
+overcommit=1
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
@@ -314,7 +314,7 @@ hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=40 zswap.zpool=z3fold zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
 sysctl -w kernel.shmmax=1000000000
-overcommit=2
+overcommit=0
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
@@ -327,7 +327,7 @@ sysctl -w vm.nr_hugepages=16
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
 sysctl -w kernel.shmmax=500000000
-overcommit=1
+overcommit=0
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # all mem amounts but not generic devices
@@ -344,7 +344,7 @@ zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else 
 x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=disable kvm-amd.avic=1 amd_iommu_intr=vapic notsx" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=disable kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # mitigations
 x1="$(if [ $mitigations = off ] ; then
-echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb mmio_stale_data=off nospectre_bhb" ; fi)"
+echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; fi)"
 # logging
 x2=" audit=0 log_priority=0 loglevel=0 mminit_loglevel=0 udev.log_priority=0 rd.udev.log_level=0 udev.log_level=0"
 # security
@@ -393,9 +393,9 @@ x23="$( if dmesg | grep -q iwlwifi ; then echo " iwlmvm_power_scheme=2" ; fi)"
 #
 x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
 #
-x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 noreplace-smp disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=on powersave=off"
+x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=on powersave=off"
 #
-x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M logo.nologo printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0"
+x26=" nohz_full=1-$(nproc --all) smt=$(nproc --all) maxcpus=$(nproc --all) mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 s driver_async_probe=* pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf nr_cpus=$(nproc --all) isolcpus=1 waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend"
 #
 x27=" ip=:::::::$dns1:$dns2:"
 #
@@ -409,7 +409,7 @@ x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
 
                                           bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29")"
 
-                                        export par="quiet$bootargvars"
+                                        export par="splash quiet$bootargvars"
 
 # notes for myself
 #test diff extra in test
@@ -420,6 +420,7 @@ x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
 #acpi=force vga=0
 #kvm-intel.vmentry_l1d_flush=never
 #rcu_nocbs=1
+#noreplace-smp
 #testing
 # intel_idle.max_cstate=9 cpu0_hotplug rcu_nocbs=1 mem_sleep_default=deep isolcpus=no_kthreads,1
 #test="dyndbg=  vm_debug= trace_options=nop  ftrace_filter=nop"
@@ -820,7 +821,7 @@ options rotate timeout:1 attempts:3 single-request-reopen no-tld-query
     $s hdparm -W 1 $nvme
 
 
-  # more
+  # more ALL RANDOM STUFF GOES HERE
     systemctl set-default graphical.target
     sed -i 's/^#ForwardToSyslog=yes/ForwardToSyslog=no/' /etc/systemd/journald.conf
     sed -i 's/^#ForwardToKMsg=yes/ForwardToKMsg=no/' /etc/systemd/journald.conf
@@ -905,14 +906,11 @@ fi
 
         # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps'
     
-    scsiblack=$(if [ $scsi = off ] ; then 
-    echo 'scsi_mod
-scsi_common
-sd_mod' ; fi)
-    cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
-  
-  
-  
+    #scsiblack=$(if [ $scsi = off ] ; then 
+    #echo 'scsi_mod
+#scsi_common
+#sd_mod' ; fi)
+    #cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
   
   
   
@@ -2186,7 +2184,7 @@ rm -f /etc/xdg/autostart/tracker-miner-fs-3.desktop /etc/xdg/autostart/snap-user
 
 
 # drirc
-if ! grep -q "<tcl_mode>" /etc/drirc ; then
+if ! grep -q "<vblank_mode>" /etc/drirc ; then
 echo '<driconf>
    <device driver="amdgpu">
       <application name="Default">
@@ -2194,6 +2192,7 @@ echo '<driconf>
          <option name="precise_trig" value="true"/>
          <option name="tcl_mode" value="3"/>
          <option name="fthrottle_mode" value="2"/>
+         <option name="vblank_mode" value="0" />
       </application>
    </device>
    <device driver="amdgpu">
@@ -2202,6 +2201,7 @@ echo '<driconf>
          <option name="precise_trig" value="true"/>
          <option name="tcl_mode" value="3"/>
          <option name="fthrottle_mode" value="2"/>
+         <option name="vblank_mode" value="0" />
       </application>
    </device>
 </driconf>' | tee /home/$(ls /home)/.drirc /root/.drirc /etc/drirc
@@ -2334,209 +2334,6 @@ if ! grep -q 'needs_root_rights = no' /etc/X11/Xwrapper.config ; then echo 'need
 if [ $raid = yes ] ; then systemctl enable $(systemctl list-unit-files | grep mda | awk '{print $1}' | awk -v RS=  '{$1=$1}1' | sed 's/\mdadm-waitidle.service//') ; fi
 
 
-
-
-
-
-
-# kde environment variables
-echo '#!/bin/bash
-export KWIN_NO_XI2=1
-export KWIN_GL_DEBUG=0
-export KWIN_DIRECT_GL=1
-export KWIN_NO_REMOTE=1
-export __GL_FSAA_MODE=0
-export __GL_LOG_MAX_ANISO=0
-export KWIN_USE_BUFFER_AGE=1
-export KWIN_PERSISTENT_VBO=1
-export LIBGL_DEBUG=0
-export KDE_IS_PRELINKED=1
-export KDE_UTF8_FILENAMES=1
-export KDE_MALLOC=1
-export KDE_NOUNLOAD=1
-export PLASMA_PRELOAD_POLICY=adaptive
-export PLASMA_ENABLE_QML_DEBUG=0
-export KDE_DEBUG=0
-export DRI_PRIME=1
-export WAYLAND_DEBUG=0
-export POWERSHELL_TELEMETRY_OPTOUT=1
-export DOTNET_CLI_TELEMETRY_OPTOUT=1
-export __GL_YIELD=USLEEP
-export KWIN_DRM_PREFER_COLOR_DEPTH=24
-export KDE_NO_IPV6=1
-export KDE_USE_IPV6=no
-  #export KDEWM=kwin_gles
-  #export KWIN_OPENGL_INTERFACE=egl_wayland
-  #export XDG_SESSION_TYPE=wayland
-  #export KWIN_TRIPLE_BUFFER=1
-  #export XDG_CURRENT_DESKTOP=KDE
-  #export DESKTOP_SESSION=plasmawayland
-  #export QT_AUTO_SCREEN_SCALE_FACTOR=0
-  #export QT_WAYLAND_FORCE_DPI=$kcmfonts_general_forcefontdpiwayland
-  #export QT_QPA_PLATFORM=wayland-egl
-  #export KDE_FULL_SESSION=true
-  #export GDK_BACKEND=wayland
-  #export KDE_FAILSAFE=1
-  #export KWIN_COMPOSE=N
-  #export XLIB_SKIP_ARGB_VISUALS=0
-  #export KWIN_FORCE_LANCZOS=0' | $s tee /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh && $s chmod +x /etc/profile.d/kwin.sh && $s chmod +x /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}'
-)"/.config/plasma-workspace/env/kwin_env.sh
-
-if [ $ipv6 = on ] 
-then 
-sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=1' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh 
-else 
-sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; fi 
-
-if [ $ipv6 = on ]
-then 
-sed -i 's/user_pref("network.dns.disableIPv6", true);/user_pref("network.dns.disableIPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
-sed -i 's/user_pref("network.notify.IPv6", false);/user_pref("network.notify.IPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
-else
-sed -i 's/user_pref("network.dns.disableIPv6", false);/user_pref("network.dns.disableIPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
-sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js ; fi
-
-
-
-# /etc/environment variables
-# test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
-# for more info: https://docs.mesa3d.org/envvars.html
-echo '#!/bin/bash -x
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games:$PATH
-export COMMAND_NOT_FOUND_INSTALL_PROMPT=1
-export POWERSHELL_UPDATECHECK=Off
-export POWERSHELL_TELEMETRY_OPTOUT=1
-export DOTNET_CLI_TELEMETRY_OPTOUT=1
-export WINEPREFIX=~/.wine
-export WINE_LARGE_ADDRESS_AWARE=1
-export WINEFSYNC_SPINCOUNT=24
-export WINEESYNC=1
-export WINEFSYNC=1
-export WINEFSYNC_FUTEX2=1
-export WINE_SKIP_GECKO_INSTALLATION=1
-export WINE_SKIP_MONO_INSTALLATION=1
-export STAGING_WRITECOPY=1
-export STAGING_SHARED_MEMORY=
-export STAGING_RT_PRIORITY_SERVER=4
-export STAGING_RT_PRIORITY_BASE=2
-export STAGING_AUDIO_PERIOD=13333
-export WINE_FSR_OVERRIDE=1
-export WINE_FULLSCREEN_FSR=1
-export WINE_VK_USE_FSR=1
-export PROTON_LOG=0
-export PROTON_USE_WINED3D=1
-export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
-export PROTON_NO_ESYNC=1
-export STEAM_FRAME_FORCE_CLOSE=0
-export VKD3D_CONFIG=no_upload_hvv
-export DXVK_ASYNC=1
-
-export SDL_VIDEODRIVER=wayland
-export KIRIGAMI_LOWPOWER_HARDWARE=1
-export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
-export ELM_ACCEL=opengl
-export WLR_DRM_NO_ATOMIC=1
-export export VGL_READBACK=pbo
-export SDL_VIDEO_X11_DGAMOUSE=0
-export SDL_VIDEO_FULLSCREEN_HEAD=0
-export WLR_DRM_NO_MODIFIERS=1
-export QT_WEBENGINE_DISABLE_WAYLAND_WORKAROUND=1
-export PIPEWIRE_PROFILE_MODULES=default,rtkit
-export GST_AUDIO_RESAMPLER_QUALITY_DEFAULT=9
-export GLSLC=glslc
-export export QT_GRAPHICSSYSTEM=raster
-export DRI_NO_MSAA=1
-export DRAW_NO_FSE=1
-export WLR_RENDERER=vulkan
-export GDK_GL=gles
-export GDK_BACKEND="x11,wayland"
-export CLUTTER_BACKEND=x11
-export VDPAU_DRIVER=va_gl
-export EGL_PLATFORM=x11
-export KEYTIMEOUT=1
-export GST_VAAPI_ALL_DRIVERS=1
-export DRAW_USE_LLVM=1
-export SOFTPIPE_USE_LLVM=1
-export INTEL_BATCH=1
-export WL_OUTPUT_SUBPIXEL_NONE=none
-export LP_NO_RAST=1
-export LIBGL_NO_DRAWARRAYS=1
-export LIBGL_THROTTLE_REFRESH=1
-export WGL_SWAP_INTERVAL=1
-export SDL_VIDEO_YUV_HWACCEL=1
-export WINIT_HIDPI_FACTOR=2
-export PIPEWIRE_LATENCY=512/48000
-export PIPEWIRE_LINK_PASSIVE=1
-export HISTCONTROL=ignoreboth
-export HISTSIZE=0
-export LESSHISTFILE=-
-export LESSHISTSIZE=0
-export LESSSECURE=1
-export PAGER=less
-
-export MESA_DEBUG=silent
-export LIBGL_DEBUG=0
-
-export MESA_NO_DITHER=1
-export MESA_NO_ERROR=1
-
-export mesa_glthread=true
-export DRI_PRIME=1
-export __GL_FSAA_MODE=0
-export WGL_FORCE_MSAA=0
-export DRI_NO_MSAA
-export __GL_LOG_MAX_ANISO=0
-export RADV_TEX_ANISO=0
-export LIBGL_DRI2_DISABLE=1
-export __GL_YIELD=USLEEP
-
-export VAAPI_MPEG4_ENABLED
-if [ ! "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
-export CONFIG_SND_HDA_PREALLOC_SIZE=64 ; fi
-
-export ANV_ENABLE_PIPELINE_CACHE=1
-export __GL_SHADER_DISK_CACHE=1
-export __GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1
-export MESA_GLSL_CACHE_DISABLE=false
-export MESA_SHADER_CACHE_DISABLE=false
-
-export __GL_THREADED_OPTIMIZATIONS=1
-
-export LP_PERF=no_mipmap,no_linear,no_mip_linear,no_tex,no_blend,no_depth,no_alphatest
-
-export MESA_GL_VERSION_OVERRIDE=4.5
-export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
-
-  #export MESA_BACK_BUFFER=ximage
-  #export DXVK_HUD=compile
-  #export vblank_mode=1
-  #export __GL_SYNC_TO_VBLANK=1
-  #export AMD_VULKAN_ICD=amdvlk
-export RADV_PERFTEST=aco,sam,nggc
-  #export RADV_FORCE_VRS=2x2
-  #export RADV_DEBUG=novrsflatshading
-  #export __GLX_VENDOR_LIBRARY_NAME=mesa
-  #export __GLVND_DISALLOW_PATCHING=0
-export __GL_MaxFramesAllowed="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '\''.'\'' '\''{print $1}'\'' | awk '\''{print $2}'\'')"
-  #export __GL_VRR_ALLOWED=1
-  #export ENABLE_VKBASALT=1
-  #export LIBGL_DRI3_DISABLE=1
-  #export MESA_LOADER_DRIVER_OVERRIDE=iris
-
-
-#export OBS_USE_EGL=1 com.obsproject.Studio
-#export OBS_USE_EGL=1 obs
-export OBS_USE_EGL=1 
-
-if [ $XDG_SESSION_TYPE = x11 ] ; then export MOZ_X11_EGL=1 ; export MOZ_ENABLE_WAYLAND=0 ;fi
-if [ $XDG_SESSION_TYPE = wayland ] ; then export MOZ_ENABLE_WAYLAND=1 ; export MOZ_X11_EGL=0 ; fi
-
-    #VDPAU_DRIVER=radeonsi
-    #LIBVA_DRIVER_NAME=radeonsi
-    #VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
-for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i ; done' | tee /etc/environment /etc/environment.d/10-config.dat
 
 
 
@@ -2677,9 +2474,242 @@ gsettings set org.gnome.desktop.background color-shading-type vertical
 gsettings set org.gnome.mutter experimental-features '["dma-buf-screen-sharing"]'
 fi
 
-fi 
 
+
+
+
+
+
+
+
+# kde environment variables
+echo '#!/bin/bash
+export KWIN_NO_XI2=1
+export KWIN_GL_DEBUG=0
+export KWIN_DIRECT_GL=1
+export KWIN_NO_REMOTE=1
+export __GL_FSAA_MODE=0
+export __GL_LOG_MAX_ANISO=0
+export KWIN_USE_BUFFER_AGE=1
+export KWIN_PERSISTENT_VBO=1
+export LIBGL_DEBUG=0
+export KDE_IS_PRELINKED=1
+export KDE_UTF8_FILENAMES=1
+export KDE_MALLOC=1
+export KDE_NOUNLOAD=1
+export PLASMA_PRELOAD_POLICY=adaptive
+export PLASMA_ENABLE_QML_DEBUG=0
+export KDE_DEBUG=0
+export DRI_PRIME=1
+export WAYLAND_DEBUG=0
+export POWERSHELL_TELEMETRY_OPTOUT=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export __GL_YIELD=USLEEP
+export KWIN_DRM_PREFER_COLOR_DEPTH=24
+export KDE_NO_IPV6=1
+export KDE_USE_IPV6=no
+  #export KDEWM=kwin_gles
+  #export KWIN_OPENGL_INTERFACE=egl_wayland
+  #export XDG_SESSION_TYPE=wayland
+  #export KWIN_TRIPLE_BUFFER=1
+  #export XDG_CURRENT_DESKTOP=KDE
+  #export DESKTOP_SESSION=plasmawayland
+  #export QT_AUTO_SCREEN_SCALE_FACTOR=0
+  #export QT_WAYLAND_FORCE_DPI=$kcmfonts_general_forcefontdpiwayland
+  #export QT_QPA_PLATFORM=wayland-egl
+  #export KDE_FULL_SESSION=true
+  #export GDK_BACKEND=wayland
+  #export KDE_FAILSAFE=1
+  #export KWIN_COMPOSE=N
+  #export XLIB_SKIP_ARGB_VISUALS=0
+  #export KWIN_FORCE_LANCZOS=0' | $s tee /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh && $s chmod +x /etc/profile.d/kwin.sh && $s chmod +x /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}'
+)"/.config/plasma-workspace/env/kwin_env.sh
+
+if [ $ipv6 = on ] 
+then 
+sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=1' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh 
+else 
+sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; fi 
+
+if [ $ipv6 = on ]
+then 
+sed -i 's/user_pref("network.dns.disableIPv6", true);/user_pref("network.dns.disableIPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
+sed -i 's/user_pref("network.notify.IPv6", false);/user_pref("network.notify.IPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
+else
+sed -i 's/user_pref("network.dns.disableIPv6", false);/user_pref("network.dns.disableIPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
+sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js ; fi
+
+fi
 #########  DEBIAN ONLY SECTION STOPPED HERE ###############
+
+if ! grep -q wrt /etc/os-release ; then
+    cclm="-16"
+# /etc/environment variables
+# test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
+# for more info: https://docs.mesa3d.org/envvars.html 
+# https://cgit.freedesktop.org/mesa/mesa/tree/docs/features.txt?h=staging/22.3
+echo '#!/bin/bash -x
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games:$PATH
+export COMMAND_NOT_FOUND_INSTALL_PROMPT=1
+export POWERSHELL_UPDATECHECK=Off
+export POWERSHELL_TELEMETRY_OPTOUT=1
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export WINEPREFIX=~/.wine
+export WINE_LARGE_ADDRESS_AWARE=1
+export WINEFSYNC_SPINCOUNT=24
+export WINEESYNC=1
+export WINEFSYNC=1
+export WINEFSYNC_FUTEX2=1
+export WINE_SKIP_GECKO_INSTALLATION=1
+export WINE_SKIP_MONO_INSTALLATION=1
+export STAGING_WRITECOPY=1
+export STAGING_SHARED_MEMORY=
+export STAGING_RT_PRIORITY_SERVER=4
+export STAGING_RT_PRIORITY_BASE=2
+export STAGING_AUDIO_PERIOD=13333
+export WINE_FSR_OVERRIDE=1
+export WINE_FULLSCREEN_FSR=1
+export WINE_VK_USE_FSR=1
+export PROTON_LOG=0
+export PROTON_USE_WINED3D=1
+export PROTON_FORCE_LARGE_ADDRESS_AWARE=1
+export PROTON_NO_ESYNC=1
+export STEAM_FRAME_FORCE_CLOSE=0
+export VKD3D_CONFIG=no_upload_hvv
+export DXVK_ASYNC=1
+
+export SDL_VIDEODRIVER=wayland
+export KIRIGAMI_LOWPOWER_HARDWARE=1
+export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
+export ELM_ACCEL=opengl
+export WLR_DRM_NO_ATOMIC=1
+export export VGL_READBACK=pbo
+export SDL_VIDEO_X11_DGAMOUSE=0
+export SDL_VIDEO_FULLSCREEN_HEAD=0
+export WLR_DRM_NO_MODIFIERS=1
+export QT_WEBENGINE_DISABLE_WAYLAND_WORKAROUND=1
+export PIPEWIRE_PROFILE_MODULES=default,rtkit
+export GST_AUDIO_RESAMPLER_QUALITY_DEFAULT=9
+export GLSLC=glslc
+export export QT_GRAPHICSSYSTEM=raster
+export DRI_NO_MSAA=1
+export DRAW_NO_FSE=1
+export WLR_RENDERER=vulkan
+export GDK_GL=gles
+export GDK_BACKEND="x11,wayland"
+export CLUTTER_BACKEND=x11
+export VDPAU_DRIVER=va_gl
+export EGL_PLATFORM=x11
+export KEYTIMEOUT=1
+export GST_VAAPI_ALL_DRIVERS=1
+export DRAW_USE_LLVM=1
+export SOFTPIPE_USE_LLVM=1
+export INTEL_BATCH=1
+export WL_OUTPUT_SUBPIXEL_NONE=none
+export LP_NO_RAST=1
+export LIBGL_NO_DRAWARRAYS=1
+export LIBGL_THROTTLE_REFRESH=1
+export WGL_SWAP_INTERVAL=1
+export SDL_VIDEO_YUV_HWACCEL=1
+export WINIT_HIDPI_FACTOR=2
+export PIPEWIRE_LATENCY=512/48000
+export PIPEWIRE_LINK_PASSIVE=1
+export HISTCONTROL=ignoreboth
+export HISTSIZE=0
+export LESSHISTFILE=-
+export LESSHISTSIZE=0
+export LESSSECURE=1
+export PAGER=less
+
+export MESA_DEBUG=silent
+export LIBGL_DEBUG=0
+
+export MESA_NO_DITHER=1
+export MESA_NO_ERROR=1
+
+export mesa_glthread=true
+export DRI_PRIME=1
+export __GL_FSAA_MODE=0
+export WGL_FORCE_MSAA=0
+export DRI_NO_MSAA
+export __GL_LOG_MAX_ANISO=0
+export RADV_TEX_ANISO=0
+export LIBGL_DRI2_DISABLE=1
+export __GL_YIELD=USLEEP
+
+#export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+
+export VAAPI_MPEG4_ENABLED
+if [ ! "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
+export CONFIG_SND_HDA_PREALLOC_SIZE=64 ; fi
+
+export ANV_ENABLE_PIPELINE_CACHE=1
+export __GL_SHADER_DISK_CACHE=1
+export __GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1
+export MESA_GLSL_CACHE_DISABLE=false
+export MESA_SHADER_CACHE_DISABLE=false
+
+export __GL_THREADED_OPTIMIZATIONS=1
+
+export LP_PERF=no_mipmap,no_linear,no_mip_linear,no_tex,no_blend,no_depth,no_alphatest
+
+export MESA_GL_VERSION_OVERRIDE=4.5
+export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
+
+  #export MESA_BACK_BUFFER=ximage
+  #export DXVK_HUD=compile
+  #export vblank_mode=1
+  #export __GL_SYNC_TO_VBLANK=1
+  #export AMD_VULKAN_ICD=amdvlk
+export RADV_PERFTEST=aco,sam,nggc,rt
+export RADV_FORCE_VRS=2x2
+export RADV_DEBUG=novrsflatshading
+  #export __GLX_VENDOR_LIBRARY_NAME=mesa
+  #export __GLVND_DISALLOW_PATCHING=0
+export __GL_MaxFramesAllowed="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '\''.'\'' '\''{print $1}'\'' | awk '\''{print $2}'\'')"
+export __GL_VRR_ALLOWED=1
+  #export ENABLE_VKBASALT=1
+  #export LIBGL_DRI3_DISABLE=1
+  #export MESA_LOADER_DRIVER_OVERRIDE=iris
+export RTLD_LAZY=1
+export LD_BIND_NOW=1
+#export LD_DEBUG=0
+export LD_DEBUG_OUTPUT=0
+#export LD_AUDIT=0
+#export LD_PRELOAD=
+#export LD_TRACE_LOADED_OBJECTS=0
+if ! grep -q debian /etc/os-release ; then cclm=$(echo "") ; fi
+export LD="LD=ld.lld'"$cclm"'"
+export LD_LIBRARY_PATH=""$PATH"/../lib:"$PATH"/../lib64:$LD_LIBRARY_PATH"
+export CC=clang'"$cclm"'
+export HOSTCC=clang'"$cclm"'
+export AR=llvm-ar'"$cclm"'
+export NM=llvm-nm'"$cclm"'
+export OBJCOPY=llvm-objcopy'"$cclm"'
+export OBJDUMP=llvm-objdump'"$cclm"'
+export READELF=llvm-readelf'"$cclm"'
+export OBJSIZE=llvm-size'"$cclm"'
+export STRIP=llvm-strip'"$cclm"'
+
+
+export OBS_USE_EGL=1 
+
+if [ $XDG_SESSION_TYPE = x11 ] ; then export MOZ_X11_EGL=1 ; export MOZ_ENABLE_WAYLAND=0 ;fi
+if [ $XDG_SESSION_TYPE = wayland ] ; then export MOZ_ENABLE_WAYLAND=1 ; export MOZ_X11_EGL=0 ; fi
+
+    #VDPAU_DRIVER=radeonsi
+    #LIBVA_DRIVER_NAME=radeonsi
+    #VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i ; done' | tee /etc/environment /etc/environment.d/10-config.dat ; fi
+
+
+
+
+
+
+
 
 
 

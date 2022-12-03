@@ -81,7 +81,7 @@ $a uget
 $a ccache
 
 
-if [ $INSTALLBUILDENV = true ] ; then
+#if [ $INSTALLBUILDENV = true ] ; then
 # llvm
 $a libllvm-$llver-ocaml-dev
 $a libllvm$llver
@@ -115,7 +115,7 @@ $a binwalk
 $a firmware-mod-kit
 $a atom-beta
 $a nmap
-fi
+#fi
  
 $a apparmor
 $a cachefilesd
@@ -251,6 +251,7 @@ $a *qtgstreamer*
 $a xinit
 $a preload
 $a dbus-broker
+$a linux-cpupower
 
 $a efibootmgr systemd-boot systemd-boot-efi
 
