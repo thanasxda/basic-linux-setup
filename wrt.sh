@@ -13,7 +13,7 @@
 
 # basic preconfig openwrt/x-wrt
 
-pkglist="base-files bridger busybox ca-bundle dnsmasq dropbear ethtool firewall4 fstools haveged iptables-mod-conntrack-extra iptables-mod-ipopt iptables-nft irqbalance kernel kmod kmod-asn1-decoder kmod-br-netfilter kmod-cfg80211 kmod-crypto-acompress kmod-crypto-aead kmod-crypto-arc4 kmod-crypto-cbc kmod-crypto-ccm kmod-crypto-cmac kmod-crypto-crc32c kmod-crypto-ctr kmod-crypto-cts kmod-crypto-des kmod-crypto-ecb kmod-crypto-gcm kmod-crypto-gf128 kmod-crypto-ghash kmod-crypto-hash kmod-crypto-hmac kmod-crypto-kpp kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-crypto-manager kmod-crypto-md4 kmod-crypto-md5 kmod-crypto-null kmod-crypto-rng kmod-crypto-seqiv kmod-crypto-sha1 kmod-crypto-sha256 kmod-crypto-sha512 kmod-cryptodev kmod-dnsresolver kmod-gpio-button-hotplug kmod-ifb kmod-iosched-bfq kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-ipset kmod-ipt-nat kmod-ipt-offload kmod-ipt-raw kmod-iptunnel kmod-iptunnel4 kmod-ipvlan kmod-leds-gpio kmod-lib-crc-ccitt kmod-lib-crc16 kmod-lib-crc32c kmod-lib-lzo kmod-lib-textsearch kmod-lib-zlib-deflate kmod-lib-zlib-inflate kmod-lib80211 kmod-libphy kmod-loop kmod-mac80211 kmod-mppe kmod-mtd-rw kmod-nf-conntrack kmod-nf-ipt kmod-nf-log kmod-nf-nat kmod-nf-nathelper kmod-nf-nathelper-extra kmod-nf-reject kmod-nf-socket kmod-nf-tproxy kmod-nfnetlink kmod-nfnetlink-queue kmod-nft-arp kmod-nft-bridge kmod-nft-compat kmod-nft-core kmod-nft-fib kmod-nft-nat kmod-nft-netdev kmod-nft-offload kmod-nft-queue kmod-nft-socket kmod-nft-tproxy kmod-nls-base kmod-nls-utf8 kmod-oid-registry kmod-phylink kmod-ppp kmod-ppp-synctty kmod-pppoe kmod-random-core kmod-sched kmod-sched-cake kmod-sched-core kmod-sit kmod-slhc kmod-swconfig kmod-tcp-bbr kmod-tun kmod-udptunnel4 kmod-usb-core kmod-usb-ehci kmod-usb-ohci kmod-usb2 libc libgcrypt libkmod libuci2 libustream-wolfssl logd luci-app-attendedsysupgrade luci-app-bcp38 luci-app-commands luci-app-simple-adblock luci-ssl macchanger mtd netifd nftables-json odhcp6c odhcpd-ipv6only opkg ppp ppp-mod-pppoe procd procd-seccomp procd-ujail px5g-wolfssl swconfig uboot-envtools uci uclient-fetch uhttpd-mod-lua umdns urandom-seed urngd usteer wireless-regdb wireless-tools wpad-basic-wolfssl xtables-nft zlib"
+pkglist="base-files bridger busybox ca-bundle dnsmasq dropbear ethtool firewall4 fstools haveged htop iptables-mod-conntrack-extra iptables-mod-ipopt iptables-nft irqbalance kernel kmod kmod-asn1-decoder kmod-br-netfilter kmod-cfg80211 kmod-crypto-acompress kmod-crypto-aead kmod-crypto-arc4 kmod-crypto-cbc kmod-crypto-ccm kmod-crypto-cmac kmod-crypto-crc32c kmod-crypto-ctr kmod-crypto-cts kmod-crypto-des kmod-crypto-ecb kmod-crypto-gcm kmod-crypto-gf128 kmod-crypto-ghash kmod-crypto-hash kmod-crypto-hmac kmod-crypto-kpp kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-crypto-manager kmod-crypto-md4 kmod-crypto-md5 kmod-crypto-null kmod-crypto-rng kmod-crypto-seqiv kmod-crypto-sha1 kmod-crypto-sha256 kmod-crypto-sha512 kmod-cryptodev kmod-dnsresolver kmod-gpio-button-hotplug kmod-ifb kmod-iosched-bfq kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-ipset kmod-ipt-nat kmod-ipt-offload kmod-ipt-raw kmod-iptunnel kmod-iptunnel4 kmod-ipvlan kmod-leds-gpio kmod-lib-crc-ccitt kmod-lib-crc16 kmod-lib-crc32c kmod-lib-lzo kmod-lib-textsearch kmod-lib-zlib-deflate kmod-lib-zlib-inflate kmod-lib80211 kmod-libphy kmod-loop kmod-mac80211 kmod-mppe kmod-mtd-rw kmod-nf-conntrack kmod-nf-ipt kmod-nf-log kmod-nf-nat kmod-nf-nathelper kmod-nf-nathelper-extra kmod-nf-reject kmod-nf-socket kmod-nf-tproxy kmod-nfnetlink kmod-nfnetlink-queue kmod-nft-arp kmod-nft-bridge kmod-nft-compat kmod-nft-core kmod-nft-fib kmod-nft-nat kmod-nft-netdev kmod-nft-offload kmod-nft-queue kmod-nft-socket kmod-nft-tproxy kmod-nls-base kmod-nls-utf8 kmod-oid-registry kmod-phylink kmod-ppp kmod-ppp-synctty kmod-pppoe kmod-random-core kmod-sched kmod-sched-cake kmod-sched-core kmod-sit kmod-slhc kmod-swconfig kmod-tcp-bbr kmod-tun kmod-udptunnel4 kmod-usb-core kmod-usb-ehci kmod-usb-ohci kmod-usb2 libc libgcrypt libkmod libuci2 libustream-wolfssl logd luci-app-attendedsysupgrade luci-app-bcp38 luci-app-commands luci-app-simple-adblock luci-ssl macchanger mtd netifd nftables-json odhcp6c odhcpd-ipv6only opkg ppp ppp-mod-pppoe procd procd-seccomp procd-ujail px5g-wolfssl swconfig uboot-envtools uci uclient-fetch uhttpd-mod-lua umdns urandom-seed urngd usteer wireless-regdb wireless-tools wpad-basic-wolfssl xtables-nft zlib"
 
 wrtsh='#!/bin/bash
 ### get script update on reboot on /tmp/init.sh and run...
@@ -107,7 +107,6 @@ config wifi-device 'radio0'
 	option greenfield '1'
 	option frameburst '1'
 	option bursting '1'
-	option vendor_vht '1'
 	option short_gi_80 '1'
 	option short_gi_40 '1'
 	option short_preamble '1'
@@ -129,6 +128,8 @@ config wifi-device 'radio0'
 	option country 'GR'
 	option txpower '22'
 	option channel '36'
+	option vendor_vht '1'
+
 
 config wifi-device 'radio1'
 	option type 'mac80211'
@@ -142,7 +143,6 @@ config wifi-device 'radio1'
 	option greenfield '1'
 	option frameburst '1'
 	option bursting '1'
-	option vendor_ht '1'
 	option short_gi_40 '1'
 	option short_gi_20 '1'
 	option short_preamble '1'
@@ -168,6 +168,8 @@ config wifi-device 'radio1'
 	list htc_capab 'MAX-AMSDU-3839'
 	option disabled '1'
 	option txpower '20'
+	option vendor_vht '1'
+
 
 config wifi-iface 'wifinet0'
 	option device 'radio0'

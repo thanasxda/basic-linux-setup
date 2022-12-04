@@ -3166,38 +3166,6 @@ svg-height=1
 # Synchronous writing (boolean)
 #sout-file-sync=0
 
-[live555] # RTP/RTSP/SDP demuxer (using Live555)
-
-# Use RTP over RTSP (TCP) (boolean)
-#rtsp-tcp=0
-
-# Client port (integer)
-#rtp-client-port=-1
-
-# Force multicast RTP via RTSP (boolean)
-#rtsp-mcast=0
-
-# Tunnel RTSP and RTP over HTTP (boolean)
-#rtsp-http=0
-
-# HTTP tunnel port (integer)
-#rtsp-http-port=80
-
-# Kasenna RTSP dialect (boolean)
-#rtsp-kasenna=0
-
-# WMServer RTSP dialect (boolean)
-#rtsp-wmserver=0
-
-# Username (string)
-#rtsp-user=
-
-# Password (string)
-#rtsp-pwd=
-
-# RTSP frame buffer size (integer)
-#rtsp-frame-buffer-size=250000
-
 [nfs] # NFS input
 
 # Set NFS uid/guid automatically (boolean)
@@ -3506,6 +3474,38 @@ svg-height=1
 
 # Sample rate (integer)
 #alsa-samplerate=48000
+
+[live555] # RTP/RTSP/SDP demuxer (using Live555)
+
+# Use RTP over RTSP (TCP) (boolean)
+#rtsp-tcp=0
+
+# Client port (integer)
+#rtp-client-port=-1
+
+# Force multicast RTP via RTSP (boolean)
+#rtsp-mcast=0
+
+# Tunnel RTSP and RTP over HTTP (boolean)
+#rtsp-http=0
+
+# HTTP tunnel port (integer)
+#rtsp-http-port=80
+
+# Kasenna RTSP dialect (boolean)
+#rtsp-kasenna=0
+
+# WMServer RTSP dialect (boolean)
+#rtsp-wmserver=0
+
+# Username (string)
+#rtsp-user=
+
+# Password (string)
+#rtsp-pwd=
+
+# RTSP frame buffer size (integer)
+#rtsp-frame-buffer-size=250000
 
 [smb] # SMB input
 
@@ -3944,7 +3944,7 @@ svg-height=1
 #deinterlace-mode=auto
 
 # Video output module (string)
-#vout=
+vout=vdpau_display
 
 # Video filter module (string)
 #video-filter=

@@ -83,7 +83,9 @@ $a flatpak \
  libmkl-def \
  kerneltop \
  blktool \
- tuned-utils 
+ tuned-utils \
+ npm \
+ bcache-tools
 
 
 #if [ $INSTALLBUILDENV = true ] ; then
@@ -246,6 +248,7 @@ $a *qtgstreamer* \
  kde-config-updates \
  partitionmanager \
  irqbalance \
+ plasma-discover-backend-flatpak plasma-discover-backend-fwupd plasma-discover-backend-snap \
  kali-desktop-kde
 
 

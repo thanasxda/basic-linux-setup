@@ -384,11 +384,12 @@ cd $source
             
             
     ### lol, dont use snap pls - disabled it again
-        #$s apt purge -y snapd snap-confine && $s apt install -y snapd
-        #$s systemctl enable --now snapd.socket
-        #sleep 5
-        #$s apparmor_parser -r /etc/apparmor.d/*snap-confine*
-        #$s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
+        $s apt purge -y snapd snap-confine && $s apt install -y snapd
+        $s systemctl enable --now snapd.socket
+        $s systemctl enable --now snapd.apparmor
+        sleep 5
+        $s apparmor_parser -r /etc/apparmor.d/*snap-confine*
+        $s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
             mkdir -p ~/.wine && $s mkdir -p /root/.wine
             # echo "127.0.0.1 release.gitkraken.com"  | $s tee -a /etc/hosts # workaround to use kraken with private repos dunno if works
 
@@ -400,8 +401,7 @@ cd $source
 
 
     ### <<<< ALL PKGLIST.SH >>>> - color pkglist installation so user is aware of part, scripts can be found externally and be executed isolated for troubleshooting >
-        if [ $INSTALLBUILDENV = true ] ; then $s sh pkglist0.sh ; fi
-         $s sh pkglist.sh
+                 $s sh pkglist.sh
 
 
         echo -e "${restore}"
@@ -436,7 +436,7 @@ cd $source
                 #$s systemd-analyze blame
                 #$s stacer
 
-                
+                if [ $INSTALLBUILDENV = true ] ; then $s sh pkglist0.sh ; fi
                 
                                 
                 

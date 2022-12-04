@@ -53,6 +53,9 @@ I am not a developer nor a professional, just an average Linux user at best case
  For kernel parameters check:
   - [__linux - kernel parameters__](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
 
+ Filesystems:
+  - [__XFS__](https://www.phoronix.com/review/linux-58-filesystems/2)
+  
  Other nice sources would include:
   - [__links section__](https://github.com/thanasxda/basic-linux-setup#-links)
 
@@ -74,9 +77,17 @@ ___
 sudo apt update && sudo apt -f install -y git && git clone -j32 --depth=1 -4 --single-branch https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout master && chmod +x *.sh &&
 ./1*
 ```
-**For parameter configuration only, running any distribution on x86, Android, OpenWrt, Open/Libre-elec & Linux devices in general, copy paste:**
+**For parameter configuration only, running any distribution on x86, OpenWrt, Open/Libre-elec & Linux devices in general, copy paste:**
 ```
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && chmod +x /tmp/init.sh &&
+sh /tmp/init.sh
+```
+**For Android, install [Busybox](https://themagisk.com/how-to-download-a-magisk-module/) and copy paste:**
+```
+su
+wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh 
+sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh
+chmod +x /tmp/init.sh 
 sh /tmp/init.sh
 ```
 **For OpenWrt basic setup check out:**
@@ -84,7 +95,7 @@ sh /tmp/init.sh
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/wrt.sh -O /tmp/wrt.sh && chmod +x /tmp/wrt.sh &&
 sh /tmp/wrt.sh
 ```
-
+Note: Only been tested by myself personally on x86 and OpenWrt. Not compatible with your device? Leave note and contribute by giving information for me to include it.
 ## ₇. Recommendations:
 
    - Disabling __HPET__ or any timers used in bios.

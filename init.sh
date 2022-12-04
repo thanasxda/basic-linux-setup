@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/sh -x
 #############################################################
 #############################################################
 ##                  basic-linux-setup                      ##
@@ -19,18 +19,18 @@ sleep 10
 # script vars
 s="sudo"
 
- ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> note that most of the underneath options only apply to kernel boot parameters, the rest of this file applies similar options within userspace on kernel. these options are preconfigured to my own preferences for balanced performance. if changing this setup is your goal be sure to check hackbench for latency. didnt try this on android as of yet but i think binaries are #!/system/bin/sh , depends on where busybox is installed.
+ ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> note that most of the underneath options only apply to kernel boot parameters, the rest of this file applies similar options within userspace on kernel. these options are preconfigured to my own preferences for balanced performance. if changing this setup is your goal be sure to check hackbench for latency. didnt try this on android as of yet but i think binaries are #!/system/bin/sh , depends on where busybox is installed. dont have android rn so edit dirs yourself depending on device. or contribute by giving dirs for android by leaving note at commits or something for me to fix it for you.
 
 
       ### < SCRIPT AUTO-UPDATE >
         script_autoupdate="yes"
-        sourceslist_update="yes"
+        sourceslist_update="no"
       # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
         clean_sources_list_d="yes"
 
-        
-        
-        
+
+
+
       ### < MISC >
       # ipv6 "on" to enable
         ipv6="off"
@@ -42,21 +42,9 @@ s="sudo"
       # preferred address to ping
         ping="1.1.1.1"
 
-        
-        
-        
-      ### < STORAGE >
-      # - linux storage devices only used for hdparm. wildcard picks up all 
-        hdd="/dev/hd*"
-        ssd="/dev/sd*"
-        nvme="/dev/nvme*"
-        #blktool
-        strg=$(fdisk -l | grep "Linux filesystem" | awk '{print $1}')
-        #rootfs="/dev/sda2"
 
 
-        
-        
+
       ### < I/O SCHEDULER >
       # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme
         if ls /dev/nvme* ; then sched="none" ; else sched="bfq" ; fi
@@ -67,7 +55,7 @@ s="sudo"
         if ! grep -q cfq /sys/block/mmc*/queue/scheduler ; then mmcsched="bfq" ; fi
 
 
-        
+
 
       ### < CPU GOVERNOR >
       # - linux kernel cpu governor
@@ -100,9 +88,9 @@ s="sudo"
       ### < WIRELESS REG-DB >
       # - wireless regulatory settings per country 00 for global
         country="00"
-        
+
         # meanwhile serves as list to make me remember how to figure out user
-        if grep -q "wrt" /etc/os-release || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
+        if grep -q "wrt" /etc/os-release || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
 
 
 
@@ -134,12 +122,12 @@ s="sudo"
       ### < FSTAB FLAGS >
       # - /etc/fstab - let fstrim.timer handle discard
         xfs="defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=128k,noquota,allocsize=64m,largeio,swalloc"
-       ext4="defaults,rw,lazytime,commit=60,quota,data=writeback,nobarrier,errors=remount-ro"
+       ext4="defaults,rw,lazytime,commit=60,quota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc"
        f2fs="defaults,rw,lazytime,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
        swap="sw,lazytime"
-                                                              
+
 
 
 
@@ -151,19 +139,34 @@ s="sudo"
         processornocstates="1"
         cpumaxcstate="0"
         cec="off"
+        zpool="z3fold"
+        zpoolpercent="60"
+        
+        
+
+
+
+
+      ### < STORAGE >
+      # - linux storage devices only used for hdparm. wildcard picks up all
+        #hdd="/dev/hd*"
+        #ssd="/dev/sd*"
+        #nvme="/dev/nvme*"
+        #blktool
+        #strg=$(fdisk -l | grep "Linux filesystem" | awk '{print $1}')
+        #rootfs="/dev/sda2"
+        #storage=$(fdisk -l | grep "Disk /dev" | grep -v zram | awk '{print $2}'  | sed 's/://g')
         #scsi="off"
         # in case of using dracut
         #raid="no"
-
-
-
-
+        
+        
       ### < MEMORY ALLOCATION >
       # - if memory under 2gb or swap or zram considered low spec if not high spec
       # lowspec options scripted for 2g exactly
 
 
-zram='#!/bin/bash
+zram='#!/bin/sh
 modprobe zram
 modprobe lz4
 modprobe lz4_compress
@@ -172,11 +175,16 @@ echo "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)"G  > /sys
 mkswap --label zram0 /dev/zram0
 swapon --priority 1000 /dev/zram0
 if ! grep "lz4" /etc/modules ; then
-sed -i -r '\''/^lz4(_compress)?/D'\'' /etc/modules
+sed -i -r '\''/^z3fold?/D'\'' /etc/modules
 cat <<EOL>> /etc/modules
 lz4
 lz4_compress
+z3fold
+zsmalloc
 EOL
+echo lz4 >> /etc/initramfs-tools/modules
+echo lz4_compress >> /etc/initramfs-tools/modules
+echo z3fold >> /etc/initramfs-tools/modules
 update-initramfs -u
 echo 1 > /sys/module/zswap/parameters/enabled
 echo lz4 > /sys/module/zswap/parameters/compressor
@@ -189,19 +197,19 @@ sudo sed -i '\''s/PERCENT.*/PERCENT=40/g'\'' /etc/default/zramswap; fi'
 
 # if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
-vm.overcommit_memory = 1
-overcommit=1
-vm.nr_overcommit_hugepages = 1
+vm.overcommit_memory = 3
+overcommit=3
+vm.nr_overcommit_hugepages = 3
 kernel.shmmni = 1600000
 kernel.shmall = 35000000
 kernel.shmmax = 100000000
-sysctl -w vm.nr_overcommit_hugepages=1
+sysctl -w vm.nr_overcommit_hugepages=3
 sysctl -w kernel.shmmni=1600000
 sysctl -w kernel.shmall=35000000
 sysctl -w kernel.shmmax=100000000
-echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
-echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
+echo always > /sys/kernel/mm/transparent_hugepage/enabled
+echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
 hugepages="8"
 sysctl -w vm.nr_hugepages=8
@@ -246,7 +254,7 @@ if ! grep -q "wrt\|tv" /etc/os-release ; then
 hpages=' kvm.nx_huge_pages=off transparent_hugepage=never'
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
+echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 
 # 8gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -ge 8 ] ; then
@@ -255,10 +263,9 @@ vmalloc="256"
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-hugepages=$(nproc --all)
 hugepages="512"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=512
+sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 1024000
 #hard memlock 1024000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=4000000000
@@ -273,10 +280,10 @@ devshm=",size=6G"
 vmalloc="512"
 hugepages="1024"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=1024
+sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 2048000
 #hard memlock 2048000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=6000000000 
+sysctl -w kernel.shmmax=6000000000
 sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 32 gb
@@ -285,10 +292,10 @@ devshm=",size=12G"
 vmalloc="1024"
 hugepages="2048"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=2048
+sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 4096000
 #hard memlock 4096000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=12000000000 
+sysctl -w kernel.shmmax=12000000000
 sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 4gb
@@ -297,7 +304,7 @@ devshm=",size=512m"
 vmalloc="128"
 hugepages="64"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=64
+sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
 sysctl -w kernel.shmmax=2000000000
@@ -310,10 +317,10 @@ devshm=",size=128m"
 vmalloc="128"
 hugepages="32"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=32
+sysctl -w vm.nr_hugepages=$hugepages
 echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
 echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag 
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
 kernel.shmmni = 16000000
 kernel.shmall = 350000000
@@ -323,7 +330,7 @@ sysctl -w kernel.shmall=350000000
 sysctl -w kernel.shmmax=1000000000
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
-zswap=" zswap.enabled=1 zswap.max_pool_percent=40 zswap.zpool=z3fold zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
+zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
 sysctl -w kernel.shmmax=1000000000
 overcommit=0
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
@@ -334,7 +341,7 @@ devshm=",size=64m"
 vmalloc="128"
 hugepages="16"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=16
+sysctl -w vm.nr_hugepages=$hugepages
 kernel.shmmni = 1600000
 kernel.shmall = 35000000
 kernel.shmmax = 100000000
@@ -356,12 +363,11 @@ fi
 
 # zswap, only if 2gb or under
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
-
 # cpu amd or intel
-x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=support_acpi_ppc kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
+x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx kvm-amd.nested=1" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # mitigations
 x1="$(if [ $mitigations = off ] ; then
-echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; fi)"
+echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; fi)"
 # logging
 x2=" audit=0 log_priority=0 loglevel=0 mminit_loglevel=0 udev.log_priority=0 rd.udev.log_level=0 udev.log_level=0"
 # security
@@ -412,7 +418,7 @@ x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ;
 #
 x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
 #
-x26=" mem=nopentium realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 S pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend checkreqprot swiotlb=force tp_printk_stop_on_boot printk.devkmsg=off nohalt"
+x26=" realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 S pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend checkreqprot swiotlb=force nohalt"
 #
 x27=" ip=:::::::$dns1:$dns2:"
 #
@@ -420,13 +426,14 @@ x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
 #
 x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
 #
-x=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1"
+x=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1 processor.ignore_ppc=1"
+xx=$(if $(lscpu | grep -q Pentium) ; then export hugepagesz="4MB" ; else echo " mem=nopentium" ; fi)
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
                                         # https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
 
-                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$x")"
+                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$x$xx")"
 
                                         export par="splash quiet$bootargvars"
 
@@ -448,9 +455,12 @@ x=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1"
        echo manual > /sys/class/drm/card0/device/power_dpm_force_performance_level
        echo $perfamdgpu > /sys/class/drm/card0/device/power_dpm_force_performance_level
 
-droidresolv=$(if grep -q droid /etc/os-release ; then echo "/etc/system/resolv.conf" ; fi)
-droidhosts=$(if grep -q droid /etc/os-release ; then echo "/etc/system/hosts" ; fi)
-droidfstab=$(if grep -q droid /etc/os-release ; then echo "/etc/vendor/fstab" ; fi)
+       
+    # android dirs
+    if [ -f /system/build.prop ] ; then
+droidresolv=$(if [ -f /system/build.prop ] ; then echo "/etc/system/resolv.conf" ; fi)
+droidhosts=$(if [ -f /system/build.prop ] ; then echo "/etc/system/hosts /etc/hosts" ; fi)
+droidfstab=$(if [ -f /system/build.prop ] ; then echo "/etc/vendor/fstab*" ; fi) ; fi
 
   ### < ADDITIONAL BLOCKLISTS FOR HOSTS FILE > - not on openwrt
         list1=
@@ -460,7 +470,7 @@ droidfstab=$(if grep -q droid /etc/os-release ; then echo "/etc/vendor/fstab" ; 
 
   ### < BLOCKLISTS >
     # - /etc/hosts & /etc/update_hosts.sh - not on openwrt
-blocklist='#!/bin/bash
+blocklist='#!/bin/sh
 ### pihole default blocklists /etc/hosts weekly updated
 u1="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
 u2="https://mirror1.malwaredomains.com/files/justdomains"
@@ -503,7 +513,7 @@ else echo "Offline"; fi'
 
   ### < RC.LOCAL OPENWRT >
     # - /etc/rc.local & /etc/sysctl.conf, /tmp/init.sh for openwrt
-wrtsh='#!/bin/bash
+wrtsh='#!/bin/sh
 ### get script update on reboot on /tmp/init.sh and run...
 link=https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
 while [ ! -f /tmp/init.sh ];
@@ -528,17 +538,33 @@ done'
     .........................................
     ........................................"
 
+    ### make backups - fstab may vary and other dirs maybe depending on phone. qcom is /vendor/fstab.qcom
+    # remount rw
+     if [ -f /system/build.prop ] ; then
+    mount -o rw,remount /system
+    mount -o rw,remount /vendor ; fi
+      mkdir -p /etc/bak
+  if [ ! -f /etc/bak/fstab.bak ] ; then cp /etc/fstab /etc/bak/fstab.bak ; if [ -f /system/build.prop ] ; then cp /etc/vendor/fstab* /sdcard/bak/fstab.android.bak ; fi ; fi
+  if [ -f /system/build.prop ] && [ ! -f /etc/bak/build.prop.bak ] ; then cp /system/build.prop /sdcard/bak/build.prop.android.bak ; fi
+  if [ ! -f /etc/bak/hosts.bak ] ; then cp /etc/hosts /etc/bak/hosts.bak ;  if [ -f /system/build.prop ] ; then cp /etc/hosts /sdcard/bak/hosts.android.bak ; fi ; fi
+  if [ ! -f /etc/bak/resolv.conf.bak ] ; then cp /etc/resolv.conf /etc/bak/resolv.conf.bak ; fi
+  if [ ! -f /etc/bak/sysctl.conf.bak ] ; then cp /etc/sysctl.conf /etc/bak/sysctl.conf.bak ; fi
+  if [ ! -f /etc/bak/NetworkManager.conf.bak ] ; then cp /etc/NetworkManager/NetworkManager.conf /etc/bak/NetworkManager.conf.bak ; fi
+ 
+
 
       ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
-    disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|snap\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs"
+    disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower"
 
     enable_services="firewalld\|apparmor\|run-shm.mount"
     # for accidental protection
     exclude_from_disabling="sudo\|alsa\|anacron\|apparmor\|firewalld\|ufw\|run-shm.mount\|rtkit"
 
 
+
+
   ### pls put repos in /etc/apt/sources.list.d/extras.list idc im removing urs
-  if [ $clean_sources_list_d = yes ] ; then 
+  if [ $clean_sources_list_d = yes ] ; then
 	find /etc/apt/sources.list.d/* -type f -not -name 'extras.list' -delete ; fi
 
 
@@ -640,11 +666,11 @@ $s update-grub
 
   ### < FSTAB UPDATE >
   ### fstab update
-    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/swap .*/swap     '"$swap"' 0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab #$droidfstab
+    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab #$droidfstab
+    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab #$droidfstab
+    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab #$droidfstab
+    $s sed -i 's/swap .*/swap     '"$swap"' 0 0/g' /etc/fstab #$droidfstab
 
 
 
@@ -836,17 +862,19 @@ options rotate timeout:1 attempts:3 single-request-reopen no-tld-query
     $s rsync --ignore-existing /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
 
   # hdd write caching and power management
-    $s hdparm -W 1 $hdd
-    $s hdparm -W 1 $ssd
-    $s hdparm -W 1 $nvme
-    $s hdparm -B 254 $hdd
-    $s hdparm -B 254 $ssd
-    $s hdparm -B 254 $nvme
-    
-  # blktool
-  for i in $strg ; do
+    #$s hdparm -W 1 $hdd
+    #$s hdparm -W 1 $ssd
+    #$s hdparm -W 1 $nvme
+    #$s hdparm -B 254 $hdd
+    #$s hdparm -B 254 $ssd
+    #$s hdparm -B 254 $nvme
+
+  #for i in $storage ; do
+  for i in $(ls /dev/hd* ; ls /dev/sd* ; ls /dev/nvm*) ; do
   blktool $i wcache on
-  blktool $i dma on ; done
+  hdparm -W 1 $i
+  hdparm -B 254 $i ; done
+
 
 
   # more ALL RANDOM STUFF GOES HERE
@@ -913,38 +941,42 @@ journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     chmod 0600 /etc/hosts.allow
     chmod 0600 /etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
     if ! grep -q rngd /etc/modules ; then
-    sed -i -r '/^rngd?/D' /etc/modules
+    sed -i -r '/^msr?/D' /etc/modules
 cat <<EOL>> /etc/modules
 jitterentropy-rngd
 rngd
 urngd
 haveged
+acpi_cpufreq
+cpufreq_performance
+msr
+kvm
 EOL
 fi
         sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' /etc/init.d/rc
         # prevent ssh bruteforce
  iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
- 
+
         # config dracut as well in case of not using initramfs-tools - note mdadm probably is raid. reconsidering it probably isnt so no harm. dracut buggy. just use google do ur own homework. setup already to big for me
-            #if grep -q debian /etc/os-release ; then 
+            #if grep -q debian /etc/os-release ; then
             #dracflags="hostonly=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf='$raid' lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no kernel_cmdline='mitigations=$mitigations' compress=lz4 hostonly_cmdline=yes"
-        #if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then 
-        #echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi 
+        #if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then
+        #echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
 
         # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps'
-    
-    #scsiblack=$(if [ $scsi = off ] ; then 
+
+    #scsiblack=$(if [ $scsi = off ] ; then
     #echo 'scsi_mod
 #scsi_common
 #sd_mod' ; fi)
     #cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
-  
-  
-  
 
-  
-  
+
+
+
+
+
   ### < START PARAMETER CONFIG >
 ##########################################################################################################
 # systunedump --all | sed 's/:/ /g' | awk '{print "echo "$2" > "$1}' > text
@@ -1930,7 +1962,8 @@ echo 15000 > /proc/sys/vm/watermark_boost_factor
 echo 200 > /proc/sys/vm/watermark_scale_factor
 echo 0 > /proc/sys/vm/zone_reclaim_mode
 
-
+#
+echo 1 > /sys/devices/system/cpu/cpufreq/boost
 #
 echo "N" > /sys/module/rt2800soc/parameters/nohwcrypt
 echo "N" > /sys/module/watchdog/parameters/handle_boot_enabled
@@ -2153,7 +2186,30 @@ for i in $(find /sys/block/mmc*); do
   echo "0" > $i/queue/iosched/max_budget
 done;
 
-echo 32 | tee /sys/block/sd*[!0-9]/queue/iosched/fifo_batch
+for i in $(echo sd*[!0-9] ; echo hd*[!0-9] ; echo nvme*[!0-9]) ; do
+echo 32 | tee /sys/block/$i/queue/iosched/fifo_batch ; done
+
+echo 1 > /sys/module/processor/parameters/ignore_ppc
+
+if ! grep -1 "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf ; then
+echo 'options processor ignore_ppc=1' | tee /etc/modprobe.d/ignore_ppc.conf ; fi
+
+#x86_energy_perf_policy --hwp-enable --force
+x86_energy_perf_policy --all 1 --force
+
+if ! grep -q acpi-cpufreq /etc/modules ; then
+echo acpi-cpufreq >> /etc/modules ; fi
+
+if ! grep -q "options acpi-cpufreq force=1" /etc/modprobe.d/acpi-cpufreq.modprobe ; then
+echo options acpi-cpufreq force=1 >> /etc/modprobe.d/acpi-cpufreq.modprobe ; fi
+
+cpupower frequency-set -g $governor
+
+echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo
+echo 1 > /sys/devices/system/cpu/cpufreq/boost
+x86_energy_perf_policy --turbo-enable 1 --force
+
+echo performance > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
 # governor
 for i in $(find /sys/devices/system/cpu/cpufreq); do
@@ -2263,7 +2319,7 @@ echo "WAKEUP_PREEMPTION" >> $schedfeatnew >> $schedfeatold
 echo "AFFINE_WAKEUPS" >> $schedfeatnew >> $schedfeatold
 echo "NO_NORMALIZED_SLEEPER" >> $schedfeatnew >> $schedfeatold
 
-if grep -q droid /etc/os-release ; then
+if [ -f /system/build.prop ] ; then
 echo "ENERGY_AWARE" >> $schedfeatnew >> $schedfeatold ; fi
 
 echo 3 > /sys/bus/workqueue/devices/writeback/cpumask
@@ -3142,8 +3198,22 @@ vm.watermark_boost_factor = 15000
 vm.watermark_scale_factor = 200
 vm.zone_reclaim_mode = 0
 #include = latency-performance
-
-
+if dmesg | grep -q raid ; then
+sysctl -w dev.raid.speed_limit_min=1000000
+sysctl -w dev.raid.speed_limit_max=1000000 
+echo 8 > /sys/block/md0/md/group_thread_cnt; fi
+stack_erasing = 0
+if ! grep -q wrt /etc/os-release ; then 
+/sbin/sysctl -w net.ipv4.conf.all.accept_source_route=0
+/sbin/sysctl -w net.ipv4.conf.all.forwarding=0
+/sbin/sysctl -w net.ipv6.conf.all.forwarding=0
+/sbin/sysctl -w net.ipv4.conf.all.mc_forwarding=0
+/sbin/sysctl -w net.ipv6.conf.all.mc_forwarding=0
+/sbin/sysctl -w net.ipv4.conf.all.accept_redirects=0
+/sbin/sysctl -w net.ipv6.conf.all.accept_redirects=0
+/sbin/sysctl -w net.ipv4.conf.all.secure_redirects=0
+/sbin/sysctl -w net.ipv4.conf.all.send_redirects=0
+/sbin/sysctl -w net.ipv4.conf.default.send_redirects=0 ; fi
 
 
 
@@ -3497,7 +3567,7 @@ fi
 
 
 # kde environment variables
-echo '#!/bin/bash
+echo '#!/bin/sh
 export KWIN_NO_XI2=1
 export KWIN_GL_DEBUG=0
 export KWIN_DIRECT_GL=1
@@ -3539,16 +3609,16 @@ export KDE_USE_IPV6=no
   #export KWIN_FORCE_LANCZOS=0' | $s tee /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh && $s chmod +x /etc/profile.d/kwin.sh && $s chmod +x /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}'
 )"/.config/plasma-workspace/env/kwin_env.sh
 
-if [ $ipv6 = on ] 
-then 
+if [ $ipv6 = on ]
+then
 sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=1' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh 
-else 
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
+else
 sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; fi 
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; fi
 
 if [ $ipv6 = on ]
-then 
+then
 sed -i 's/user_pref("network.dns.disableIPv6", true);/user_pref("network.dns.disableIPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
 sed -i 's/user_pref("network.notify.IPv6", false);/user_pref("network.notify.IPv6", true);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
 else
@@ -3562,9 +3632,9 @@ if ! grep -q wrt /etc/os-release ; then
     if grep -q debian /etc/os-release ; then cclm="-16" ; fi
 # /etc/environment variables
 # test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
-# for more info: https://docs.mesa3d.org/envvars.html 
+# for more info: https://docs.mesa3d.org/envvars.html
 # https://cgit.freedesktop.org/mesa/mesa/tree/docs/features.txt?h=staging/22.3
-echo '#!/bin/bash -x
+echo '#!/bin/sh -x
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games:$PATH
 export COMMAND_NOT_FOUND_INSTALL_PROMPT=1
 export POWERSHELL_UPDATECHECK=Off
@@ -3710,7 +3780,7 @@ export STRIP=llvm-strip'"$cclm"'
 export QT_STYLE_OVERRIDE=kvantum
 export GTK_USE_PORTAL=1
 
-export OBS_USE_EGL=1 
+export OBS_USE_EGL=1
 
 if [ $XDG_SESSION_TYPE = x11 ] ; then export MOZ_X11_EGL=1 ; export MOZ_ENABLE_WAYLAND=0 ;fi
 if [ $XDG_SESSION_TYPE = wayland ] ; then export MOZ_ENABLE_WAYLAND=1 ; export MOZ_X11_EGL=0 ; fi
@@ -3735,7 +3805,7 @@ for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i
 
 ### IF ANDROID
 # android props etc
-if grep "droid" /etc/os-release ; then
+if [ -f /system/build.prop ] ; then
 prop='#boot.fps=20
 #debug.egl.hw=1
 #debug.egl.profiler=1
@@ -3943,7 +4013,7 @@ echo "Y" > /sys/module/sync/parameters/fsync_enabled
     ### modprobe kmods
 modprobe deflate crypto_acompress zlib_deflate zlib_inflate configs nft_numgen nls_utf8 dns_resolver cryptodev jitterentropy_rng xt_FLOWOFFLOAD tcp_bbr bfq nft_flow_offload loop rng urngd urandom_seed nf_flow_table_inet nf_flow_table_ipv4
 
-if ifconfig | grep -q "phy\|wlan\|radio" ; then modprobe lib80211_crypt_ccmp lib80211 ; fi
+if ifconfig | grep -q "phy\|wlan\|radio" ; then modprobe lib80211_crypt_ccmp cfg80211 mac80211 lib80211 ; fi
 
 if grep -q wrt /etc/os-release && grep -q "ppp" $iface ; then modprobe pppox pppoe ppp_mppe ppp_generic ppp_async ralink-gdma ; fi
 
@@ -3983,7 +4053,7 @@ if systemctl list-unit-files | grep -q anacron ; then systemctl disable cron && 
 # stop some kmod for all but wrt again
 if ! grep -q wrt /etc/os-release && [ ! $ipv6 = on ] ; then echo "blacklist ipv6" | sudo tee /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
-
+if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi 
 
 
 # blacklist old radeon cards - if you cant boot remove this blacklist
@@ -4032,7 +4102,7 @@ grep -q "ping "$ping" -c 2" /etc/rc.local
 if [ $? -eq 1 ]; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && chmod +x /etc/rc.local && if ! grep -q thanas /etc/sysctl.conf ; then cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf ; fi &&  mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; else echo "*BLS*=rc.local up to date"; fi; fi
 # general devices and other distros
 elif ping "$ping" -c 2
-[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; fi ; fi
+[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; if [ -f /system/build.prop ] ; then sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh ; cp /tmp/init.sh /system/etc/rc.local && cp /tmp/init.sh /system/etc/sysctl.conf ; cp /tmp/init.sh /system/etc/sysctl.d/sysctl.conf && chmod +x /system/etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /system/etc/sysctl.conf ; fi ; fi ;fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
 
@@ -4041,9 +4111,12 @@ elif ping "$ping" -c 2
 
 
 # disable bluetooth for all but android
-if ! grep -q droid /etc/os-release ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
+if [ ! -f /system/build.prop ] ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
 
-
+    # remount ro android
+   if [ -f /system/build.prop ] ; then
+   mount -o ro,remount /system
+   mount -o ro,remount /vendor ; fi
 
 
 
@@ -4065,12 +4138,11 @@ systemctl stop $disableserv
 systemctl disable $disableserv
 systemctl mask $maskdisable
 
-	"$ipv6"net.ipv6.conf.all.disable_ipv6 = 1
-	"$ipv6"net.ipv6.conf.default.disable_ipv6 = 1
-	"$ipv6"net.ipv6.conf.lo.disable_ipv6 = 1
-	"$ipv6"net.ipv6.conf.all.accept_ra = 0
-
-	if [ ! $ipv6 = on ] ; then
+	if [ $ipv6 = on ] ; then
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+net.ipv6.conf.lo.disable_ipv6 = 0
+net.ipv6.conf.all.accept_ra = 1 ; else
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
 net.ipv6.conf.lo.disable_ipv6 = 1
@@ -4205,8 +4277,8 @@ fi
 
 
 
-
-
+# interesting stuff not yet included will be placed here:
+# https://docs.kernel.org/admin-guide/bcache.html https://git.kernel.org/pub/scm/linux/kernel/git/colyli/bcache-tools.git/snapshot/bcache-tools-1.1.tar.gz
 
 
 

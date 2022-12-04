@@ -26,7 +26,7 @@ fl="$s flatpak install  -y"
 rem="$s apt -f remove -y"
 
 echo -e "${yellow}"
-echo "" && echo "" && echo "" && echo "pkglist0 starting..." && echo "" && echo "" && echo "" 
+echo "" && echo "" && echo "" && echo "pkglist0 starting..." && echo "" && echo "" && echo ""
 
 # thanas
 cd $tmp
@@ -48,134 +48,124 @@ rm -rf gitkraken*
 
 # section 1
 #xdotool key Left | xdotool key KP_Enter | $a libc6
-#$a autoconf
-#$a autoconf-archive
-#$a autogen
-#$a automake
-#$a autopoint
-#$a autotools-dev
-#$a bash
-#$a bc
-#$a binfmt-support
-#$a binutils-dev
-#$a bison
-#$a build-essential
-#$a bzip2
-#$a ca-certificates
-#$a ccache
-#$a checkinstall
-#$a clang
-#$a clang-format
-#$a clang-tidy
-#$a clang-tools
-#$a clangd
-#$a cmake
-#$a curl
-#$a dash
-#$a dpkg-dev
-#$a ecj
-#$a expat
-#$a fastboot
-#$a fastjar
-#$a file
-#$a flex
-#$a g++
-#$a g++-multilib
-#$a gawk
-#$a gcc-multilib
-#$a gettext
-#$a gnupg
-#$a gperf
-#$a help2man
-#$a java-propose-classpath
-#$a lib32ncurses-dev
-#$a lib32readline-dev
-#$a lib32z1
-#$a lib32z1-dev
-#$a libbz2-dev
-#$a libc++-dev
-#$a libc++abi-dev
-#$a libc6-dev
-#$a libc6-dev-i386
-#$a libcap-dev
-#$a libclang-dev
-#$a libclang1
-#$a libelf-dev
-#$a libenca0
-#$a libexpat1-dev
-#$a libffi-dev
-#$a libfuzzer-dev
-#$a libghc-bzlib-dev
-#$a libgmp-dev
-#$a libllvm
-#$a libllvm-ocaml-dev
-#$a liblz4-1
-#$a liblz4-1:i386
-#$a liblz4-dev
-#$a liblz4-java
-#$a liblz4-jni
-#$a liblz4-tool
-#$a liblzma-dev
-#$a liblzma-doc
-#$a liblzma5
-#$a libmng2
-#$a libmpc-dev
-#$a libmpfr-dev
-#$a libncurses-dev
-#$a libomp-dev
-#$a libssl-dev
-#$a libtool
-#$a libtool-bin
-#$a libx11-dev
-#$a libxml2
-#$a libxml2-dev
-#$a libxml2-utils
-#$a linux-libc-dev
-#$a lld
-#$a lldb
-#$a llvm
-#$a llvm-dev
-#$a llvm-runtime
-#$a lzma
-#$a lzma-alone
-#$a lzma-dev
-#$a lzop
-#$a m4
-#$a make
-#$a maven
-#$a ninja-build
-#$a optipngcd
-#$a patch
-#$a pigz
-#$a pkg-config
-#$a pngcrush
-#$a python-all-dev
-#$a python-clang
-#$a qemu-utils
-#$a squashfs-tools
-#$a subversion
-#$a swig
-#$a texinfo
-#$a txt2man
-#$a unzip
-#$a xsltproc
-#$a yasm
-#$a zip
-#$a zlib1g-dev
+$ins autoconf \
+  autoconf-archive \
+  automake \
+  autopoint \
+  autotools-dev \
+  bash \
+  bc \
+  binfmt-support \
+  binutils-dev \
+  bison \
+  build-essential \
+  bzip2 \
+  ca-certificates \
+  ccache \
+  checkinstall \
+  clang \
+  clang-format \
+  clang-tidy \
+  clang-tools \
+  clangd \
+  cmake \
+  curl \
+  dash \
+  dpkg-dev \
+  ecj \
+  expat \
+  fastboot \
+  fastjar \
+  file \
+  flex \
+  g++ \
+  g++-multilib \
+  gawk \
+  gcc-multilib \
+  gettext \
+  gnupg \
+  gperf \
+  help2man \
+  java-propose-classpath \
+  lib32ncurses-dev \
+  lib32readline-dev \
+  lib32z1 \
+  lib32z1-dev \
+  libbz2-dev \
+  libc6-dev \
+  libc6-dev-i386 \
+  libcap-dev \
+  libclang-dev \
+  libclang1 \
+  libelf-dev \
+  libenca0 \
+  libexpat1-dev \
+  libffi-dev \
+  libgmp-dev \
+  liblz4-1 \
+  liblz4-1:i386 \
+  liblz4-dev \
+  liblz4-java \
+  liblz4-jni \
+  liblz4-tool \
+  liblzma-dev \
+  liblzma-doc \
+  liblzma5 \
+  libmng2 \
+  libmpc-dev \
+  libmpfr-dev \
+  libncurses-dev \
+  libtool \
+  libssl-dev \
+  libtool-bin \
+  libx11-dev \
+  libxml2 \
+  libxml2-dev \
+  libxml2-utils \
+  linux-libc-dev \
+  lld \
+  llvm \
+  llvm-dev \
+  llvm-runtime \
+  lzma \
+  lzma-alone \
+  lzma-dev \
+  lzop \
+  m4 \
+  make \
+  maven \
+  ninja-build \
+  patch \
+  pigz \
+  pkg-config \
+  pngcrush \
+  python-all-dev \
+  qemu-utils \
+  squashfs-tools \
+  subversion \
+  swig \
+  texinfo \
+  txt2man \
+  unzip \
+  xsltproc \
+  yasm \
+  zip \
+  zlib1g-dev \
+  libncurses6
 
 echo -e "$restore}"
 
 ### updated build env
-git clone https://github.com/akhilnarang/scripts.git
-cd scripts/setup
-Keys.ENTER | ./android_build_env.sh
-cd $source && $S rm -rf scripts
-$s dpkg --configure -a
+#git clone https://github.com/akhilnarang/scripts.git
+#cd scripts/setup
+#Keys.ENTER | ./android_build_env.sh
+#cd $source && $S rm -rf scripts
+#$s dpkg --configure -a
 
 cd $source
 
 	#} 2>&1 | tee -a $(ls -t ~/Desktop/BLS-LOGS/BLS_LOG* | head -1)
-	
+
 #####################################################################################################
 ####### END #########################################################################################
 #####################################################################################################
