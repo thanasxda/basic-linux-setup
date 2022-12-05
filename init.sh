@@ -122,7 +122,7 @@ s="sudo"
       ### < FSTAB FLAGS >
       # - /etc/fstab - let fstrim.timer handle discard
         xfs="defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=128k,noquota,allocsize=64m,largeio,swalloc"
-       ext4="defaults,rw,lazytime,commit=60,quota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc"
+       ext4="defaults,rw,lazytime,commit=60,quota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc,user_xattr"
        f2fs="defaults,rw,lazytime,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
@@ -140,7 +140,7 @@ s="sudo"
         cpumaxcstate="0"
         cec="off"
         zpool="z3fold"
-        zpoolpercent="60"
+        zpoolpercent="40"
         
         
 
@@ -482,7 +482,8 @@ ping '"$ping"' -c 2
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
-echo '\''no-resolv\nlocal-use\nbogus-priv\nfilterwin2k\nstop-dns-rebind\ndomain-needed\nno-dhcp-interface=lo\ncache-size=8196\nlocal-ttl=300\nneg-ttl=120\n127.0.0.1 localhost\noptions rotate timeout:1 attempts:3 single-request-reopen no-tld-query\n::1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
+echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
+127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
 echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
 x1="$(wget --random-wait $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
 x2="$(wget --random-wait $u2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
@@ -603,7 +604,7 @@ done'
     if systemctl list-unit-files | grep -q anacron ; then
     if ! grep rc.local /etc/anacrontabs ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
     elif ! grep rc.local /etc/crontabs/root /etc/crontab ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a /etc/crontabs/root /etc/crontab ; fi
-
+    
 
 
 
@@ -756,10 +757,12 @@ $s update-grub
     $s sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.zshrc ~/.bashrc
     $s sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.zshrc ~/.bashrc
     $s sed -i "\$accache -M 30G >/dev/null" ~/.zshrc ~/.bashrc
-    $s sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.zshrc ~/.bashrc ; fi
+    $s sed -i "\$aexport PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH" ~/.zshrc ~/.bashrc 
+    $s sed -i "\$aexport LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:$LD_LIBRARY_PATH" ~/.zshrc ~/.bashrc ; fi
     if $s grep -q "export PATH" ~/.zshrc; then echo "Flag exists"
-    else $s sed -i "\$aexport PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH'" ~/.zshrc ~/.bashrc ; fi
-
+    else $s sed -i "\$aexport PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH" ~/.zshrc ~/.bashrc 
+    $s sed -i "\$aexport LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:$LD_LIBRARY_PATH" ~/.zshrc ~/.bashrc ; fi
+ccache --set-config=sloppiness=locale,time_macros
 
 
 
@@ -789,6 +792,8 @@ $s update-grub
     $s ufw deny 22/udp
     $s ufw deny 23/tcp
     $s ufw deny 23/udp
+    $s ufw deny 53/tcp
+    $s ufw deny 53/udp
     $s ufw deny 80/tcp
     $s ufw deny 80/udp
     $s ufw deny 443/tcp
@@ -807,36 +812,26 @@ multi on' | tee -a /etc/host.conf ; fi
 
   # dns
     if ! grep -q "$dns61" /etc/resolv.conf ; then
-echo 'nameserver "$dns1"
-nameserver "$dns2"
+echo 'nameserver '"$dns1"'
+nameserver '"$dns2"'
 nameserver 127.0.0.1
 #nameserver ::1
-#nameserver "$dns61"
-#nameserver "$dns62"' | tee /etc/resolv.conf $droidresolv ; fi
+#nameserver '"$dns61"'
+#nameserver '"$dns62"'' | tee /etc/resolv.conf $droidresolv ; fi
 
 if [ $ipv6 = on ] ; then sed -i 's/#nameserver ::1
-#nameserver "$dns61"
-#nameserver "$dns62"/nameserver ::1
-nameserver "$dns61"
-nameserver "$dns62"/g' /etc/resolv/conf $droidresolv ; fi
+#nameserver '"$dns61"'
+#nameserver '"$dns62"'/nameserver ::1
+nameserver '"$dns61"'
+nameserver '"$dns62"'/g' /etc/resolv/conf $droidresolv ; fi
 
     if ! grep -q edns0 /etc/resolv.conf ; then
-    echo 'options edns0' | tee -a /etc/resolv.conf $droidresolv ; fi
+    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
 
 
 
   if ! grep -q "filterwin2k " /etc/hosts ; then
-echo 'no-resolv
-local-use
-bogus-priv
-filterwin2k
-stop-dns-rebind
-domain-needed
-no-dhcp-interface=lo
-ncache-size=8192
-local-ttl=300
-neg-ttl=120
-options rotate timeout:1 attempts:3 single-request-reopen no-tld-query
+echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost
 ::1 localhost' | tee -a /etc/hosts $droidhosts ; fi
     if ! grep -a "127.0.1.1 "$(cat /etc/hostname)"" /etc/hosts $droidhosts ; then
@@ -941,7 +936,7 @@ journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     chmod 0600 /etc/hosts.allow
     chmod 0600 /etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
     if ! grep -q rngd /etc/modules ; then
-    sed -i -r '/^msr?/D' /etc/modules
+    sed -i -r '/^fscache?/D' /etc/modules
 cat <<EOL>> /etc/modules
 jitterentropy-rngd
 rngd
@@ -951,6 +946,7 @@ acpi_cpufreq
 cpufreq_performance
 msr
 kvm
+fsache
 EOL
 fi
         sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' /etc/init.d/rc
@@ -971,10 +967,21 @@ fi
 #scsi_common
 #sd_mod' ; fi)
     #cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
-
-
-
-
+    
+    
+    if ! grep -q fscache /etc/initramfs-tools/modules ; then
+    echo cachefiles >> /etc/initramfs-tools/modules
+    echo fscache >> /etc/initramfs-tools/modules 
+    systemctl start --now cachefilesd
+    systemctl enable --now cachefilesd ; fi
+    sed -i 's/#RUN=.*/RUN=yes/g' /etc/default/cachefilesd
+    if ! grep -q jitterentropy /etc/initramfs-tools/modules ; then
+    echo jitterentropy-rngd >> /etc/initramfs-tools/modules
+    echo haveged >> /etc/initramfs-tools/modules 
+    echo kvm >> /etc/initramfs-tools/modules 
+    echo msr >> /etc/initramfs-tools/modules 
+    echo acpi_cpufreq >> /etc/initramfs-tools/modules
+    echo cpufreq_performance >> /etc/initramfs-tools/modules  ; fi
 
 
   ### < START PARAMETER CONFIG >
@@ -3375,7 +3382,7 @@ echo 'Section "OutputClass"
   Driver "amdgpu"
   Option "DRI" "3"
   Option "TearFree" "true"
-  Option "SwapbuffersWait" "true"
+  #Option "SwapbuffersWait" "true"
   Option "EnablePageFlip" "on"
   Option "NoAccel" "false"
   #Option "TripleBuffer" "true"
@@ -3635,7 +3642,7 @@ if ! grep -q wrt /etc/os-release ; then
 # for more info: https://docs.mesa3d.org/envvars.html
 # https://cgit.freedesktop.org/mesa/mesa/tree/docs/features.txt?h=staging/22.3
 echo '#!/bin/sh -x
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games:$PATH
+export PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games:$PATH
 export COMMAND_NOT_FOUND_INSTALL_PROMPT=1
 export POWERSHELL_UPDATECHECK=Off
 export POWERSHELL_TELEMETRY_OPTOUT=1
@@ -4011,7 +4018,7 @@ echo "Y" > /sys/module/sync/parameters/fsync_enabled
 
 
     ### modprobe kmods
-modprobe deflate crypto_acompress zlib_deflate zlib_inflate configs nft_numgen nls_utf8 dns_resolver cryptodev jitterentropy_rng xt_FLOWOFFLOAD tcp_bbr bfq nft_flow_offload loop rng urngd urandom_seed nf_flow_table_inet nf_flow_table_ipv4
+modprobe deflate crypto_acompress zlib_deflate zlib_inflate configs nft_numgen nls_utf8 dns_resolver cryptodev jitterentropy_rng xt_FLOWOFFLOAD tcp_bbr bfq nft_flow_offload loop rng urngd urandom_seed nf_flow_table_inet nf_flow_table_ipv4 cachefiles fscache
 
 if ifconfig | grep -q "phy\|wlan\|radio" ; then modprobe lib80211_crypt_ccmp cfg80211 mac80211 lib80211 ; fi
 
@@ -4072,8 +4079,8 @@ if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi
 #journalctl --vacuum-time=2weeks
 
 
-# daily fstrim
-if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi
+# daily fstrim weekly xfs defragment
+if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; if grep -q xfs /etc/fstab && ! grep -q xfs_fsr /etc/anacrontabs ; then echo '@weekly for i in $(blkid | grep xfs | awk -F : '\''{print $1}'\'') ; do xfs_fsr -f $i >/dev/null' | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi
 
 
 

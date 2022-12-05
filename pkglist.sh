@@ -85,7 +85,7 @@ $a flatpak \
  blktool \
  tuned-utils \
  npm \
- bcache-tools
+ xattr attr
 
 
 #if [ $INSTALLBUILDENV = true ] ; then
