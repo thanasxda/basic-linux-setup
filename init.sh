@@ -401,7 +401,7 @@ x16=" vsyscall=emulate highres=off clk_ignore_unused"
 #
 x17=" debugfs=off cpu_init_udelay=1 csdlock_debug=0 nopku hugetlb_free_vmemmap=on memtest=0 noresume"
 # manually set irq, disable irqbalancer
-x18=" acpi_irq_balance rcutree.use_softirq=0 irqaffinity=0"
+x18=" acpi_irq_balance rcutree.use_softirq=0 irqaffinity=1"
 #
 x19="$( if [ $energef = on ] ; then echo " acpi_sleep=s4_hwsig mem_sleep_default=deep" ; fi)"
 # disable radeon and have just amdgpu workaround for performance degradation in some gpus. need to unlock for manual control of voltages, didnt work for me
@@ -416,7 +416,7 @@ x23="$( if dmesg | grep -q iwlwifi ; then echo " iwlmvm_power_scheme=2" ; fi)"
 #
 x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
 #
-x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes noautogroup trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
+x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
 #
 x26=" realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 S pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend checkreqprot swiotlb=force nohalt"
 #
@@ -478,11 +478,15 @@ u3="http://sysctl.org/cameleon/hosts"
 u4="https://zeustracker.abuse.ch/blocklist.php"
 u5="https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt"
 u6="https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt"
+u7="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts0"
+u8="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts1"
+u9="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts2"
+u10="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts3"
 ping '"$ping"' -c 2
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
-echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
+echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
 echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
 x1="$(wget --random-wait $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
@@ -491,7 +495,11 @@ x3="$(wget --random-wait $u3 --connect-timeout=10 --continue -4 --retry-connrefu
 x4="$(wget --random-wait $u4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
 x5="$(wget --random-wait $u5 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
 x6="$(wget --random-wait $u6 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
-$x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 || echo fail
+x7="$(wget --random-wait $u7 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+x8="$(wget --random-wait $u8 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+x9="$(wget --random-wait $u9 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+x10="$(wget --random-wait $u10 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+$x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || echo fail
 
               ### yours
               l1='"$list1"'
@@ -504,7 +512,7 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 || echo fail
               c4="$(wget --random-wait $l4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
             if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 || echo fail ; fi
 
-cd /etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "127.0.0.1 " $2}'\'' | tee -a /etc/hosts
+cd /etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a /etc/hosts
 cd "$(pwd)" && rm -rf /etc/hosts_temp
 else echo "Offline"; fi'
 
@@ -649,9 +657,8 @@ done'
   ### kernel parameters grub linux
     $s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub
     $s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=""' /etc/default/grub
-    sleep 1
     $s sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="'"$par"'"/g' /etc/default/grub
-    $s sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="'"$par"'"/g' /etc/default/grub
+    $s sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="splash quiet mitigations=off"/g' /etc/default/grub
     $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
     $s sed -i "/#GRUB_DISABLE_OS_PROBER=false/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
 
@@ -826,7 +833,7 @@ nameserver '"$dns61"'
 nameserver '"$dns62"'/g' /etc/resolv/conf $droidresolv ; fi
 
     if ! grep -q edns0 /etc/resolv.conf ; then
-    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
+    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
 
 
 
@@ -3232,7 +3239,7 @@ if grep -q debian /etc/os-release ; then
 
 
 if [ ! -f /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/brave-flags.conf ] ; then
-echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable --num-raster-threads="$(nproc --all)" --enable-zero-copy --disable-partial-raster --enable-features=CanvasOopRasterization,CastStreamingAv1,CastStreamingVp9,EnableDrDc,ForceGpuMainThreadToNormalPriorityDrDc,ParallelDownloading,RawDraw,Vp9kSVCHWDecoding,WindowsScrollingPersonality,enable-pixel-canvas-recording.enable-accelerated-video-encode --ignore-gpu-blacklist --enable-webgl --force-device-scale-factor=1.00 --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-zero-copy --enable-accelerated-mjpeg-decode --enable-accelerated-video --use-gl=egl --disable-gpu-driver-bug-workarounds --enable-features=UseOzonePlatform --ozone-platform=wayland --smooth-scrolling --enable-quic --enable-raw-draw --canvas-oop-rasterization --force-gpu-main-thread-to-normal-priority-drdc --enable-drdc --enable-vp9-kSVC-decode-acceleration --windows-scrolling-personality --back-forward-cache --enable-pixel-canvas-recording --enable-accelerated-video-encode --memlog-sampling-rate=5242880 --enable-parallel-downloading" | tee /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/brave-flags.conf ; fi
+echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable --num-raster-threads="$(nproc --all)" --enable-zero-copy --disable-partial-raster --enable-features=CanvasOopRasterization,CastStreamingAv1,CastStreamingVp9,EnableDrDc,ForceGpuMainThreadToNormalPriorityDrDc,ParallelDownloading,RawDraw,Vp9kSVCHWDecoding,WindowsScrollingPersonality,enable-pixel-canvas-recording.enable-accelerated-video-encode --ignore-gpu-blacklist --enable-webgl --force-device-scale-factor=1.00 --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-zero-copy --enable-accelerated-mjpeg-decode --enable-accelerated-video --use-gl=egl --disable-gpu-driver-bug-workarounds --enable-features=UseOzonePlatform --ozone-platform=wayland --smooth-scrolling --enable-quic --enable-raw-draw --canvas-oop-rasterization --force-gpu-main-thread-to-normal-priority-drdc --enable-drdc --enable-vp9-kSVC-decode-acceleration --windows-scrolling-personality --back-forward-cache --enable-pixel-canvas-recording --enable-accelerated-video-encode --memlog-sampling-rate=5242880 --enable-parallel-downloading --enable-features=VaapiVideoDecoder --use-gl=desktop" | tee /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/brave-flags.conf /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/chromium-flags.conf ; fi
 
 
 
@@ -4080,7 +4087,7 @@ if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
 
 # daily fstrim weekly xfs defragment
-if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; if grep -q xfs /etc/fstab && ! grep -q xfs_fsr /etc/anacrontabs ; then echo '@weekly for i in $(blkid | grep xfs | awk -F : '\''{print $1}'\'') ; do xfs_fsr -f $i >/dev/null' | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi
+if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; if grep -q xfs /etc/fstab && ! grep -q xfs_fsr /etc/anacrontabs ; then echo '@weekly for i in $(blkid | grep xfs | awk -F : '\''{print $1}'\'') ; do xfs_fsr -f $i >/dev/null' | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi ; fi
 
 
 

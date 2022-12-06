@@ -422,6 +422,8 @@ The updated scripts once again for __chroot__ can be found here:
    - [debian - wiki](https://wiki.debian.org/)
    
    - [gentoo - wiki](https://wiki.gentoo.org/wiki/Main_Page)
+   
+   - [linux gaming wiki](https://linux-gaming.kwindu.eu)
 
    - [oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh)
 
