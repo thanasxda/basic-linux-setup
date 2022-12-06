@@ -152,6 +152,8 @@ $a binwalk \
 $a llvm-$llver -t experimental \
  gcc-$gccver -t experimental
 
+$a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl
+
 $a libosmesa6 \
  libd3dadapter9-mesa \
  libegl-mesa0 \
@@ -229,7 +231,7 @@ $fl freetube
 #$rem intel-microcode
 #$rem amd64-microcode
 $rem akonadi-server \
- openssh-server \
+ openssh-server openssh-sftp-server \
  ubuntu-archive-keyring \
  avahi-daemon \
  cron \

@@ -114,8 +114,16 @@ immutability=1
 plugin=org.kde.plasma.icon
 
 [Containments][127][Applets][168][Configuration]
-localPath=~/.local/share/plasma_icons/firefox (1).desktop
+localPath=~/.local/share/plasma_icons/firefox (5).desktop
 url=file:///usr/share/applications/firefox.desktop
+
+[Containments][127][Applets][169]
+immutability=1
+plugin=org.kde.plasma.icon
+
+[Containments][127][Applets][169][Configuration]
+localPath=~/.local/share/plasma_icons/org.kde.plasma-systemmonitor.desktop
+url=file:///usr/share/applications/org.kde.plasma-systemmonitor.desktop
 
 [Containments][127][ConfigDialog]
 DialogHeight=74

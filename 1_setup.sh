@@ -442,9 +442,12 @@ cd $source
                 
                 
                 
+                            ### run preconfiguration script and meanwhile update /etc/hosts with blocklist and dns optimizations
+                $s sh /etc/rc.local $sl # execute copied init.sh which now is /etc/rc.local
+                $s sh /etc/update_hosts.sh $sl     # remember we have executed the init.sh which is rc.local which includes stock pihole blocklists, so during setup we execute an update
+                $s fc-cache -rfv
                 
-                
-                
+                $s dpkg-reconfigure -f noninteractive unattended-upgrades
                 
      # UPDATE: now http3 on latest firefox in this install enabled and preconfigured by default.
     ### <<<< DNSCRYPT >>>> - add enable and preconfigure cloudflaredoh. do not replace these settings if you want http3 and DoH, in the past buggy dnsscrypt-proxy was needed now it works without. http3 quic protocol only works with brave and is preconfigured in about:flags. also check about:gpu if you need to make changes depending in your hardware. 1.1.1.1/help for doublechecking dns does in fact run over DoH. pllugins for firefox have not been included anymore. 
@@ -644,19 +647,16 @@ method=disabled
                 
                 
                 
-            ### run preconfiguration script and meanwhile update /etc/hosts with blocklist and dns optimizations
-                $s sh /etc/rc.local $sl # execute copied init.sh which now is /etc/rc.local
-                $s sh /etc/update_hosts.sh $sl     # remember we have executed the init.sh which is rc.local which includes stock pihole blocklists, so during setup we execute an update
-                $s fc-cache -rfv
+
 
                 
                 
                 
              
                     ### disable and mask unneeded services
-$s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups                
+$s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service                 
                 
-$s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups   
+$s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service   
 
 
 $s systemctl enable --now dbus-broker

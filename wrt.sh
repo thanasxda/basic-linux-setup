@@ -213,6 +213,7 @@ echo "$wrtsh" | tee /etc/rc.local ; chmod +x /etc/rc.local ; cp /tmp/init.sh /et
 
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/wrt/profile -O /etc/profile
 
+for i in $(echo umount ; echo fstab ; echo blockd ; echo openvpn ; echo wifi-init ; echo auto_usb_mount) ; do service $i disable ; done
 
 ### done
 reboot 

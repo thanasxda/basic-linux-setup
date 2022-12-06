@@ -124,7 +124,7 @@ s="sudo"
         xfs="defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=128k,noquota,allocsize=64m,largeio,swalloc"
        ext4="defaults,rw,lazytime,commit=60,quota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc,user_xattr"
        f2fs="defaults,rw,lazytime,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota"
-       vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro"
+       vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
        swap="sw,lazytime"
 
@@ -133,10 +133,8 @@ s="sudo"
 
       ### < EXTRAS >
         idle="poll"
-        intelmaxcstate="0"
         energef="on"
         perfamdgpu="auto" #"performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
-        processornocstates="1"
         cpumaxcstate="0"
         cec="off"
         zpool="z3fold"
@@ -364,10 +362,10 @@ fi
 # zswap, only if 2gb or under
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
 # cpu amd or intel
-x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx kvm-amd.nested=1" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$intelmaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
+x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx kvm-amd.nested=1" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$cpumaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # mitigations
 x1="$(if [ $mitigations = off ] ; then
-echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; fi)"
+echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; else echo " mitigations=on" ; fi)"
 # logging
 x2=" audit=0 log_priority=0 loglevel=0 mminit_loglevel=0 udev.log_priority=0 rd.udev.log_level=0 udev.log_level=0"
 # security
@@ -410,15 +408,15 @@ x20="$( if dmesg | grep -q amdgpu ; then echo " radeon.cik_support=0 radeon.si_s
 #
 x21="$( if dmesg | grep -q nouvaeu ; then echo " nouveau.modeset=0 nvidia-drm.modeset=1 nvidia-uvm.modeset=1" ; else echo " rdblacklist=nouveau nouveau.blacklist=1 nouveau.modeset=0 nouveau.runpm=0" ; fi)"
 #
-x22="$( if dmesg | grep -q i915 ; then echo " i915.modeset=1 i915.enable_ppgtt=3 i915.fastboot=0 i915.enable_fbc=1 i915.enable_guc=3 i915.lvds_downclock=1 i915.semaphores=1 i915.reset=0 i915.enable_dc=2 i915.enable_psr=0 i915.enable_cmd_parser=1 i915.enable_rc6=0 i915.lvds_use_ssc=0 i915.use_mmio_flip=1 i915.disable_power_well=1 i915.powersave=1" ; else echo " i915.enable_rc6=0" ; fi)"
+x22="$( if dmesg | grep -q i915 ; then echo " i915.modeset=1 i915.enable_ppgtt=3 i915.fastboot=0 i915.enable_fbc=1 i915.enable_guc=3 i915.lvds_downclock=1 i915.semaphores=1 i915.reset=0 i915.enable_dc=2 i915.enable_psr=0 i915.enable_cmd_parser=1 i915.enable_rc6=0 i915.lvds_use_ssc=0 i915.use_mmio_flip=1 i915.disable_power_well=1 i915.powersave=1 i915.enable_execlists=0" ; else echo " i915.enable_rc6=0" ; fi)"
 #
 x23="$( if dmesg | grep -q iwlwifi ; then echo " iwlmvm_power_scheme=2" ; fi)"
 #
-x24="$( if [ ! $ipv6 = on ] ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
+x24="$( if [ ! $ipv6 = on ] || grep -q wrt /etc/os-release ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
 #
-x25=" processor.nocst=$processornocstates processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
+x25=" processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
 #
-x26=" realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 S pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend checkreqprot swiotlb=force nohalt"
+x26=" realloc pnp.debug=0 printk.always_kmsg_dump=0 selinux=0 S pci=noacpi,nocrs,noaer,nobios,pcie_bus_perf waitdev=0 autoswap rd.udev.exec_delay=0 udev.exec_delay=0 systemd.gpt_auto=1 rd.systemd.gpt_auto=1 systemd.default_timeout_start_sec=0 ftrace_enabled=0 skip_duc=1 skip_ddc=1 ide*=noprobe big_root_window log_buf_len=1M printk.devkmsg=off smt uhci-hcd.ignore_oc=Y usbcore.usbfs_snoop=0 ipcmni_extend checkreqprot swiotlb=force nohalt processor.ignore_tpc=1 processor.bm_check_disable=1"
 #
 x27=" ip=:::::::$dns1:$dns2:"
 #
@@ -426,16 +424,21 @@ x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
 #
 x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
 #
-x=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1 processor.ignore_ppc=1"
-xx=$(if $(lscpu | grep -q Pentium) ; then export hugepagesz="4MB" ; else echo " mem=nopentium" ; fi)
+xx1=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1 processor.ignore_ppc=1"
+xx2=$(if $(lscpu | grep -q Pentium) ; then export hugepagesz="4MB" ; else echo " mem=nopentium" ; fi)
+xx3=$( if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1 " ; fi)
+
+
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
-                                        # https://www.kernel.org/doc/html/v4.14/admin-guide/kernel-parameters.html
+                                        # https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt
 
-                                          bootargvars="$(echo " idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$x$xx")"
+                                          bootargvars="$(echo "$x1 idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$xx1$xx2$xx3")"
 
                                         export par="splash quiet$bootargvars"
+
+
 
 # notes for myself
 #test diff extra in test isolcpus=1-$(nproc --all)  rcu_nocbs=1-$(nproc --all) nohz_full=1-$(nproc --all) driver_async_probe=* init=/init printk.disable_uart=1 noirqbalance irqaffinity=0 acpi=noirq managed_irq ioapicreroute acpi_irq_nobalance
@@ -482,23 +485,23 @@ u7="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/mas
 u8="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts1"
 u9="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts2"
 u10="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts3"
-ping '"$ping"' -c 2
+ping '"$ping"' -c 3
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
 echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
 echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
-x1="$(wget --random-wait $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
-x2="$(wget --random-wait $u2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
-x3="$(wget --random-wait $u3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
-x4="$(wget --random-wait $u4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
-x5="$(wget --random-wait $u5 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
-x6="$(wget --random-wait $u6 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
-x7="$(wget --random-wait $u7 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-x8="$(wget --random-wait $u8 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-x9="$(wget --random-wait $u9 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-x10="$(wget --random-wait $u10 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+x1="$(wget $u1 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
+x2="$(wget $u2 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
+x3="$(wget $u3 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
+x4="$(wget $u4 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
+x5="$(wget $u5 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
+x6="$(wget $u6 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
+x7="$(wget $u7 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+x8="$(wget $u8 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+x9="$(wget $u9 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+x10="$(wget $u10 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
 $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || echo fail
 
               ### yours
@@ -506,11 +509,11 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7
               l2='"$list2"'
               l3='"$list3"'
               l4='"$list4"'
-              c1="$(wget --random-wait $l1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-              c2="$(wget --random-wait $l2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-              c3="$(wget --random-wait $l3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-              c4="$(wget --random-wait $l4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
-            if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 || echo fail ; fi
+              c1="$(wget $l1 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+              c2="$(wget $l2 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+              c3="$(wget $l3 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+              c4="$(wget $l4 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+            if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || echo fail ; fi
 
 cd /etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a /etc/hosts
 cd "$(pwd)" && rm -rf /etc/hosts_temp
@@ -527,8 +530,8 @@ wrtsh='#!/bin/sh
 link=https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
 while [ ! -f /tmp/init.sh ];
 sleep 10
-do ping "$ping" -c 2
-if [ $? -eq 0 ]; then wget --timeout=10 -4 "$link" -O /tmp/init.sh ; fi
+do ping $ping -c 3
+if [ $? -eq 0 ]; then wget --continue -4 "$link" -O /tmp/init.sh ; fi
 if grep -q thanas /tmp/init.sh
 then chmod +x /tmp/init.sh && sh /tmp/init.sh && echo "succes"; exit 0; fi
 done'
@@ -563,7 +566,7 @@ done'
 
 
       ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
-    disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower"
+    disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower\|pstore"
 
     enable_services="firewalld\|apparmor\|run-shm.mount"
     # for accidental protection
@@ -623,9 +626,9 @@ done'
   ### < SOURCES.LIST >
   ### if ID_LIKE=debian sync sources.list on boot
           if grep -q kali /etc/os-release && [ $sourceslist_update = yes ] ; then
-          ping "$ping" -c 2
+          ping "$ping" -c 3
           if [ $? -eq 0 ]; then
-          echo "*BLS*=Syncing sources.list." && "$(wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
+          echo "*BLS*=Syncing sources.list." && "$(wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
 
 
 
@@ -651,17 +654,20 @@ done'
 
 
 
-
+# 
 
   ### < GRUB KERNEL PARAMETERS >
   ### kernel parameters grub linux
+  resolution="$(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//')"
     $s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub
     $s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=""' /etc/default/grub
     $s sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="'"$par"'"/g' /etc/default/grub
-    $s sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="splash quiet mitigations=off"/g' /etc/default/grub
+    $s sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="splash quiet'"$x1"'"/g' /etc/default/grub
     $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
     $s sed -i "/#GRUB_DISABLE_OS_PROBER=false/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
-
+    if ! grep -q "GRUB_GFXPAYLOAD_LINUX" /etc/default/grub ; then echo "GRUB_GFXPAYLOAD_LINUX=" | tee -a /etc/default/grub ; fi
+    $s sed -i 's/GRUB_GFXPAYLOAD_LINUX=.*/GRUB_GFXPAYLOAD_LINUX="'"$resolution"'"/g' /etc/default/grub
+    $s sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE="'"$resolution"'"/g' /etc/default/grub
 
 ### reapply updated parameters
 $s update-grub
@@ -746,7 +752,7 @@ $s update-grub
       sed -i 's/#FastConnectable.*/FastConnectable = false/' /etc/bluetooth/main.conf
       sed -i 's/ReconnectAttempts.*/ReconnectAttempts = 1/' /etc/bluetooth/main.conf
       sed -i 's/ReconnectIntervals.*/ReconnectIntervals = 1/' /etc/bluetooth/main.conf
-      rm -rfd /var/lib/bluetooth/*
+      if [ ! -f /system/build.prop ] ; then rm -rfd /var/lib/bluetooth/* ; fi
 
 
   # journaling and more
@@ -957,8 +963,10 @@ fsache
 EOL
 fi
         sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' /etc/init.d/rc
-        # prevent ssh bruteforce
+        # prevent bruteforce
  iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
+ --hitcount 4 --rttl -j DROP
+  iptables -A INPUT -p tcp --dport 23 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
 
         # config dracut as well in case of not using initramfs-tools - note mdadm probably is raid. reconsidering it probably isnt so no harm. dracut buggy. just use google do ur own homework. setup already to big for me
@@ -988,7 +996,16 @@ fi
     echo kvm >> /etc/initramfs-tools/modules 
     echo msr >> /etc/initramfs-tools/modules 
     echo acpi_cpufreq >> /etc/initramfs-tools/modules
-    echo cpufreq_performance >> /etc/initramfs-tools/modules  ; fi
+    echo cpufreq_performance >> /etc/initramfs-tools/modules
+    echo processor >> /etc/initramfs-tools/modules ; fi
+    if dmesg | grep -q amdgpu ; then 
+    echo amdgpu >> /etc/initramfs-tools/modules ; fi
+    
+     
+    sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf
+    sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf
+    sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/user.conf
+    sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/user.conf
 
 
   ### < START PARAMETER CONFIG >
@@ -1986,7 +2003,14 @@ echo "Y" > /sys/module/mac80211/parameters/minstrel_vht_only
 echo '1' > /proc/sys/crypto/fips_enabled
 
 
-
+echo $cpumaxcstate > /sys/module/processor/parameters/max_cstate
+echo 1 > /sys/module/processor/parameters/ignore_ppc
+echo 1 > /sys/module/processor/parameters/bm_check_disable
+if [ $cpumaxcstate = 0 ] ; then
+echo 1 > /sys/module/processor/parameters/latency_factor
+fi
+echo 1 > /sys/module/processor/parameters/ignore_tpc
+echo 0 > /sys/module/processor/parameters/nocst
 
 echo 1 > /sys/kernel/mm/ksm/run
 echo 1 > /sys/kernel/mm/ksm/merge_across_nodes
@@ -1995,6 +2019,7 @@ echo 1 > /sys/kernel/mm/ksm/merge_across_nodes
 
 echo "1" > /sys/module/subsystem_restart/parameters/disable_restart_work
 
+echo "(null)" > /sys/kernel/cgroup/features
 
 
 #
@@ -2002,11 +2027,218 @@ echo "1" > /sys/kernel/fast_charge/force_fast_charge
 echo "1" > /sys/kernel/sound_control/mic_gain
 echo "1" > /proc/sys/dev/cnss/randomize_mac
 
+# amdgpu
+if dmesg | grep -q amdgpu ; then 
+# command to dump yours: for i in $(ls /sys/module/amdgpu/parameters) ; do echo "#echo -1 > /sys/module/amdgpu/parameters/$i" ; done
+# more info: https://www.kernel.org/doc/html/v4.20/gpu/amdgpu.html
+#echo -1 > /sys/module/amdgpu/parameters/abmlevel
+echo 1 > /sys/module/amdgpu/parameters/aspm
+#echo -1 > /sys/module/amdgpu/parameters/async_gfx_ring
+#echo -1 > /sys/module/amdgpu/parameters/audio
+#echo -1 > /sys/module/amdgpu/parameters/backlight
+#echo -1 > /sys/module/amdgpu/parameters/bad_page_threshold
+#echo -1 > /sys/module/amdgpu/parameters/bapm
+echo 0xffffffff > /sys/module/amdgpu/parameters/cg_mask
+echo 1 > /sys/module/amdgpu/parameters/cik_support
+echo 1 > /sys/module/amdgpu/parameters/compute_multipipe
+echo 1 > /sys/module/amdgpu/parameters/cwsr_enable
+echo 1 > /sys/module/amdgpu/parameters/dc
+#echo -1 > /sys/module/amdgpu/parameters/dcdebugmask
+echo 0xffffffff > /sys/module/amdgpu/parameters/dcfeaturemask
+#echo -1 > /sys/module/amdgpu/parameters/debug_evictions
+echo 1 > /sys/module/amdgpu/parameters/debug_largebar
+echo 1 > /sys/module/amdgpu/parameters/deep_color
+#echo -1 > /sys/module/amdgpu/parameters/disable_cu
+#echo -1 > /sys/module/amdgpu/parameters/discovery
+#echo -1 > /sys/module/amdgpu/parameters/disp_priority
+echo 1 > /sys/module/amdgpu/parameters/dpm
+#echo -1 > /sys/module/amdgpu/parameters/emu_mode
+echo 1 > /sys/module/amdgpu/parameters/exp_hw_support
+#echo -1 > /sys/module/amdgpu/parameters/force_asic_type
+#echo -1 > /sys/module/amdgpu/parameters/forcelongtraining
+#echo -1 > /sys/module/amdgpu/parameters/fw_load_type
+#echo -1 > /sys/module/amdgpu/parameters/gartsize
+#echo -1 > /sys/module/amdgpu/parameters/gpu_recovery
+#echo -1 > /sys/module/amdgpu/parameters/gttsize
+#echo -1 > /sys/module/amdgpu/parameters/halt_if_hws_hang
+echo 1 > /sys/module/amdgpu/parameters/hw_i2c
+echo 1 > /sys/module/amdgpu/parameters/hws_gws_support
+#echo -1 > /sys/module/amdgpu/parameters/hws_max_conc_proc
+#echo -1 > /sys/module/amdgpu/parameters/ignore_crat
+echo 0xffffffff > /sys/module/amdgpu/parameters/ip_block_mask
+#echo -1 > /sys/module/amdgpu/parameters/job_hang_limit
+#echo -1 > /sys/module/amdgpu/parameters/lbpw
+#echo -1 > /sys/module/amdgpu/parameters/lockup_timeout
+#echo -1 > /sys/module/amdgpu/parameters/max_num_of_queues_per_device
+#echo -1 > /sys/module/amdgpu/parameters/mcbp
+#echo -1 > /sys/module/amdgpu/parameters/mes
+#echo -1 > /sys/module/amdgpu/parameters/mes_kiq
+#echo -1 > /sys/module/amdgpu/parameters/moverate
+echo 0 > /sys/module/amdgpu/parameters/msi
+echo 1 > /sys/module/amdgpu/parameters/ngg
+#echo -1 > /sys/module/amdgpu/parameters/no_queue_eviction_on_vm_fault
+#echo -1 > /sys/module/amdgpu/parameters/noretry
+#echo -1 > /sys/module/amdgpu/parameters/no_system_mem_limit
+#echo -1 > /sys/module/amdgpu/parameters/num_kcq
+#echo 0 > /sys/module/amdgpu/parameters/pcie_gen2
+#echo -1 > /sys/module/amdgpu/parameters/pcie_gen_cap
+#echo -1 > /sys/module/amdgpu/parameters/pcie_lane_cap
+echo 0xffffffff > /sys/module/amdgpu/parameters/pg_mask
+echo 0xffffffff > /sys/module/amdgpu/parameters/ppfeaturemask
+#echo -1 > /sys/module/amdgpu/parameters/queue_preemption_timeout_ms
+echo 1 > /sys/module/amdgpu/parameters/ras_enable
+echo 0xffffffff > /sys/module/amdgpu/parameters/ras_mask
+#echo -1 > /sys/module/amdgpu/parameters/reset_method
+#echo -1 > /sys/module/amdgpu/parameters/runpm
+#echo -1 > /sys/module/amdgpu/parameters/sched_hw_submission
+echo 64 > /sys/module/amdgpu/parameters/sched_jobs
+echo HWS > /sys/module/amdgpu/parameters/sched_policy
+#echo -1 > /sys/module/amdgpu/parameters/sdma_phase_quantum
+#echo -1 > /sys/module/amdgpu/parameters/send_sigterm
+echo 1 > /sys/module/amdgpu/parameters/si_support
+#echo -1 > /sys/module/amdgpu/parameters/smu_memory_pool_size
+#echo -1 > /sys/module/amdgpu/parameters/smu_pptable_id
+#echo -1 > /sys/module/amdgpu/parameters/timeout_fatal_disable
+#echo -1 > /sys/module/amdgpu/parameters/timeout_period
+#echo -1 > /sys/module/amdgpu/parameters/tmz
+#echo -1 > /sys/module/amdgpu/parameters/use_xgmi_p2p
+echo 0 > /sys/module/amdgpu/parameters/vcnfw_log
+#echo -1 > /sys/module/amdgpu/parameters/virtual_display
+#echo -1 > /sys/module/amdgpu/parameters/visualconfirm
+#echo -1 > /sys/module/amdgpu/parameters/vis_vramlimit
+#echo -1 > /sys/module/amdgpu/parameters/vm_block_size
+echo 0 > /sys/module/amdgpu/parameters/vm_debug
+echo 0 > /sys/module/amdgpu/parameters/vm_fault_stop
+#echo -1 > /sys/module/amdgpu/parameters/vm_fragment_size
+#echo -1 > /sys/module/amdgpu/parameters/vm_size
+#echo -1 > /sys/module/amdgpu/parameters/vm_update_mode
+#echo -1 > /sys/module/amdgpu/parameters/vramlimit
 
+echo 0 > /sys/module/radeon/parameters/agpmode
+#echo -1 > /sys/module/radeon/parameters/aspm
+echo 0 > /sys/module/radeon/parameters/audio
+#echo -1 > /sys/module/radeon/parameters/auxch
+#echo -1 > /sys/module/radeon/parameters/backlight
+#echo -1 > /sys/module/radeon/parameters/bapm
+echo 0 > /sys/module/radeon/parameters/benchmark
+#echo -1 > /sys/module/radeon/parameters/cik_support
+#echo -1 > /sys/module/radeon/parameters/connector_table
+#echo -1 > /sys/module/radeon/parameters/deep_color
+#echo -1 > /sys/module/radeon/parameters/disp_priority
+#echo -1 > /sys/module/radeon/parameters/dpm
+#echo -1 > /sys/module/radeon/parameters/dynclks
+echo 1 > /sys/module/radeon/parameters/fastfb
+#echo -1 > /sys/module/radeon/parameters/gartsize
+#echo -1 > /sys/module/radeon/parameters/hard_reset
+#echo -1 > /sys/module/radeon/parameters/hw_i2c
+#echo -1 > /sys/module/radeon/parameters/lockup_timeout
+#echo -1 > /sys/module/radeon/parameters/modeset
+echo 0 > /sys/module/radeon/parameters/msi
+#echo -1 > /sys/module/radeon/parameters/no_wb
+#echo -1 > /sys/module/radeon/parameters/pcie_gen2
+#echo -1 > /sys/module/radeon/parameters/r4xx_atom
+#echo -1 > /sys/module/radeon/parameters/runpm
+#echo -1 > /sys/module/radeon/parameters/si_support
+echo 0 > /sys/module/radeon/parameters/test
+echo 0 > /sys/module/radeon/parameters/tv
+#echo -1 > /sys/module/radeon/parameters/use_pflipirq
+#echo -1 > /sys/module/radeon/parameters/uvd
+#echo -1 > /sys/module/radeon/parameters/vce
+#echo -1 > /sys/module/radeon/parameters/vm_block_size
+#echo -1 > /sys/module/radeon/parameters/vm_size
+#echo -1 > /sys/module/radeon/parameters/vramlimit
+fi
+
+if echo $zswap | grep -q "zswap.enabled=1" ; then 
+echo 90 > /sys/module/zswap/parameters/accept_threshold_percent
+echo lz4 > /sys/module/zswap/parameters/compressor
+echo Y > /sys/module/zswap/parameters/enabled
+echo $zpoolpercent > /sys/module/zswap/parameters/max_pool_percent
+echo Y > /sys/module/zswap/parameters/non_same_filled_pages_enabled
+echo Y > /sys/module/zswap/parameters/same_filled_pages_enabled
+echo $zpool > /sys/module/zswap/parameters/zpool
+fi
+
+if [ $ipv6 = off ] && ! grep -q wrt /etc/os-release ; then 
+echo 0 > /sys/module/ipv6/parameters/autoconf
+echo 1 > /sys/module/ipv6/parameters/disable
+echo 1 > /sys/module/ipv6/parameters/disable_ipv6
+fi
+
+echo 0 > /sys/module/cachefiles/parameters/debug
+echo 1 > /sys/module/apparmor/parameters/enabled
+echo 0 > /sys/module/apparmor/parameters/logsyscall
+echo 100 > /sys/module/drm_kms_helper/parameters/drm_fbdev_overalloc
+echo N > /sys/module/drm_kms_helper/parameters/poll
+echo N > /sys/module/fscache/parameters/debug
+echo N > //sys/module/fuse/parameters/allow_sys_admin_access
+echo N > /sys/module/i2c_algo_bit/parameters/bit_test
+echo N > /sys/module/i8042/parameters/debug
+echo $cpumaxcstate > /sys/module/intel_idle/parameters/max_cstate
+echo N > /sys/module/kernel/parameters/initcall_debug
+echo N > /sys/module/kvm/parameters/flush_on_reuse
+echo Y > /sys/module/kvm/parameters/mmio_caching
+echo N > /sys/module/netfs/parameters/debugtriple
+echo N > /sys/module/printk/parameters/ignore_loglevel
+echo Y >  /sys/module/random/parameters/ratelimit_disable
+echo 1 > /sys/module/rcupdate/parameters/rcu_expedited
+echo 0 > /sys/module/rcupdate/parameters/rcu_normal
+echo 99 > /sys/module/rcutree/parameters/kthread_prio
+echo -1 > /sys/module/rcutree/parameters/rcu_sched_ns
+echo 0 > /sys/module/scsi_mod/parameters/scsi_logging_level
+echo N > /sys/module/snd_hda_codec_hdmi/parameters/enable_silent_stream
+echo Y > /sys/module/snd_hda_intel/parameters/power_save
+echo N > /sys/module/shpchp/parameters/shpchp_debug
+echo Y > /sys/module/snd_usb_audio/parameters/lowlatency
+echo Y > /sys/module/snd_usb_audio/parameters/use_vmalloc
+echo Y > /sys/module/snd_usb_audio/parameters/ignore_ctl_error
+echo 1 > /sys/module/spurious/parameters/noirqdebug
+echo N > /sys/module/syscall/parameters/x32
+echo p > /sys/module/usbcore/parameters/quirks
+echo N > /sys/module/wmi/parameters/debug*
+echo Y > /sys/module/workqueue/parameters/disable_numa
+echo N > /sys/module/workqueue/parameters/power_efficient
+echo Y > /sys/module/dm_mod/parameters/use_bulk_mq
+echo N > /sys/module/edac_core/parameters/check_pci_errors
+echo 0 > /sys/kernel/profiling
+echo $overcommit > /sys/kernel/mm/hugepages/hugepages*/nr_overcommit_hugepages
+echo 0x0000 > /sys/kernel/mm/lru_gen/enabled
+echo false > /sys/kernel/mm/numa/demotion_enabled
+
+echo 1 > /sys/kernel/reboot/cpu
+echo 1 > /sys/kernel/reboot/force 
+echo hard > /sys/kernel/reboot/mode 
+echo efi > /sys/kernel/reboot/type
+
+echo 0xffffff > /sys/kernel/security/apparmor/capability
+
+echo tsc > /sys/devices/system/clocksource/clocksource*/current_clocksource
+echo 0 > /sys/module/drm_kms_helper/parameters/poll
+echo N > /sys/module/cfg80211/parameters/cfg80211_disable_40mhz_24ghz
+echo N > /sys/module/device_hmem/parameters/disable
+echo N > /sys/module/drm_kms_helper/parameters/fbdev_emulation
+echo N > /sys/module/wmi/parameters/debug*
+echo N > /sys/kernel/debug/sched/verbose
+echo full > /sys/kernel/debug/sched/preempt
+
+echo Y > /sys/kernel/debug/tracing/set_ftrace_notrace
+
+
+echo N > /sys/module/ip6_gre/parameters/log_ecn_error     
+echo N > /sys/module/ip_gre/parameters/log_ecn_error
+echo N > /sys/module/ip6_tunnel/parameters/log_ecn_error  
+echo N > /sys/module/sit/parameters/log_ecn_error
+
+echo N > /sys/module/ehci_hcd/parameters/log2_irq_thresh 
+echo N > /sys/module/nmi_backtrace/parameters/backtrace_idle  
+echo N > /sys/module/ramoops/parameters/ftrace_size
+echo 99999999999999999999999999999999 > /sys/module/pstore/parameter/update_ms
+echo "(null)" > /sys/module/pstore/parameters/backend
 
 # general and omit debugging android, x86 and more
 /etc/init.d/syslogd stop
 sysctl dev.em.0.debug=0
+echo Y > /sys/module/8250/parameters/skip_txen_test
 echo 0 > /proc/sys/kernel/tracepoint_printk
 echo 0 > /sys/kernel/profiling
 echo 0 > /sys/kernel/tracing/tracing_on
@@ -2014,9 +2246,9 @@ echo "0 0 0 0" > /proc/sys/kernel/printk
 echo "0" > /proc/sys/debug/exception-trace
 echo "0" > /proc/sys/kernel/sched_schedstats
 echo "0" > /sys/module/diagchar/parameters/diag_mask_clear_param
-echo "0" > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
-echo "0" > /sys/module/dwc3/parameters/ep_addr_txdbg_mask
-echo "0" > /sys/module/icnss/parameters/dynamic_feature_mask
+#echo "0" > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
+#echo "0" > /sys/module/dwc3/parameters/ep_addr_txdbg_mask
+#echo "0" > /sys/module/icnss/parameters/dynamic_feature_mask
 echo "0" > /sys/module/msm_poweroff/parameters/download_mode
 echo "0" > /sys/module/rmnet_data/parameters/rmnet_data_log_level
 echo "0" > /sys/module/service_locator/parameters/enable
@@ -2029,11 +2261,10 @@ echo "N" > /sys/kernel/debug/debug_enabled
 echo "N" > /sys/module/apparmor/parameters/audit
 echo "N" > /sys/module/apparmor/parameters/debug
 echo "N" > /sys/module/blk_cgroup/parameters/blkcg_debug_stats
-echo "N" > /sys/module/cifs/parameters/enable_oplocks
+#echo "N" > /sys/module/cifs/parameters/enable_oplocks
 echo "N" > /sys/module/dns_resolver/parameters/debug
 echo "N" > /sys/module/drm/parameters/debug
 echo "N" > /sys/module/drm_kms_helper/parameters/poll
-echo "0" > /sys/module/dynamic_debug/parameters/verbose
 echo "N" > /sys/module/printk/parameters/always_kmsg_dump
 echo "Y" > /sys/module/bluetooth/parameters/disable_ertm
 echo "Y" > /sys/module/bluetooth/parameters/disable_esco
@@ -2041,8 +2272,8 @@ echo "Y" > /sys/module/cryptomgr/parameters/notests
 echo "Y" > /sys/module/printk/parameters/console_suspend
 echo '0' > /sys/devices/virtual/block/zram0/debug_stat
 echo '0' > /sys/module/acpi/parameters/aml_debug_output
-echo '0' > /sys/module/amdgpu/parameters/debug_evictions
-echo '0' > /sys/module/amdgpu/parameters/debug_largebar
+#echo '0' > /sys/module/amdgpu/parameters/debug_evictions
+#echo '0' > /sys/module/amdgpu/parameters/debug_largebar
 echo '0' > /sys/module/amdgpu/parameters/vm_debug
 echo '0' > /sys/module/apparmor/parameters/debug
 echo '0' > /sys/module/cec/parameters/debug
@@ -2056,8 +2287,8 @@ echo '0' > /sys/module/pci_hotplug/parameters/debug
 echo '0' > /sys/module/pci_hotplug/parameters/debug_acpi
 echo '0' > /sys/module/shpchp/parameters/shpchp_debug
 echo '0' > /sys/module/uhci_hcd/parameters/debug
-echo '0' > /sys/module/workqueue/parameters/debug_force_rr_cpu
-echo 'N' > /sys/module/amdgpu/parameters/dcdebugmask
+#echo '0' > /sys/module/workqueue/parameters/debug_force_rr_cpu
+#echo 'N' > /sys/module/amdgpu/parameters/dcdebugmask
 echo 'Y' > /sys/module/spurious/parameters/noirqdebug
 for i in $(find /sys/ -name debug_mask); do echo "0" > $i; done
 for i in $(find /sys/ -name debug_level); do echo "0" > $i; done
@@ -2079,6 +2310,7 @@ echo "0" > /sys/kernel/logger_mode/logger_mode
 
 ### io scheduler, governor and more
 #scheduler
+
 # nvme
 for i in $(find /sys/block -type l); do
   echo "$sched" > $i/queue/scheduler;
@@ -2103,12 +2335,42 @@ for i in $(find /sys/block -type l); do
   echo "0" > $i/queue/iosched/group_idle
   echo "1" > $i/queue/iosched/low_latency
   echo "150" > $i/queue/iosched/target_latency
-  echo "write through" | tee /sys/block/$i/queue/write_cache
   echo "0" > $i/queue/iosched/slice_idle_us
   echo "0" > $i/queue/iosched/strict_guarantees
   echo "10" > $i/queue/iosched/timeout_sync
   echo "0" > $i/queue/iosched/max_budget
+#echo "0" > $i/queue/chunk_sectors
+#echo "0" > $i/queue/dax
+#echo "0" > $i/queue/discard_granularity
+#echo "0" > $i/queue/discard_max_bytes
+#echo "0" > $i/queue/discard_max_hw_bytes
+#echo "0" > $i/queue/discard_zeroes_data
+#echo "0" > $i/queue/dma_alignment
+#echo "0" > $i/queue/fua
+#echo "0" > $i/queue/hw_sector_size
+#echo "0" > $i/queue/io_poll_delay
+#echo "0" > $i/queue/io_timeout
+#echo "0" > $i/queue/logical_block_size
+#echo "0" > $i/queue/max_discard_segments
+#echo "0" > $i/queue/max_hw_sectors_kb
+#echo "0" > $i/queue/max_integrity_segments
+#echo "0" > $i/queue/max_sectors_kb
+#echo "0" > $i/queue/max_segments
+#echo "0" > $i/queue/max_segment_size
+#echo "0" > $i/queue/minimum_io_size
+#echo "0" > $i/queue/nr_zones
+#echo "0" > $i/queue/optimal_io_size
+#echo "0" > $i/queue/physical_block_size
+#echo "0" > $i/queue/stable_writes
+#echo "0" > $i/queue/virt_boundary_mask
+#echo "0" > $i/queue/wbt_lat_usec
+#echo "0" > $i/queue/write_same_max_bytes
+#echo "0" > $i/queue/write_zeroes_max_bytes
+#echo "0" > $i/queue/zone_append_max_bytes
+#echo "0" > $i/queue/zoned
+#echo "0" > $i/queue/zone_write_granularity
 done;
+
 # ssd hdd
 for i in $(find /sys/block/sd*); do
   echo "$sdsched" > $i/queue/scheduler;
@@ -2133,12 +2395,42 @@ for i in $(find /sys/block/sd*); do
   echo "0" > $i/queue/iosched/group_idle
   echo "1" > $i/queue/iosched/low_latency
   echo "150" > $i/queue/iosched/target_latency
-  echo "write through" | tee /sys/block/$i/queue/write_cache
   echo "5" > $i/queue/iosched/slice_idle_us
   echo "0" > $i/queue/iosched/strict_guarantees
   echo "10" > $i/queue/iosched/timeout_sync
   echo "0" > $i/queue/iosched/max_budget
+#echo "0" > $i/queue/chunk_sectors
+#echo "0" > $i/queue/dax
+#echo "0" > $i/queue/discard_granularity
+#echo "0" > $i/queue/discard_max_bytes
+#echo "0" > $i/queue/discard_max_hw_bytes
+#echo "0" > $i/queue/discard_zeroes_data
+#echo "0" > $i/queue/dma_alignment
+#echo "0" > $i/queue/fua
+#echo "0" > $i/queue/hw_sector_size
+#echo "0" > $i/queue/io_poll_delay
+#echo "0" > $i/queue/io_timeout
+#echo "0" > $i/queue/logical_block_size
+#echo "0" > $i/queue/max_discard_segments
+#echo "0" > $i/queue/max_hw_sectors_kb
+#echo "0" > $i/queue/max_integrity_segments
+#echo "0" > $i/queue/max_sectors_kb
+#echo "0" > $i/queue/max_segments
+#echo "0" > $i/queue/max_segment_size
+#echo "0" > $i/queue/minimum_io_size
+#echo "0" > $i/queue/nr_zones
+#echo "0" > $i/queue/optimal_io_size
+#echo "0" > $i/queue/physical_block_size
+#echo "0" > $i/queue/stable_writes
+#echo "0" > $i/queue/virt_boundary_mask
+#echo "0" > $i/queue/wbt_lat_usec
+#echo "0" > $i/queue/write_same_max_bytes
+#echo "0" > $i/queue/write_zeroes_max_bytes
+#echo "0" > $i/queue/zone_append_max_bytes
+#echo "0" > $i/queue/zoned
+#echo "0" > $i/queue/zone_write_granularity
 done;
+
 # mtd
 for i in $(find /sys/block/mtd*); do
   echo "$mtdsched" > $i/queue/scheduler;
@@ -2163,12 +2455,42 @@ for i in $(find /sys/block/mtd*); do
   echo "0" > $i/queue/iosched/group_idle
   echo "1" > $i/queue/iosched/low_latency
   echo "150" > $i/queue/iosched/target_latency
-  echo "write through" | tee /sys/block/$i/queue/write_cache
   echo "10" > $i/queue/iosched/slice_idle_us
   echo "0" > $i/queue/iosched/strict_guarantees
   echo "10" > $i/queue/iosched/timeout_sync
   echo "0" > $i/queue/iosched/max_budget
+#echo "0" > $i/queue/chunk_sectors
+#echo "0" > $i/queue/dax
+#echo "0" > $i/queue/discard_granularity
+#echo "0" > $i/queue/discard_max_bytes
+#echo "0" > $i/queue/discard_max_hw_bytes
+#echo "0" > $i/queue/discard_zeroes_data
+#echo "0" > $i/queue/dma_alignment
+#echo "0" > $i/queue/fua
+#echo "0" > $i/queue/hw_sector_size
+#echo "0" > $i/queue/io_poll_delay
+#echo "0" > $i/queue/io_timeout
+#echo "0" > $i/queue/logical_block_size
+#echo "0" > $i/queue/max_discard_segments
+#echo "0" > $i/queue/max_hw_sectors_kb
+#echo "0" > $i/queue/max_integrity_segments
+#echo "0" > $i/queue/max_sectors_kb
+#echo "0" > $i/queue/max_segments
+#echo "0" > $i/queue/max_segment_size
+#echo "0" > $i/queue/minimum_io_size
+#echo "0" > $i/queue/nr_zones
+#echo "0" > $i/queue/optimal_io_size
+#echo "0" > $i/queue/physical_block_size
+#echo "0" > $i/queue/stable_writes
+#echo "0" > $i/queue/virt_boundary_mask
+#echo "0" > $i/queue/wbt_lat_usec
+#echo "0" > $i/queue/write_same_max_bytes
+#echo "0" > $i/queue/write_zeroes_max_bytes
+#echo "0" > $i/queue/zone_append_max_bytes
+#echo "0" > $i/queue/zoned
+#echo "0" > $i/queue/zone_write_granularity
 done;
+
 # mmc
 for i in $(find /sys/block/mmc*); do
   echo "$mmcsched" > $i/queue/scheduler;
@@ -2198,6 +2520,36 @@ for i in $(find /sys/block/mmc*); do
   echo "0" > $i/queue/iosched/strict_guarantees
   echo "10" > $i/queue/iosched/timeout_sync
   echo "0" > $i/queue/iosched/max_budget
+#echo "0" > $i/queue/chunk_sectors
+#echo "0" > $i/queue/dax
+#echo "0" > $i/queue/discard_granularity
+#echo "0" > $i/queue/discard_max_bytes
+#echo "0" > $i/queue/discard_max_hw_bytes
+#echo "0" > $i/queue/discard_zeroes_data
+#echo "0" > $i/queue/dma_alignment
+#echo "0" > $i/queue/fua
+#echo "0" > $i/queue/hw_sector_size
+#echo "0" > $i/queue/io_poll_delay
+#echo "0" > $i/queue/io_timeout
+#echo "0" > $i/queue/logical_block_size
+#echo "0" > $i/queue/max_discard_segments
+#echo "0" > $i/queue/max_hw_sectors_kb
+#echo "0" > $i/queue/max_integrity_segments
+#echo "0" > $i/queue/max_sectors_kb
+#echo "0" > $i/queue/max_segments
+#echo "0" > $i/queue/max_segment_size
+#echo "0" > $i/queue/minimum_io_size
+#echo "0" > $i/queue/nr_zones
+#echo "0" > $i/queue/optimal_io_size
+#echo "0" > $i/queue/physical_block_size
+#echo "0" > $i/queue/stable_writes
+#echo "0" > $i/queue/virt_boundary_mask
+#echo "0" > $i/queue/wbt_lat_usec
+#echo "0" > $i/queue/write_same_max_bytes
+#echo "0" > $i/queue/write_zeroes_max_bytes
+#echo "0" > $i/queue/zone_append_max_bytes
+#echo "0" > $i/queue/zoned
+#echo "0" > $i/queue/zone_write_granularity
 done;
 
 for i in $(echo sd*[!0-9] ; echo hd*[!0-9] ; echo nvme*[!0-9]) ; do
@@ -2205,7 +2557,7 @@ echo 32 | tee /sys/block/$i/queue/iosched/fifo_batch ; done
 
 echo 1 > /sys/module/processor/parameters/ignore_ppc
 
-if ! grep -1 "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf ; then
+if ! grep -q "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf ; then
 echo 'options processor ignore_ppc=1' | tee /etc/modprobe.d/ignore_ppc.conf ; fi
 
 #x86_energy_perf_policy --hwp-enable --force
@@ -2229,6 +2581,7 @@ echo performance > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 for i in $(find /sys/devices/system/cpu/cpufreq); do
   echo "$governor" > $i/scaling_governor;
 done;
+
 echo "$governor" > /sys/module/cpufreq/parameters/default_governor
 echo "GOVERNOR="$governor"" | tee /etc/default/cpufrequtils
 
@@ -2292,49 +2645,66 @@ echo 0 > /proc/sys/kernel/sched_min_task_util_for_colocation
 echo 32 > /proc/sys/kernel/sched_nr_migrate
 echo off > /proc/sys/kernel/printk_devkmsg
 
-
-
 echo "5000" > /sys/power/pm_freeze_timeout
 # some paths changed since 5.10 so double
 # there are more than listed here though:
 # https://github.com/torvalds/linux/blob/master/kernel/sched/features.h
-schedfeatnew=/sys/kernel/debug/sched/features
-schedfeatold=/sys/kernel/debug/sched_features
-echo "START_DEBIT" >> $schedfeatnew >> $schedfeatold
-echo "LAST_BUDDY" >> $schedfeatnew >> $schedfeatold
-echo "CACHE_HOT_BUDDY" >> $schedfeatnew >> $schedfeatold
-echo "NO_HRTICK" >> $schedfeatnew >> $schedfeatold
-echo "NO_HRTICK_DL" >> $schedfeatnew >> $schedfeatold
-echo "NO_DOUBLE_TICK" >> $schedfeatnew >> $schedfeatold
-echo "NONTASK_CAPACITY" >> $schedfeatnew >> $schedfeatold
-echo "RT_RUNTIME_GREED" >> $schedfeatnew >> $schedfeatold
-echo "NO_TTWU_QUEUE" >> $schedfeatnew >> $schedfeatold
-echo "NO_SIS_PROP" >> $schedfeatnew >> $schedfeatold
-echo "SIS_UTIL" >> $schedfeatnew >> $schedfeatold
-echo "NO_WARN_DOUBLE_CLOCK" >> $schedfeatnew >> $schedfeatold
-echo "RT_PUSH_IPI" >> $schedfeatnew >> $schedfeatold
-echo "NO_RT_RUNTIME_SHARE" >> $schedfeatnew >> $schedfeatold
-echo "LB_MIN" >> $schedfeatnew >> $schedfeatold
-echo "ATTACH_AGE_LOAD" >> $schedfeatnew >> $schedfeatold
-echo "WA_IDLE" >> $schedfeatnew >> $schedfeatold
-echo "WA_WEIGHT" >> $schedfeatnew >> $schedfeatold
-echo "WA_BIAS" >> $schedfeatnew >> $schedfeatold
-echo "UTIL_EST" >> $schedfeatnew >> $schedfeatold
-echo "UTIL_EST_FASTUP" >> $schedfeatnew >> $schedfeatold
-echo "NO_LATENCY_WARN" >> $schedfeatnew >> $schedfeatold
-echo "ALT_PERIOD" >> $schedfeatnew >> $schedfeatold
-echo "BASE_SLICE" >> $schedfeatnew >> $schedfeatold
-echo "NO_FBT_STRICT_ORDER" >> $schedfeatnew >> $schedfeatold
-echo "NEXT_BUDDY" >> $schedfeatnew >> $schedfeatold
-echo "NO_GENTLE_FAIR_SLEEPERS" >> $schedfeatnew >> $schedfeatold
-echo "NO_LB_BIAS" >> $schedfeatnew >> $schedfeatold
-echo "NO_ENERGY_AWARE" >> $schedfeatnew >> $schedfeatold
-echo "WAKEUP_PREEMPTION" >> $schedfeatnew >> $schedfeatold
-echo "AFFINE_WAKEUPS" >> $schedfeatnew >> $schedfeatold
-echo "NO_NORMALIZED_SLEEPER" >> $schedfeatnew >> $schedfeatold
+for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do 
+echo START_DEBIT >> "$i"features
+echo LAST_BUDDY >> "$i"features
+echo CACHE_HOT_BUDDY >> "$i"features
+echo NO_HRTICK >> "$i"features
+echo NO_HRTICK_DL >> "$i"features
+echo NO_DOUBLE_TICK >> "$i"features
+echo NONTASK_CAPACITY >> "$i"features
+echo NO_TTWU_QUEUE >> "$i"features
+echo NO_SIS_PROP >> "$i"features
+echo SIS_UTIL >> "$i"features
+echo NO_WARN_DOUBLE_CLOCK >> "$i"features
+echo RT_PUSH_IPI >> "$i"features
+echo NO_RT_RUNTIME_SHARE >> "$i"features
+echo LB_MIN >> "$i"features
+echo ATTACH_AGE_LOAD >> "$i"features
+echo WA_IDLE >> "$i"features
+echo WA_WEIGHTv >> "$i"features
+echo WA_BIAS >> "$i"features
+echo UTIL_EST >> "$i"features
+echo UTIL_EST_FASTUP >> "$i"features
+echo NO_LATENCY_WARN >> "$i"features
+echo ALT_PERIOD >> "$i"features
+echo BASE_SLICE >> "$i"features
+echo NO_FBT_STRICT_ORDER >> "$i"features
+echo NEXT_BUDDY >> "$i"features
+echo NO_GENTLE_FAIR_SLEEPERS >> "$i"features
+echo NO_LB_BIAS >> "$i"features
+echo NO_ENERGY_AWARE >> "$i"features
+echo WAKEUP_PREEMPTION >> "$i"features
+echo AFFINE_WAKEUPS  >> "$i"features
+echo NO_NORMALIZED_SLEEPER >> "$i"features
+echo RT_RUNTIME_GREED >> "$i"features
+echo N > "$i"debug
+#echo ? > "$i"idle_min_granularity_ns
+echo 40000 > "$i"latency_ns
+#echo ? > "$i"latency_warn_ms
+#echo ? > "$i"latency_warn_once
+echo 500000 > "$i"migration_cost_ns
+echo 500000 > "$i"min_granularity_ns
+echo 32 > "$i"nr_migrate
+echo full > "$i"preempt
+echo 2 > "$i"tunable_scaling
+echo N > "$i"verbose
+echo 500000 > "$i"wakeup_granularity_ns
+#echo ? > "$i"cpu*
+#echo ? > "$i"hot_threshold_ms
+#echo ? > "$i"scan_delay_ms
+#echo ? > "$i"scan_period_max_ms
+#echo ? > "$i"scan_period_min_ms
+#echo ? > "$i"scan_size_mb
+done
 
-if [ -f /system/build.prop ] ; then
-echo "ENERGY_AWARE" >> $schedfeatnew >> $schedfeatold ; fi
+if [ -f /system/build.prop ] && ! grep -q tv /system/build.prop ; then 
+for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do 
+echo ENERGY_AWARE >> "$i"features ; done ; fi
 
 echo 3 > /sys/bus/workqueue/devices/writeback/cpumask
 echo 3 > /sys/devices/virtual/workqueue/cpumask
@@ -2454,6 +2824,7 @@ echo "1" > /proc/sys/net/ipv4/net.ipv4.tcp_mtu_probing
 echo "2" > /proc/sys/net/ipv4/net.ipv4.tcp_frto
 echo "2" > /proc/sys/net/ipv4/net.ipv4.tcp_frto_response
 echo "1" > /sys/module/ppp_generic/parameters/mp_protocol_compress
+echo 1 > /sys/module/printk/parameters/console_no_auto_verbose
 for i in $(find /sys/class/net -type l); do
   echo "128" > $i/tx_queue_len;
 done;
@@ -2585,7 +2956,9 @@ dev.i915.perf_stream_paranoid = 0
 dev.scsi.logging_level = 0
 dev.tty.ldisc_autoload = 1
 energy_perf_bias = performance
-force_latency = 0
+if [ $cpumaxcstate = 0 ] ; then
+force_latency = 1 
+fi
 fs.aio-max-nr = 1048576
 fs.aio-nr = 0
 fs.binfmt_misc.status = enabled
@@ -3247,7 +3620,7 @@ echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable 
 
 if dmesg | grep -q amdgpu && ! grep -q amdgpu /etc/modules ; then echo 'amdgpu' | tee -a /etc/modules ; fi
 
-
+if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/dxvk.conf ; fi
 
 
 
@@ -3257,6 +3630,11 @@ echo 'Section "Screen"
        DefaultDepth    24
        SubSection      "Display"
        Depth           24
+       #FbBpp           24
+       #Visual          Directcolor
+       #DefaultFbBpp    24
+       Option "Accel" "true"
+       #Option "GlxVendorLibrary" "mesa"
        EndSubSection
 EndSection' | tee /etc/X11/xorg.conf.d/10-screen.conf
 
@@ -3290,6 +3668,8 @@ echo '<driconf>
          <option name="tcl_mode" value="3"/>
          <option name="fthrottle_mode" value="1"/>
          <option name="vblank_mode" value="0" />
+         <option name="stub_occlusion_query" value="true" />
+         <option name="fragment_shader" value="true" />
       </application>
    </device>
    <device driver="amdgpu">
@@ -3299,6 +3679,8 @@ echo '<driconf>
          <option name="tcl_mode" value="3"/>
          <option name="fthrottle_mode" value="1"/>
          <option name="vblank_mode" value="0" />
+         <option name="stub_occlusion_query" value="true" />
+         <option name="fragment_shader" value="true" />
       </application>
    </device>
 </driconf>' | tee /home/$(ls /home)/.drirc /root/.drirc /etc/drirc
@@ -3367,8 +3749,7 @@ mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.compose
 $s sed -i 's/StartServer.*/StartServer=false/' /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/akonadi/akonadiserverrc
 
 #resolution=$(echo $(xrandr --current | head -n 6 | tail -n 1 | awk '{print $1}'))
-resolution=$(echo $(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//'))
-sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE='"$resolution"'/g' /etc/default/grub
+#resolution=$(echo $(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//'))
 
 
 
@@ -3382,17 +3763,34 @@ sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE='"$resolution"'/g' /etc/default/grub
 
 
 # enable dri 3 for amdgpu
-if ! grep -q 'Option "DRI" "3"' /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) ; then
+# https://manpages.ubuntu.com/manpages/kinetic/en/man4/intel.4.html
+# https://manpages.ubuntu.com/manpages/kinetic/en/man5/xorg.conf.5.html
+if ! grep -q 'DDC' /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) ; then
 echo 'Section "OutputClass"
   Identifier "AMDgpu"
   MatchDriver "amdgpu"
   Driver "amdgpu"
   Option "DRI" "3"
+  Option "DRI3" "true"
+  Option "DRI2" "false"
   Option "TearFree" "true"
-  #Option "SwapbuffersWait" "true"
+  Option "SwapbuffersWait" "true"
   Option "EnablePageFlip" "on"
   Option "NoAccel" "false"
-  #Option "TripleBuffer" "true"
+  Option "TripleBuffer" "true"
+  Option "Present" "true"
+  Option "FallbackDebug" "false"
+  Option "DebugFlushBatches" "false"
+  Option "DebugFlushCaches" "false"
+  Option "DebugWait" "false"
+  Option "HWRotation" "true"
+  Option "PageFlip" "true"
+  Option "Tiling" "true"
+  Option "RelaxedFencing" "true"
+  Option "Throttle" "true"
+  Option "HotPlug" "true"
+  Option "DDC" "true"
+  Option "Dac6Bit" "true"
 EndSection' | tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) ; fi
 
 
@@ -3441,17 +3839,27 @@ echo '[$Version]
 update_info=kwin.upd:replace-scalein-with-scale,kwin.upd:port-minimizeanimation-effect-to-js,kwin.upd:port-scale-effect-to-js,kwin.upd:port-dimscreen-effect-to-js,kwin.upd:auto-bordersize,kwin.upd:animation-speed,kwin.upd:desktop-grid-click-behavior,kwin.upd:no-swap-encourage,kwin.upd:make-translucency-effect-disabled-by-default,kwin.upd:remove-flip-switch-effect,kwin.upd:remove-cover-switch-effect,kwin.upd:remove-cubeslide-effect,kwin.upd:remove-xrender-backend,kwin.upd:enable-scale-effect-by-default,kwin.upd:overview-group-plugin-id,kwin.upd:animation-speed-cleanup
 
 [Compositing]
+AllowTearing=false
 AnimationSpeed=0
 Backend=OpenGL
 CheckIsSafe=false
 DisableChecks=true
 Enabled=true
+GLColorCorrection=false
 GLCore=true
+GLLegacy=false
 GLDirect=true
 #GLMode=TFP
 GLPreferBufferSwap=e
+GLStrictBinding=true
 GLTextureFilter=0
 #GLVSync=true
+#GLPlatformInterface=
+GraphicsSystem=native
+LatencyPolicy=Medium
+#MaxFPS=
+#RefreshRate=
+RenderTimeEstimator=Minimum
 HiddenPreviews=0
 OpenGLIsUnsafe=true
 UnredirectFullscreen=false
@@ -3606,22 +4014,25 @@ export __GL_YIELD=USLEEP
 export KWIN_DRM_PREFER_COLOR_DEPTH=24
 export KDE_NO_IPV6=1
 export KDE_USE_IPV6=no
-  #export KDEWM=kwin_gles
-  #export KWIN_OPENGL_INTERFACE=egl_wayland
+export KDEWM=kwin_gles
+export KWIN_OPENGL_INTERFACE=EGL
+export KWIN_EXPLICIT_SYNC=0
+if [ $XDG_SESSION_TYPE = wayland ] ; then export KWIN_OPENGL_INTERFACE=egl_wayland ; export QT_QPA_PLATFORM=wayland-egl ; export GDK_BACKEND=wayland ; fi
+
   #export XDG_SESSION_TYPE=wayland
-  #export KWIN_TRIPLE_BUFFER=1
+export KWIN_TRIPLE_BUFFER=1
   #export XDG_CURRENT_DESKTOP=KDE
   #export DESKTOP_SESSION=plasmawayland
   #export QT_AUTO_SCREEN_SCALE_FACTOR=0
   #export QT_WAYLAND_FORCE_DPI=$kcmfonts_general_forcefontdpiwayland
-  #export QT_QPA_PLATFORM=wayland-egl
   #export KDE_FULL_SESSION=true
-  #export GDK_BACKEND=wayland
   #export KDE_FAILSAFE=1
-  #export KWIN_COMPOSE=N
+#export KWIN_COMPOSE=O2ES
   #export XLIB_SKIP_ARGB_VISUALS=0
   #export KWIN_FORCE_LANCZOS=0' | $s tee /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh && $s chmod +x /etc/profile.d/kwin.sh && $s chmod +x /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}'
 )"/.config/plasma-workspace/env/kwin_env.sh
+
+
 
 if [ $ipv6 = on ]
 then
@@ -3663,7 +4074,7 @@ export WINEFSYNC_FUTEX2=1
 export WINE_SKIP_GECKO_INSTALLATION=1
 export WINE_SKIP_MONO_INSTALLATION=1
 export STAGING_WRITECOPY=1
-export STAGING_SHARED_MEMORY=
+export STAGING_SHARED_MEMORY=1
 export STAGING_RT_PRIORITY_SERVER=4
 export STAGING_RT_PRIORITY_BASE=2
 export STAGING_AUDIO_PERIOD=13333
@@ -3683,7 +4094,7 @@ export KIRIGAMI_LOWPOWER_HARDWARE=1
 export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
 export ELM_ACCEL=opengl
 export WLR_DRM_NO_ATOMIC=1
-export export VGL_READBACK=pbo
+export VGL_READBACK=pbo
 export SDL_VIDEO_X11_DGAMOUSE=0
 export SDL_VIDEO_FULLSCREEN_HEAD=0
 export WLR_DRM_NO_MODIFIERS=1
@@ -3691,7 +4102,7 @@ export QT_WEBENGINE_DISABLE_WAYLAND_WORKAROUND=1
 export PIPEWIRE_PROFILE_MODULES=default,rtkit
 export GST_AUDIO_RESAMPLER_QUALITY_DEFAULT=9
 export GLSLC=glslc
-export export QT_GRAPHICSSYSTEM=raster
+export QT_GRAPHICSSYSTEM=raster
 export DRI_NO_MSAA=1
 export DRAW_NO_FSE=1
 export WLR_RENDERER=vulkan
@@ -3720,6 +4131,7 @@ export LESSHISTFILE=-
 export LESSHISTSIZE=0
 export LESSSECURE=1
 export PAGER=less
+export QT_LOGGING_RULES="kwin_*.debug=false"
 
 export MESA_DEBUG=silent
 export LIBGL_DEBUG=0
@@ -3736,6 +4148,8 @@ export __GL_LOG_MAX_ANISO=0
 export RADV_TEX_ANISO=0
 export LIBGL_DRI2_DISABLE=1
 export __GL_YIELD=USLEEP
+export KWIN_OPENGL_INTERFACE=EGL
+export LIBGL_ALWAYS_SOFTWARE=0
 
 #export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
 
@@ -3753,7 +4167,7 @@ export __GL_THREADED_OPTIMIZATIONS=1
 
 export LP_PERF=no_mipmap,no_linear,no_mip_linear,no_tex,no_blend,no_depth,no_alphatest
 
-export MESA_GL_VERSION_OVERRIDE=4.5
+export MESA_GL_VERSION_OVERRIDE=4.6
 export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
 
   #export MESA_BACK_BUFFER=ximage
@@ -3764,7 +4178,7 @@ export COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
 export RADV_PERFTEST=aco,sam,nggc,rt
 export RADV_FORCE_VRS=2x2
 export RADV_DEBUG=novrsflatshading
-  #export __GLX_VENDOR_LIBRARY_NAME=mesa
+export __GLX_VENDOR_LIBRARY_NAME=mesa
   #export __GLVND_DISALLOW_PATCHING=0
 export __GL_MaxFramesAllowed="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '\''.'\'' '\''{print $1}'\'' | awk '\''{print $2}'\'')"
 export __GL_VRR_ALLOWED=1
@@ -3790,18 +4204,30 @@ export OBJDUMP=llvm-objdump'"$cclm"'
 export READELF=llvm-readelf'"$cclm"'
 export OBJSIZE=llvm-size'"$cclm"'
 export STRIP=llvm-strip'"$cclm"'
-
+export DXVK_LOG_LEVEL=0
+export DXVK_FAKE_DX10_SUPPORT=1
+export DXVK_FAKE_DX11_SUPPORT=1
+export DXVK_CONFIG_FILE=/etc/dxvk.conf
 export QT_STYLE_OVERRIDE=kvantum
 export GTK_USE_PORTAL=1
 
 export OBS_USE_EGL=1
 
+if [ $(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1) = radeon ] ; then
+export radeonsi_enable_nir=true
+fi
+
+if dmesg | grep -q amdgpu ; then 
+export amdgpusi_enable_nir=true
+fi
+
 if [ $XDG_SESSION_TYPE = x11 ] ; then export MOZ_X11_EGL=1 ; export MOZ_ENABLE_WAYLAND=0 ;fi
 if [ $XDG_SESSION_TYPE = wayland ] ; then export MOZ_ENABLE_WAYLAND=1 ; export MOZ_X11_EGL=0 ; fi
 
-    #VDPAU_DRIVER=radeonsi
-    #LIBVA_DRIVER_NAME=radeonsi
-    #VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+#VDPAU_DRIVER=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
+#LIBVA_DRIVER_NAME=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
+
+#VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)_icd.i686.json:/usr/share/vulkan/icd.d/$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)_icd.x86_64.json
 for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i ; done' | tee /etc/environment /etc/environment.d/10-config.dat ; fi
 
 
@@ -4106,18 +4532,24 @@ if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron 
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 if [ $script_autoupdate = yes ] ; then
 # if online
-ping "$ping" -c 2
+ping "$ping" -c 3
 if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
+mkdir -p /etc/sysctl.d
 # if debian
-if grep -q "debian" /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local && cp /etc/rc.local /etc/sysctl.conf ; cp /etc/rc.local /etc/sysctl.d/sysctl.conf ; fi
+if grep -q "debian" /etc/os-release ; then wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local && cp /etc/rc.local /etc/sysctl.conf ; cp /etc/rc.local /etc/sysctl.d/sysctl.conf ; fi
 # if wrt
 if grep -q "wrt" /etc/os-release ; then echo "*BLS*=OPENWRT found" &&
-grep -q "ping "$ping" -c 2" /etc/rc.local
-if [ $? -eq 1 ]; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && chmod +x /etc/rc.local && if ! grep -q thanas /etc/sysctl.conf ; then cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf ; fi &&  mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; else echo "*BLS*=rc.local up to date"; fi; fi
+grep -q "ping "$ping" -c 3" /etc/rc.local
+if [ $? -eq 1 ]; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && sed -i 's/$ping/'"$ping"'/g' /etc/rc.local && chmod +x /etc/rc.local && if ! grep -q thanas /etc/sysctl.conf ; then cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf ; fi &&  mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; else echo "*BLS*=rc.local up to date"; fi; fi
 # general devices and other distros
-elif ping "$ping" -c 2
-[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; if [ -f /system/build.prop ] ; then sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh ; cp /tmp/init.sh /system/etc/rc.local && cp /tmp/init.sh /system/etc/sysctl.conf ; cp /tmp/init.sh /system/etc/sysctl.d/sysctl.conf && chmod +x /system/etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /system/etc/sysctl.conf ; fi ; fi ;fi
+elif ping "$ping" -c 3
+[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; if [ -f /system/build.prop ] ; then mkdir -p /system/etc/sysctl.d ; sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh ; cp /tmp/init.sh /system/etc/rc.local && cp /tmp/init.sh /system/etc/sysctl.conf ; cp /tmp/init.sh /system/etc/sysctl.d/sysctl.conf && chmod +x /system/etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /system/etc/sysctl.conf ; fi ; fi ;fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
+
+
+
+
+service procps force-reload
 
 
 
@@ -4152,21 +4584,22 @@ systemctl stop $disableserv
 systemctl disable $disableserv
 systemctl mask $maskdisable
 
-	if [ $ipv6 = on ] ; then
-net.ipv6.conf.all.disable_ipv6 = 0
-net.ipv6.conf.default.disable_ipv6 = 0
-net.ipv6.conf.lo.disable_ipv6 = 0
-net.ipv6.conf.all.accept_ra = 1 ; else
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-net.ipv6.conf.all.accept_ra = 0
-fi ; fi
-
 #systemctl unmask $maskenable
 systemctl start --now $startserv
 systemctl enable $startserv
+fi
 
+if grep -q wrt /etc/os-release || [ $ipv6 = on ] ; then
+net.ipv6.conf.all.disable_ipv6 = 0
+net.ipv6.conf.default.disable_ipv6 = 0
+net.ipv6.conf.lo.disable_ipv6 = 0
+net.ipv6.conf.all.accept_ra = 1 
+else if grep -q wrt /etc/os-release ; then router="#" ; fi
+"$router"net.ipv6.conf.all.disable_ipv6 = 1
+"$router"net.ipv6.conf.default.disable_ipv6 = 1
+"$router"net.ipv6.conf.lo.disable_ipv6 = 1
+"$router"net.ipv6.conf.all.accept_ra = 0
+fi 
 
 
 

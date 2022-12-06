@@ -5,10 +5,10 @@ ordering=preferred://browser,kontact.desktop,systemsettings.desktop,org.kde.dolp
 ordering=preferred://browser,kontact.desktop,systemsettings.desktop,org.kde.dolphin.desktop,ktp-contactlist.desktop,org.kde.kate.desktop,org.kde.discover
 
 [Favorites-org.kde.plasma.kicker.favorites.instance-142-987df83d-646f-4da0-b856-13c55324f5be]
-ordering=applications:systemsettings.desktop,applications:org.kde.dolphin.desktop
+ordering=applications:systemsettings.desktop,applications:org.kde.dolphin.desktop,applications:gitkraken.desktop,applications:org.kde.plasma-systemmonitor.desktop
 
 [Favorites-org.kde.plasma.kicker.favorites.instance-142-global]
-ordering=applications:systemsettings.desktop,applications:org.kde.dolphin.desktop
+ordering=applications:systemsettings.desktop,applications:org.kde.dolphin.desktop,applications:gitkraken.desktop,applications:org.kde.plasma-systemmonitor.desktop
 
 [Favorites-org.kde.plasma.kicker.favorites.instance-21-987df83d-646f-4da0-b856-13c55324f5be]
 ordering=preferred://browser,applications:libreoffice-startcenter.desktop,applications:org.kde.discover.desktop,applications:org.kde.dolphin.desktop,applications:org.kde.kate.desktop,applications:org.kde.konsole.desktop,applications:org.kde.ksysguard.desktop,applications:systemsettings.desktop
