@@ -251,7 +251,12 @@ $a *qtgstreamer* \
  partitionmanager \
  irqbalance \
  plasma-discover-backend-flatpak plasma-discover-backend-fwupd plasma-discover-backend-snap \
- kali-desktop-kde
+ kali-desktop-kde \
+ qdbus-qt6 libpoppler-qt6-3 qt6-base-dev
+ 
+ #qt6ct
+ 
+ #qt6-base-dev
 
 
 

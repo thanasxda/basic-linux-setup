@@ -482,13 +482,13 @@ nameserver 127.0.0.1
 #nameserver ::1
 #nameserver 2606:4700:4700::1111
 #nameserver 2606:4700:4700::1001
-options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query
+options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 ' | $s tee /etc/resolv.conf.override /etc/resolv.conf
         $s mkdir -p /run/resolvconf
         
 if grep -q wrt /etc/os-release ; then 
 if ! grep -q edns0 /tmp/resolv.conf.ppp ; then
-echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf.ppp ; fi ; fi
+echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf.ppp ; fi ; fi
         
         
 echo '#!/bin/sh
@@ -525,7 +525,7 @@ nameserver 127.0.0.1
 #nameserver ::1
 #nameserver 2606:4700:4700::1111
 #nameserver 2606:4700:4700::1001
-options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query
+options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 ' | $s tee /etc/resolv.conf.override /etc/resolv.conf
 
 

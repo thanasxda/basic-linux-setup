@@ -171,12 +171,12 @@ nmcli dev wifi list
 sudo nmcli --ask dev wifi connect < ENTER YOUR NETWORK-SSID HERE PROMPTED BY ABOVE COMMANDS >
 ```
 If you have installed Kali with bare desktop environment without any default tools keep in mind packages as __'wireless-tools'__, __'net-tools'__ & __'nmcli'__ will be missing if you're unfortunate enough not using ethernet.
-Use alternatives in this case. once connected to the internet proceed with installing your gpu drivers. Potentially __apt-cdrom__, enabling the usb stick to function as a repository for offline installation. Press Ctrl+Alt+F5 or something once booted in console and proceed.
+Use alternatives in this case. once connected to the internet proceed with installing your gpu drivers. Potentially [__apt-cdrom__](https://www.kali.org/docs/general-use/kali-linux-sources-list-repositories/), enabling the usb stick to function as a repository for offline installation. Press Ctrl+Alt+F5 or something once booted in console and proceed.
 Underneath example is for __amd gpu drivers__ as of current packages:
 ```
 sudo apt update && sudo apt -f install -y firmware-amd-graphics && sudo dpkg-reconfigure firmware-amd-graphics && sudo reboot -f
 ```
-The system will work as usual upon next reboot. __startx__ command which manually starts the desktop environment from console will not work unless the kernel has rebooted at least once with the just installed gpu kernel modules having been loaded upon boottime. Alternatively you could also browse webpages with package __links__ and or just run __'sudo sh ~/basic-linux-setup/1_setup.sh'__ from your terminal. If you want pieces of the setup, you could always copy paste the missing parts from the script to console and manually take what you need. Just remember that the script uses variables for convenience of editing. They will need to be included. (example, 'export a=apt && $a install pkg')
+The system will work as usual upon next reboot. __startx__ or __xinit__ command which manually starts the desktop environment from console will not work unless the kernel has rebooted at least once with the just installed gpu kernel modules having been loaded upon boottime. Alternatively you could also browse webpages with package __links__ and or just run __'sudo sh ~/basic-linux-setup/1_setup.sh'__ from your terminal. If you want pieces of the setup, you could always copy paste the missing parts from the script to console and manually take what you need. Just remember that the script uses variables for convenience of editing. They will need to be included. (example, 'export a=apt && $a install pkg')
 
 If this setup does not allow you to boot due to kernel bootargs in grub temporarily disable them by intervening in the grub boot menu. Browse to the desired kernel and press _'e'_ on the keyboard. After remove all kernel parameters and press __Ctrl+X__ to boot. Scrolling down you can also find instructions if ever encountering the __grub rescue__ screen at boot.
 

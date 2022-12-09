@@ -195,23 +195,20 @@ sudo sed -i '\''s/PERCENT.*/PERCENT=40/g'\'' /etc/default/zramswap; fi'
 
 # if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
-vm.overcommit_memory = 3
 overcommit=3
-vm.nr_overcommit_hugepages = 3
-kernel.shmmni = 1600000
-kernel.shmall = 35000000
-kernel.shmmax = 100000000
-sysctl -w vm.nr_overcommit_hugepages=3
-sysctl -w kernel.shmmni=1600000
-sysctl -w kernel.shmall=35000000
-sysctl -w kernel.shmmax=100000000
+shmmax=100000000
+shmmni=1600000
+shmall=35000000
 echo always > /sys/kernel/mm/transparent_hugepage/enabled
 echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
 hugepages="8"
-sysctl -w vm.nr_hugepages=8
-
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 if ! grep -q '* soft nofile 524288' /etc/security/limits.conf ; then
 echo '* hard nofile 524288
 * soft nofile 524288
@@ -263,13 +260,17 @@ echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hugepages="512"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 1024000
 #hard memlock 1024000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=4000000000
-sysctl -w kernel.shmmni=64000000
-sysctl -w kernel.shmall=100000000
+shmmax=4000000000
+shmmni=64000000
+shmall=100000000
 overcommit=3
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 16 gb
@@ -278,10 +279,16 @@ devshm=",size=6G"
 vmalloc="512"
 hugepages="1024"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 2048000
 #hard memlock 2048000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=6000000000
+shmmax=6000000000
+shmmni=64000000
+shmall=100000000
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 32 gb
@@ -290,10 +297,17 @@ devshm=",size=12G"
 vmalloc="1024"
 hugepages="2048"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w =$hugepages
 #echo 'soft memlock 4096000
 #hard memlock 4096000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=12000000000
+shmmax=12000000000
+shmmni=64000000
+shmall=100000000
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 4gb
@@ -302,11 +316,14 @@ devshm=",size=512m"
 vmalloc="128"
 hugepages="64"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=$hugepages
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
-sysctl -w kernel.shmmax=2000000000
-overcommit=1
+overcommit=2
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
@@ -315,22 +332,22 @@ devshm=",size=128m"
 vmalloc="128"
 hugepages="32"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=$hugepages
 echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
 echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
 hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
-kernel.shmmni = 16000000
-kernel.shmall = 350000000
-kernel.shmmax = 1000000000
-sysctl -w kernel.shmmni=16000000
-sysctl -w kernel.shmall=350000000
-sysctl -w kernel.shmmax=1000000000
+shmmax=1000000000
+shmmni=16000000
+shmall=350000000
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
-sysctl -w kernel.shmmax=1000000000
-overcommit=0
+overcommit=1
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
@@ -339,17 +356,17 @@ devshm=",size=64m"
 vmalloc="128"
 hugepages="16"
 hugepagesz="2MB"
-sysctl -w vm.nr_hugepages=$hugepages
-kernel.shmmni = 1600000
-kernel.shmall = 35000000
-kernel.shmmax = 100000000
-sysctl -w kernel.shmmni=1600000
-sysctl -w kernel.shmall=35000000
-sysctl -w kernel.shmmax=100000000
+shmmax=100000000
+shmmni=1600000
+shmall=35000000
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
-sysctl -w kernel.shmmax=500000000
-overcommit=0
+overcommit=1
+sysctl -w vm.nr_overcommit_hugepages=$overcommit
+sysctl -w vm.nr_hugepages=$hugepages
+sysctl -w kernel.shmmax=$shmmax
+sysctl -w kernel.shmmni=$shmmni
+sysctl -w kernel.shmall=$shmall
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # all mem amounts but not generic devices
@@ -361,11 +378,11 @@ fi
 
 # zswap, only if 2gb or under
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
-# cpu amd or intel
-x0="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx kvm-amd.nested=1" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$cpumaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # mitigations
-x1="$(if [ $mitigations = off ] ; then
+x0="$(if [ $mitigations = off ] ; then
 echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; else echo " mitigations=on" ; fi)"
+# cpu amd or intel
+x1="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx kvm-amd.nested=1" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$cpumaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # logging
 x2=" audit=0 log_priority=0 loglevel=0 mminit_loglevel=0 udev.log_priority=0 rd.udev.log_level=0 udev.log_level=0"
 # security
@@ -425,8 +442,12 @@ x28="$( if grep -q xfs /etc/fstab ; then echo " fsck.mode=skip" ; fi)"
 x29="$(if [ $cec = off ] ; then echo " cec_disable mce=off" ; fi)"
 #
 xx1=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1 processor.ignore_ppc=1"
+#
 xx2=$(if $(lscpu | grep -q Pentium) ; then export hugepagesz="4MB" ; else echo " mem=nopentium" ; fi)
+#
 xx3=$( if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1 " ; fi)
+#
+xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw"
 
 
 
@@ -434,7 +455,7 @@ xx3=$( if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1 " ; fi)
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
                                         # https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt
 
-                                          bootargvars="$(echo "$x1 idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw$x0$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$xx1$xx2$xx3")"
+                                          bootargvars="$(echo "$x0$x1$x2$x3$x4$x5$x6$x7$x8$x9$x10$x11$x12$x13$x14$x15$x16$x17$x18$x19$x20$x21$x22$x23$x24$x25$x26$x27$x28$x29$xx1$xx2$xx3$xx4")"
 
                                         export par="splash quiet$bootargvars"
 
@@ -463,7 +484,13 @@ xx3=$( if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1 " ; fi)
     if [ -f /system/build.prop ] ; then
 droidresolv=$(if [ -f /system/build.prop ] ; then echo "/etc/system/resolv.conf" ; fi)
 droidhosts=$(if [ -f /system/build.prop ] ; then echo "/etc/system/hosts /etc/hosts" ; fi)
-droidfstab=$(if [ -f /system/build.prop ] ; then echo "/etc/vendor/fstab*" ; fi) ; fi
+droidfstab=$(if [ -f /system/build.prop ] ; then echo "/etc/vendor/fstab*" ; fi) 
+droidsysctl=$(if [ -f /system/build.prop ] ; then echo "/system/etc/sysctl.conf /system/etc/sysctl.d/sysctl.conf" ; fi) ; fi
+
+
+
+
+
 
   ### < ADDITIONAL BLOCKLISTS FOR HOSTS FILE > - not on openwrt
         list1=
@@ -489,7 +516,7 @@ ping '"$ping"' -c 3
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
-echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query
+echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
 echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
 x1="$(wget $u1 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
@@ -554,7 +581,10 @@ done'
     # remount rw
      if [ -f /system/build.prop ] ; then
     mount -o rw,remount /system
-    mount -o rw,remount /vendor ; fi
+    mount -o rw,remount /vendor 
+    mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
+    mount -o rw /dev/block/bootdevice/by-name/system /system
+    fi
       mkdir -p /etc/bak
   if [ ! -f /etc/bak/fstab.bak ] ; then cp /etc/fstab /etc/bak/fstab.bak ; if [ -f /system/build.prop ] ; then cp /etc/vendor/fstab* /sdcard/bak/fstab.android.bak ; fi ; fi
   if [ -f /system/build.prop ] && [ ! -f /etc/bak/build.prop.bak ] ; then cp /system/build.prop /sdcard/bak/build.prop.android.bak ; fi
@@ -839,7 +869,7 @@ nameserver '"$dns61"'
 nameserver '"$dns62"'/g' /etc/resolv/conf $droidresolv ; fi
 
     if ! grep -q edns0 /etc/resolv.conf ; then
-    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:3 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
+    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
 
 
 
@@ -1006,6 +1036,9 @@ fi
     sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf
     sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/user.conf
     sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/user.conf
+    
+    chmod 0655 /sys/module/*/parameters/*
+    chown root /sys/module/*/parameters/*
 
 
   ### < START PARAMETER CONFIG >
@@ -2208,7 +2241,7 @@ echo false > /sys/kernel/mm/numa/demotion_enabled
 echo 1 > /sys/kernel/reboot/cpu
 echo 1 > /sys/kernel/reboot/force 
 echo hard > /sys/kernel/reboot/mode 
-echo efi > /sys/kernel/reboot/type
+echo triple > /sys/kernel/reboot/type
 
 echo 0xffffff > /sys/kernel/security/apparmor/capability
 
@@ -2575,7 +2608,7 @@ echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo
 echo 1 > /sys/devices/system/cpu/cpufreq/boost
 x86_energy_perf_policy --turbo-enable 1 --force
 
-echo performance > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+echo $governor > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
 # governor
 for i in $(find /sys/devices/system/cpu/cpufreq); do
@@ -2930,23 +2963,21 @@ touch /etc/sysctl.conf
 
 
 
-
 ### SYSCTL.CONF IN SAME FILE
 ### values for sysctl.conf ( /etc/sysctl.conf is a replica of /etc/rc.local and bound to it as well just for convenience)
 
-
-
-
-# sysctl
+echo '# sysctl
 
 #
 # more
-#kernel.shmall = 350000000 # memory management at beginning of script handles these parts
-#kernel.shmmax = 1000000000
-#kernel.shmmni = 4096
-#vm.nr_hugepages = 128
-#vm.nr_hugepages_mempolicy = 128
-abi.vsyscall32 = 0
+kernel.shmall = '"$shmall"'
+kernel.shmmax = '"$shmmax"'
+kernel.shmmni = '"$shmmni"'
+vm.nr_hugepages = '"$hugepages"'
+vm.nr_hugepages_mempolicy = '"$hugepages"'
+if ! grep -q wrt /etc/os-release ; then
+abi.vsyscall32 = 0 
+fi
 crypto.fips_enabled = 1
 debug.exception-trace = 0
 debug.kprobes-optimization = 1
@@ -2956,7 +2987,7 @@ dev.i915.perf_stream_paranoid = 0
 dev.scsi.logging_level = 0
 dev.tty.ldisc_autoload = 1
 energy_perf_bias = performance
-if [ $cpumaxcstate = 0 ] ; then
+if [ '"$cpumaxcstate"' = 0 ] ; then
 force_latency = 1 
 fi
 fs.aio-max-nr = 1048576
@@ -3017,7 +3048,7 @@ fs.xfs.speculative_cow_prealloc_lifetime = 300
 fs.xfs.speculative_prealloc_lifetime = 300
 fs.xfs.stats_clear = 0
 fs.xfs.xfssyncd_centisecs = 50000
-governor = $governor
+governor = '"$governor"'
 kernel.acct = 4 2       30
 kernel.acpi_video_flags = 0
 kernel.apparmor_display_secid_mode = 0
@@ -3109,13 +3140,13 @@ kernel.sched_latency_ns = 40000
 kernel.sched_migration_cost_ns = 250000
 kernel.sched_min_granularity_ns = 40000
 kernel.sched_min_task_util_for_colocation = 0
-kernel.sched_nr_migrate = $(nproc --all)
+kernel.sched_nr_migrate = 32
 kernel.sched_rr_timeslice_ms = -1
 kernel.sched_rt_period_us = -1
 kernel.sched_rt_runtime_us = -1
 kernel.sched_scaling_enable = 1
 kernel.sched_schedstats = 0
-kernel.sched_tunable_scaling = 1
+kernel.sched_tunable_scaling = 2
 kernel.sched_wakeup_granularity_ns = 40000
 kernel.seccomp.actions_avail = NONE
 kernel.seccomp.actions_logged = NONE
@@ -3151,7 +3182,7 @@ net.core.bpf_jit_kallsyms = 0
 net.core.bpf_jit_limit = 264241152
 net.core.busy_poll = 50
 net.core.busy_read = 50
-net.core.default_qdisc = $qdisc
+net.core.default_qdisc = '"$qdisc"'
 net.core.dev_weight = 64
 net.core.dev_weight_rx_bias = 1
 net.core.devconf_inherit_init_net = 0
@@ -3261,7 +3292,6 @@ net.ipv4.fib_notify_on_flag_change = 0
 net.ipv4.fib_sync_mem = 524288
 net.ipv4.fwmark_reflect = 0
 net.ipv4.icmp_echo_enable_probe = 0
-net.ipv4.icmp_echo_ignore_all = 1
 net.ipv4.icmp_echo_ignore_all = 1
 net.ipv4.icmp_echo_ignore_broadcasts = 1
 net.ipv4.icmp_errors_use_inbound_ifaddr = 0
@@ -3374,7 +3404,7 @@ net.ipv4.tcp_child_ehash_entries = 0
 net.ipv4.tcp_comp_sack_delay_ns = 1000000
 net.ipv4.tcp_comp_sack_nr = 44
 net.ipv4.tcp_comp_sack_slack_ns = 100000
-net.ipv4.tcp_congestion_control = $tcp_con
+net.ipv4.tcp_congestion_control = '"$tcp_con"'
 net.ipv4.tcp_dsack = 1
 net.ipv4.tcp_early_demux = 1
 net.ipv4.tcp_early_retrans = 2
@@ -3523,7 +3553,7 @@ net.netfilter.nf_log_all_netns = 0
 net.nf_conntrack_max = 65536
 net.unix.max_dgram_qlen = 512
 sk_rcvbuf = 125336
-sysctl -w kernel.core_pattern='|/bin/false'
+sysctl -w kernel.core_pattern='\''|/bin/false'\''
 sysctl.net.core.busy_poll = 50
 #user.max_cgroup_namespaces = 7642
 #user.max_fanotify_groups = 128
@@ -3563,13 +3593,13 @@ vm.min_unmapped_ratio = 1
 vm.mmap_min_addr = 65536
 vm.mmap_rnd_bits = 28
 vm.mmap_rnd_compat_bits = 8
-vm.nr_overcommit_hugepages = $overcommit
+vm.nr_overcommit_hugepages = '"$overcommit"'
 vm.numa_stat = 0
 vm.numa_zonelist_order = Node
 vm.oom_dump_tasks = 1
 vm.oom_kill_allocating_task = 1
 #vm.overcommit_kbytes = 0
-vm.overcommit_memory = $overcommit
+vm.overcommit_memory = '"$overcommit"'
 vm.overcommit_ratio = 100
 vm.page-cluster = 0
 vm.page_lock_unfairness = 1
@@ -3585,22 +3615,27 @@ vm.watermark_boost_factor = 15000
 vm.watermark_scale_factor = 200
 vm.zone_reclaim_mode = 0
 #include = latency-performance
+stack_erasing = 0' | tee /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl
+
+
 if dmesg | grep -q raid ; then
 sysctl -w dev.raid.speed_limit_min=1000000
 sysctl -w dev.raid.speed_limit_max=1000000 
 echo 8 > /sys/block/md0/md/group_thread_cnt; fi
-stack_erasing = 0
+
+
+
 if ! grep -q wrt /etc/os-release ; then 
-/sbin/sysctl -w net.ipv4.conf.all.accept_source_route=0
-/sbin/sysctl -w net.ipv4.conf.all.forwarding=0
-/sbin/sysctl -w net.ipv6.conf.all.forwarding=0
-/sbin/sysctl -w net.ipv4.conf.all.mc_forwarding=0
-/sbin/sysctl -w net.ipv6.conf.all.mc_forwarding=0
-/sbin/sysctl -w net.ipv4.conf.all.accept_redirects=0
-/sbin/sysctl -w net.ipv6.conf.all.accept_redirects=0
-/sbin/sysctl -w net.ipv4.conf.all.secure_redirects=0
-/sbin/sysctl -w net.ipv4.conf.all.send_redirects=0
-/sbin/sysctl -w net.ipv4.conf.default.send_redirects=0 ; fi
+sysctl -w net.ipv4.conf.all.accept_source_route=0
+sysctl -w net.ipv4.conf.all.forwarding=0
+sysctl -w net.ipv6.conf.all.forwarding=0
+sysctl -w net.ipv4.conf.all.mc_forwarding=0
+sysctl -w net.ipv6.conf.all.mc_forwarding=0
+sysctl -w net.ipv4.conf.all.accept_redirects=0
+sysctl -w net.ipv6.conf.all.accept_redirects=0
+sysctl -w net.ipv4.conf.all.secure_redirects=0
+sysctl -w net.ipv4.conf.all.send_redirects=0
+sysctl -w net.ipv4.conf.default.send_redirects=0 ; fi
 
 
 
@@ -4131,8 +4166,7 @@ export LESSHISTFILE=-
 export LESSHISTSIZE=0
 export LESSSECURE=1
 export PAGER=less
-export QT_LOGGING_RULES="kwin_*.debug=false"
-
+export QT_LOGGING_RULES='\''*=false'\''
 export MESA_DEBUG=silent
 export LIBGL_DEBUG=0
 
@@ -4150,7 +4184,8 @@ export LIBGL_DRI2_DISABLE=1
 export __GL_YIELD=USLEEP
 export KWIN_OPENGL_INTERFACE=EGL
 export LIBGL_ALWAYS_SOFTWARE=0
-
+export QT_SELECT=6
+export QT_QPA_PLATFORMTHEME=qt6ct
 #export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
 
 export VAAPI_MPEG4_ENABLED
@@ -4534,16 +4569,16 @@ if [ $script_autoupdate = yes ] ; then
 # if online
 ping "$ping" -c 3
 if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
-mkdir -p /etc/sysctl.d
+mkdir -p /etc/sysctl.d 
 # if debian
-if grep -q "debian" /etc/os-release ; then wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local && cp /etc/rc.local /etc/sysctl.conf ; cp /etc/rc.local /etc/sysctl.d/sysctl.conf ; fi
+if grep -q "debian" /etc/os-release ; then wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local ; fi
 # if wrt
 if grep -q "wrt" /etc/os-release ; then echo "*BLS*=OPENWRT found" &&
 grep -q "ping "$ping" -c 3" /etc/rc.local
-if [ $? -eq 1 ]; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && sed -i 's/$ping/'"$ping"'/g' /etc/rc.local && chmod +x /etc/rc.local && if ! grep -q thanas /etc/sysctl.conf ; then cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf ; fi &&  mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; else echo "*BLS*=rc.local up to date"; fi; fi
+if [ $? -eq 1 ] ; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && sed -i 's/$ping/'"$ping"'/g' /etc/rc.local && chmod +x /etc/rc.local ; else echo "*BLS*=rc.local up to date" ; fi ; fi
 # general devices and other distros
 elif ping "$ping" -c 3
-[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && cp /tmp/init.sh /etc/sysctl.conf ; cp /tmp/init.sh /etc/sysctl.d/sysctl.conf && chmod +x /etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /etc/sysctl.conf ; if [ -f /system/build.prop ] ; then mkdir -p /system/etc/sysctl.d ; sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh ; cp /tmp/init.sh /system/etc/rc.local && cp /tmp/init.sh /system/etc/sysctl.conf ; cp /tmp/init.sh /system/etc/sysctl.d/sysctl.conf && chmod +x /system/etc/rc.local  && mount -n --bind -o ro /tmp/init/sh.sh /system/etc/sysctl.conf ; fi ; fi ;fi
+[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local ; if [ -f /system/build.prop ] ; then mkdir -p /system/etc/sysctl.d ; sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh ; cp /tmp/init.sh /system/etc/rc.local && chmod +x /system/etc/rc.local ; fi ; fi ; fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
 
@@ -4560,9 +4595,12 @@ service procps force-reload
 if [ ! -f /system/build.prop ] ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
 
     # remount ro android
-   if [ -f /system/build.prop ] ; then
-   mount -o ro,remount /system
-   mount -o ro,remount /vendor ; fi
+     if [ -f /system/build.prop ] ; then
+    mount -o ro,remount /system
+    mount -o ro,remount /vendor 
+    mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
+    mount -o ro /dev/block/bootdevice/by-name/system /system
+    fi
 
 
 
@@ -4589,17 +4627,23 @@ systemctl start --now $startserv
 systemctl enable $startserv
 fi
 
-if grep -q wrt /etc/os-release || [ $ipv6 = on ] ; then
-net.ipv6.conf.all.disable_ipv6 = 0
+if ! grep -q "ipv6.conf.all.disable_ipv6" && [ $ipv6 = on ] ; then
+echo 'net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
 net.ipv6.conf.lo.disable_ipv6 = 0
-net.ipv6.conf.all.accept_ra = 1 
-else if grep -q wrt /etc/os-release ; then router="#" ; fi
-"$router"net.ipv6.conf.all.disable_ipv6 = 1
-"$router"net.ipv6.conf.default.disable_ipv6 = 1
-"$router"net.ipv6.conf.lo.disable_ipv6 = 1
-"$router"net.ipv6.conf.all.accept_ra = 0
-fi 
+net.ipv6.conf.all.accept_ra = 1' | tee -a /etc/sysctl.d/sysctl.conf /etc/sysctl.conf $droidsysctl
+sed -i 's/net.ipv6.conf.all.disable_ipv6.*/net.ipv6.conf.all.disable_ipv6 = 0/g'
+sed -i 's/net.ipv6.conf.default.disable_ipv6.*/net.ipv6.conf.default.disable_ipv6 = 0/g'
+sed -i 's/net.ipv6.conf.lo.disable_ipv6.*/net.ipv6.conf.lo.disable_ipv6 = 0/g'
+sed -i 's/net.ipv6.conf.all.accept_ra.*/net.ipv6.conf.all.accept_ra = 1/g'
+else echo 'net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+net.ipv6.conf.all.accept_ra = 0' | tee -a /etc/sysctl.d/sysctl.conf /etc/sysctl.conf $droidsysctl
+sed -i 's/net.ipv6.conf.all.disable_ipv6.*/net.ipv6.conf.all.disable_ipv6 = 1/g'
+sed -i 's/net.ipv6.conf.default.disable_ipv6.*/net.ipv6.conf.default.disable_ipv6 = 1/g'
+sed -i 's/net.ipv6.conf.lo.disable_ipv6.*/net.ipv6.conf.lo.disable_ipv6 = 1/g'
+sed -i 's/net.ipv6.conf.all.accept_ra.*/net.ipv6.conf.all.accept_ra = 0/g' ; fi 
 
 
 
