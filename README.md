@@ -1,5 +1,10 @@
 # BASIC-LINUX-SETUP
 Setup has been slimmed down to avoid bloating and serious degradation of performance.
+Script requires maintenance to work with future updates of linux and I don't have the time for it.
+Chances are it does not work. Issues will probably be minor and package related. Fix it yourself if so... bored.
+Turns out experimental debian repo decided to break the system.
+Removing them from this setup for now but I wont constantly fix their issues...
+It's not cause of the mixture of repo's same happens in debian. Use experimental repo's at own risk.
 ![image](bls.jpg)
 
 ## ₀. Table of contents
@@ -85,10 +90,11 @@ sh /tmp/init.sh
 **For Android, install [Busybox](https://themagisk.com/how-to-download-a-magisk-module/) and copy paste:**
 ```
 su
-wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh 
-sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh
-chmod +x /tmp/init.sh 
-sh /tmp/init.sh
+mount -o remount,rw /system
+wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
+chmod +x init.sh 
+cp init.sh /etc/rc.local
+sh init.sh
 ```
 **For OpenWrt basic setup check out:**
 ```
@@ -174,7 +180,7 @@ If you have installed Kali with bare desktop environment without any default too
 Use alternatives in this case. once connected to the internet proceed with installing your gpu drivers. Potentially [__apt-cdrom__](https://www.kali.org/docs/general-use/kali-linux-sources-list-repositories/), enabling the usb stick to function as a repository for offline installation. Press Ctrl+Alt+F5 or something once booted in console and proceed.
 Underneath example is for __amd gpu drivers__ as of current packages:
 ```
-sudo apt update && sudo apt -f install -y firmware-amd-graphics && sudo dpkg-reconfigure firmware-amd-graphics && sudo reboot -f
+sudo apt update && sudo apt -f install -y firmware-amd-graphics && sudo dpkg-reconfigure firmware-amd-graphics && sudo update-grub && sudo reboot -f
 ```
 The system will work as usual upon next reboot. __startx__ or __xinit__ command which manually starts the desktop environment from console will not work unless the kernel has rebooted at least once with the just installed gpu kernel modules having been loaded upon boottime. Alternatively you could also browse webpages with package __links__ and or just run __'sudo sh ~/basic-linux-setup/1_setup.sh'__ from your terminal. If you want pieces of the setup, you could always copy paste the missing parts from the script to console and manually take what you need. Just remember that the script uses variables for convenience of editing. They will need to be included. (example, 'export a=apt && $a install pkg')
 
@@ -284,8 +290,8 @@ xfs_repair -f /dev/sd*
 xfs_fsr -f /dev/sd*
 fstrim /
 ```
-If you ever have an error during boot stating "Failed to mount API fylesystems" then during grub edit the custom kernel parameters by disabling any parameter mentioning cgroups / or just all, and boot. If you ever encounter a screen during boot giving an error about compression just reboot and it should be solved. If you ever face trouble and can't get access towards any console for troubleshooting but still have access to grub, go to grub kernel selection press _'e'_ edit the parameters from __ro__ to __rw__ and add __init=/bin/bash__. Press Ctrl+X to boot, and now you should have access to console. When editing parameters within grub or for example adding the init= flag, do not press delete/backspace and wait for the whole list to dissapear. If you do make a coffee for yourself meanwhile while having the delete button jammed with a toothpick or something. Just go to __'ro splash quet'__ and hit enter for the parameters not to be read. After edit __'ro splash quiet'__ to __'rw splash quiet init=/bin/bash'__ and boot. Although this setup ensures failsafe parameters when the default ones do not boot despite. You can doublecheck active parameters by executing command __cat /proc/cmdline__ but keep in mind the script is executed on every reboot and might overwrite them. Its also worth trying to boot from an older kernel since very rarely there could be issues when using mainline kernels or experimental branches, or checking for any conflicts in kernel module blacklists in /etc/modprobe.d/ and temporarily __rename 's/.conf/.bak/' *__ and after rebooting. Making use of the zsh plugins, midnight commander and links can be handy when only having access to console when troubleshooting.
-If you ever have errors with certificates in linux try setting your time correct on both linux and router and maybe add your router ip in resolv.conf like this: __echo 'nameserver < ROUTER IP >' | tee -a /etc/resolv.conf__. Do the same in your connection details, after reinstall the package __ca-certificates__ and reboot both computer and router.
+If you ever have an error during boot stating "Failed to mount API fylesystems" then during grub edit the custom kernel parameters by disabling any parameter mentioning cgroups / or just all, and boot. If you ever encounter a screen during boot giving an error about compression just reboot and it should be solved. If you ever face trouble and can't get access towards any console for troubleshooting but still have access to grub, go to grub kernel selection press _'e'_ edit the parameters from __ro__ to __rw__ and add __init=/bin/bash__. Press Ctrl+X to boot, and now you should have access to console. When editing parameters within grub or for example adding the init= flag, do not press delete/backspace and wait for the whole list to dissapear. If you do make a coffee for yourself meanwhile while having the delete button jammed with a toothpick or something. Just go to __'ro splash quet'__ and hit enter for the parameters not to be read. After edit __'ro splash quiet'__ to __'rw splash quiet init=/bin/bash'__ and boot. Although this setup ensures failsafe parameters when the default ones do not boot despite. You can doublecheck active parameters by executing command __cat /proc/cmdline__ but keep in mind the script is executed on every reboot and might overwrite them. Its also worth trying to boot from an older kernel since very rarely there could be issues when using mainline kernels or experimental branches, or checking for any conflicts in kernel module blacklists in /etc/modprobe.d/ and temporarily __rename 's/.conf/.bak/' *__ and after rebooting. Making use of the zsh plugins, midnight commander and links can be handy when only having access to console when troubleshooting. Do not forget that next to using a live usb for recovery, rescue mode from an installer usb can also be used for reinstalling grub or having quick access in chroot mode of your root filesystem.
+If you ever have errors with certificates in linux try setting your time correct on both linux and router and maybe add your router ip in resolv.conf like this: __echo 'nameserver < ROUTER IP >' | tee -a /etc/resolv.conf__. Do the same in your connection details, after reinstall the package __ca-certificates__ and reboot both computer and router. This setup will remain a mixture of 2 distro's and therefore isn't optimal. However since I've been personally running this setup for a long time in the past only on rare occasions grub would break thus the setup used to pin it to Kali repositories. As is lately I have not been having any issues other than Debian experimental having troublesome packages now and then regardless of distribution, the same would happen on Debian. If unsure the standalone config should be safe to use on your own setup.
 
 If and when there are any updates to this repository instead of executing the command and downloading the repository all over fetching just the update is also possible:
 ```

@@ -2,7 +2,7 @@
 #############################################################
 #############################################################
 ##                  basic-linux-setup                      ##
-#############################################################
+#############################################################                   #UNMAINTAINED
 ##             https://github.com/thanasxda                ##
 #############################################################
 ##      15927885+thanasxda@users.noreply.github.com        ##
@@ -45,10 +45,11 @@ rm -rf gitkraken*
 #
 #$a npm && $a && $s npm cache clean -f && $s npm cache clean -f && $s npm install npm@latest -g
 
+# build environment needs to be updated. better not use it. will break system. not in mood to constantly maintain this script.
 
 # section 1
 #xdotool key Left | xdotool key KP_Enter | $a libc6
-$ins autoconf \
+#$ins autoconf \
   autoconf-archive \
   automake \
   autopoint \
@@ -139,7 +140,6 @@ $ins autoconf \
   pigz \
   pkg-config \
   pngcrush \
-  python-all-dev \
   qemu-utils \
   squashfs-tools \
   subversion \

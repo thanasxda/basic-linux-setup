@@ -44,27 +44,54 @@ if dmesg | grep -q nvidia ; then $a nvidia-driver-495 libnvidia-gl-495 libnvidia
 $a libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 cd $tmp
 $a pip
-$s pip install requests
+pip install requests
 
-$a libdvdcss2 \
-mencoder \
-ibvorbisidec1 \
-libavcodec59
 
 $rem kali-linux-default \
  kali-linux-headless \
  kali-tools-top10
 
 
+# kernel
+#$a "$(apt search linux-image-6.*-rt-amd64-unsigned | awk '{print $1}' | grep "linux-image-.*-rt-amd64-unsigned" | tail -n 1 | cut -c1-37)" -t experimental
+#$a linux-image-$kernelv-kali*-rt-amd64 -t kali-experimental
+$a linux-image-amd64 -t experimental 
+$a linux-image-6.*-kali3-amd64 -t kali-experimental
 
-# wine
+
+
+
+#flatpak --noninteractive
+$s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+#$fl freetube
+
+
+
+# remove stuff
+#$rem intel-microcode
+#$rem amd64-microcode
+$rem akonadi-server \
+ openssh-server openssh-sftp-server \
+ ubuntu-archive-keyring \
+ avahi-daemon \
+ cron \
+ bluez \
+ firefox-esr
+
+
+
+$a libdvdcss2 \
+mencoder \
+libvorbisidec1 \
+libavcodec59 \
+
 $a q4wine \
  wine \
  wine32 \
  wine64 \
- winetricks
-
-$a flatpak \
+ winetricks 
+ 
+ $a flatpak \
  fwupd \
  git \
  links \
@@ -85,12 +112,9 @@ $a flatpak \
  blktool \
  tuned-utils \
  npm \
- xattr attr
-
-
-#if [ $INSTALLBUILDENV = true ] ; then
-# llvm
-$a libllvm-$llver-ocaml-dev \
+ xattr attr 
+ 
+ $a libllvm-$llver-ocaml-dev \
  libllvm$llver \
  llvm-$llver \
  llvm-$llver-dev \
@@ -105,7 +129,6 @@ $a libllvm-$llver-ocaml-dev \
  python3-clang-$llver \
  clangd-$llver \
  clang-tidy-$llver \
- libfuzzer \
  libfuzzer-$llver-dev \
  lldb-$llver \
  lld-$llver \
@@ -115,11 +138,9 @@ $a libllvm-$llver-ocaml-dev \
  libclc-$llver-dev \
  libunwind-$llver-dev \
  libmlir-$llver-dev \
- mlir-$llver-tools
+ mlir-$llver-tools \
  
-
-#fi
-$a binwalk \
+ $a binwalk \
  firmware-mod-kit \
  atom-beta \
  nmap \
@@ -146,15 +167,10 @@ $a binwalk \
  kali-defaults \
  kali-defaults-desktop \
  htop \
- qapt-deb-installer
+ qapt-deb-installer \
 
-# minimal compilers
-$a llvm-$llver -t experimental \
- gcc-$gccver -t experimental
-
-$a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl
-
-$a libosmesa6 \
+ $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
+ libosmesa6 \
  libd3dadapter9-mesa \
  libegl-mesa0 \
  libgl1-mesa-dri \
@@ -172,8 +188,7 @@ $a libosmesa6 \
  libegl1-mesa \
  libglapi-mesa \
  libwayland-egl1-mesa \
-
-$a mesa-utils \
+ mesa-utils \
  mesa-utils-bin \
  ffmpeg \
  mesa-vdpau-drivers \
@@ -190,18 +205,18 @@ $a mesa-utils \
  mesa-utils \
  vulkan-tools \
  mesa-common-dev \
- mesa-vdpau-drivers 
-
-
-# kernel
-#$a "$(apt search linux-image-6.*-rt-amd64-unsigned | awk '{print $1}' | grep "linux-image-.*-rt-amd64-unsigned" | tail -n 1 | cut -c1-37)" -t experimental
-#$a linux-image-$kernelv-kali*-rt-amd64 -t kali-experimental
-$a linux-image-amd64 -t experimental 
-$a linux-image-6.*-kali3-amd64 -t kali-experimental
-
-
-
-$a ethtool \
+ mesa-vdpau-drivers \
+ 
+ 
+  $rem akonadi-server \
+ openssh-server openssh-sftp-server \
+ ubuntu-archive-keyring \
+ avahi-daemon \
+ cron \
+ bluez \
+ firefox-esr
+ 
+ $a ethtool \
  wireless-tools \
  rcconf \
  mc \
@@ -217,29 +232,10 @@ $a ethtool \
  qt5-style-kvantum-themes qt5-style-kvantum-l10n qt5-style-kvantum \
  dolphin-plugins \
  sddm \
- kio-fuse \
+ kio-fuse kio-extras mtp-tools kio \
  gstreamer1.0-qt5 gstreamer1.0-plugins-bad \
- openssl ufw unattended-upgrades fail2ban
- 
-#flatpak --noninteractive
-$s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-$fl freetube
-
-
-
-# remove stuff
-#$rem intel-microcode
-#$rem amd64-microcode
-$rem akonadi-server \
- openssh-server openssh-sftp-server \
- ubuntu-archive-keyring \
- avahi-daemon \
- cron \
- bluez \
- firefox-esr
-
-
-$a *qtgstreamer* \
+ openssl ufw unattended-upgrades fail2ban \
+ *qtgstreamer* \
  firewall* \
  xinit \
  preload \
@@ -251,12 +247,23 @@ $a *qtgstreamer* \
  partitionmanager \
  irqbalance \
  plasma-discover-backend-flatpak plasma-discover-backend-fwupd plasma-discover-backend-snap \
- kali-desktop-kde \
- qdbus-qt6 libpoppler-qt6-3 qt6-base-dev
+ adb fastboot
+
+ $a qdbus-qt6
  
- #qt6ct
+ $a libpoppler-qt6-3 qt6-base-dev 
  
- #qt6-base-dev
+$a llvm-$llver 
+$a gcc-$gccver 
+ 
+ #qt6ct 
+ 
+
+
+ 
+$a kali-desktop-kde 
+
+
 
 
 

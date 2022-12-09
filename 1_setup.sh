@@ -165,7 +165,7 @@ cd $tmp
             $s rsync -v -K -a --force --include=".*" config.dat /var/cache/debconf/config.dat
             echo -e 'DPkg::Options {
    "--force-overwrite";
-   "--force-confold";
+   "--force-confnew";
    "--force-confdef";
 };' | $s tee /etc/apt/apt.conf.d/71debconf
             #$a xdotool
@@ -174,16 +174,15 @@ cd $tmp
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install macchanger'
                     #xdotool key Left | xdotool key KP_Enter | xdotool key Left | xdotool key KP_Enter | $s dpkg-reconfigure kexec-tools
                     $a libc6 ; $a kexec-tools insserv ; $s dpkg-reconfigure --frontend readline insserv kexec-tools --force ; $a libpam-systemd ; $a macchanger
-            $a deb-multimedia-keyring
-            #$a ubuntu-archive-keyring
-            #$a gnome-keyring
-                $a ca-certificates
-                $a apt-transport-https
-                $a coreutils
-                $a lsb-release
-                $a curl
-                $a git
-                $a aptitude
+            $a deb-multimedia-keyring \
+            gnome-keyring \
+                ca-certificates \
+                apt-transport-https \
+                coreutils \
+                lsb-release \
+                curl \
+                git \
+                aptitude
                     $s dpkg --configure -a
                     $s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
 
@@ -202,7 +201,7 @@ cd $tmp
         $s rm -rf /etc/apt/sources.list.d/*sources.list
         $s cp preferences /etc/apt/
         $s cp preferences /etc/apt/preferences.d/
-        $s cp -f init.sh /etc/rc.local && $s cp -f init.sh /etc/sysctl.conf
+        $s cp -f init.sh /etc/rc.local
             $s rm -rf /etc/update_hosts.sh # rm potentially outdated hosts script
             $s sed -i '/@weekly sh \/etc\/update_hosts.sh >\/dev\/null/c\' /etc/anacrontabs
                         if ! grep -q "@reboot sh /etc/rc.local" /etc/anacrontabs; then echo "@reboot sh /etc/rc.local >/dev/null" | $s tee -a /etc/anacrontabs ; fi
@@ -219,13 +218,16 @@ cd $tmp
                     
 
     ###     <<<< BASIC PKGS >>>> - we just added and updated sources, latest pkgs can be updated >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        $a deb-multimedia-keyring
-            $a brave-browser-nightly
-            $a google-earth-pro-stable
+        $a deb-multimedia-keyring \
+            brave-browser-nightly \
+            google-earth-pro-stable \
+            kali-tweaks \
+            firefox \
+            zsh curl
+            
             $rem firefox-esr
-            $a firefox
                 #$a netselect-apt
-                        $a kali-tweaks
+                        
 
                         
                         
@@ -249,8 +251,6 @@ cd $tmp
     ###     <<<< CUSTOMIZE LINUX >>>> - zsh, preconfig kde, browsers & extras >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # zsh
         #`ZSH= sh install.sh`
-        $a zsh
-        $a curl
         #$s apt -f -y remove zsh-autosuggestions zsh-syntax-highlighting zsh-antigen
         $s dpkg-reconfigure zsh
         $s chsh -s $(which zsh) # switch to zsh if not already on kali
@@ -271,10 +271,7 @@ cd $tmp
         $s git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.oh-my-zsh/custom/themes/powerlevel10k
         $s chown root /root/.oh-my-zsh/*
         #$s chmod 0600 /root/.oh-my-zsh/*
-        $a zsh-autosuggestions
-        $a zsh-syntax-highlighting
-        $a zsh-antigen
-        $a fonts-powerline
+        $a zsh-autosuggestions zsh-syntax-highlighting zsh-antigen fonts-powerline
 
 
         
@@ -311,7 +308,7 @@ cd $basicsetup
     ### <<<< ADJUST BROWSERS >>>> - 1 firefox, 2 brave >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         echo -e "${yellow}"
 echo ".....................................................................
-If setup gets stuck on this screen, just open and close firefox for it to speed up...
+If setup gets stuck on this screen, just open and close firefox (not firefox-esr, regular firefox. from the start menu. START MENU>INTERNET>FIREFOX) for it to speed up...
 .....................................................................
 Don't forget to go to settings in Firefox after the setup and enabling the addons that come preinstalled in settings>extensions>enable...
 If they appear enabled in settings but do not show up on the top bar of Firefox just disable and re-enable them...
@@ -407,7 +404,7 @@ cd $source
         echo -e "${restore}"
         $s dpkg-reconfigure -f noninteractive unattended-upgrades
         $s apt-get remove --purge texlive-fonts-recommended-doc texlive-latex-base-doc texlive-latex-extra-doc texlive-latex-recommended-doc texlive-pictures-doc texlive-pstricks-doc
-        $s systemctl enable --now rngd apparmor firewalld ufw fail2ban
+        $s systemctl enable --now rngd firewalld ufw fail2ban
         
         
 
@@ -420,11 +417,12 @@ cd $source
 
 	#{     # start 2d part of log and append to latest log
     $s apt install --reinstall ca-certificates
+        $a kali-desktop-kde 
 
 
-          $s apt upgrade -f -y -t experimental --fix-broken --fix-missing --with-new-pkgs
-          $s apt upgrade -f -y -t kali-bleeding-edge --fix-broken --fix-missing --with-new-pkgs
-          $s apt upgrade -f -y -t kali-experimental --fix-broken --fix-missing --with-new-pkgs
+          #$s apt upgrade -f -y -t experimental --fix-broken --fix-missing --with-new-pkgs
+          #$s apt upgrade -f -y -t kali-bleeding-edge --fix-broken --fix-missing --with-new-pkgs
+          #$s apt upgrade -f -y -t kali-experimental --fix-broken --fix-missing --with-new-pkgs
           $s apt full-upgrade -f -y --fix-broken --fix-missing
         $s dpkg --configure -a
         #$s apt clean
@@ -438,12 +436,12 @@ cd $source
 
                 if [ $INSTALLBUILDENV = true ] ; then $s sh pkglist0.sh ; fi
                 
-                                
+                      #  $s apt -f install --reinstall apt-transport-https ca-certificates libunistring-dev -t experimental
                 
                 
                 
                             ### run preconfiguration script and meanwhile update /etc/hosts with blocklist and dns optimizations
-                $s sh /etc/rc.local $sl # execute copied init.sh which now is /etc/rc.local
+                $s sh init.sh # execute copied init.sh which now is /etc/rc.local
                 $s sh /etc/update_hosts.sh $sl     # remember we have executed the init.sh which is rc.local which includes stock pihole blocklists, so during setup we execute an update
                 $s fc-cache -rfv
                 

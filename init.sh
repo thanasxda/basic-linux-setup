@@ -17,7 +17,7 @@
 ### if things dont get applied add delay prior to execution
 sleep 10
 # script vars
-s="sudo"
+#s="sudo"
 
  ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> note that most of the underneath options only apply to kernel boot parameters, the rest of this file applies similar options within userspace on kernel. these options are preconfigured to my own preferences for balanced performance. if changing this setup is your goal be sure to check hackbench for latency. didnt try this on android as of yet but i think binaries are #!/system/bin/sh , depends on where busybox is installed. dont have android rn so edit dirs yourself depending on device. or contribute by giving dirs for android by leaving note at commits or something for me to fix it for you.
 
@@ -482,9 +482,9 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
        
     # android dirs
     if [ -f /system/build.prop ] ; then
-droidresolv=$(if [ -f /system/build.prop ] ; then echo "/etc/system/resolv.conf" ; fi)
-droidhosts=$(if [ -f /system/build.prop ] ; then echo "/etc/system/hosts /etc/hosts" ; fi)
-droidfstab=$(if [ -f /system/build.prop ] ; then echo "/etc/vendor/fstab*" ; fi) 
+droidresolv=$(if [ -f /system/build.prop ] ; then echo "/etc/system/resolv.conf /etc/resolv.conf" ; fi)
+droidhosts=$(if [ -f /system/build.prop ] ; then echo "/etc/system/hosts /etc/hosts /hosts" ; fi)
+droidfstab=$(if [ -f /system/build.prop ] ; then echo "/etc/vendor/fstab* /system/etc/fstab* /etc/fstab* /fstab*" ; fi) 
 droidsysctl=$(if [ -f /system/build.prop ] ; then echo "/system/etc/sysctl.conf /system/etc/sysctl.d/sysctl.conf" ; fi) ; fi
 
 
@@ -580,10 +580,10 @@ done'
     ### make backups - fstab may vary and other dirs maybe depending on phone. qcom is /vendor/fstab.qcom
     # remount rw
      if [ -f /system/build.prop ] ; then
-    mount -o rw,remount /system
-    mount -o rw,remount /vendor 
     mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
     mount -o rw /dev/block/bootdevice/by-name/system /system
+    mount -o rw,remount /system
+    mount -o rw,remount /vendor 
     fi
       mkdir -p /etc/bak
   if [ ! -f /etc/bak/fstab.bak ] ; then cp /etc/fstab /etc/bak/fstab.bak ; if [ -f /system/build.prop ] ; then cp /etc/vendor/fstab* /sdcard/bak/fstab.android.bak ; fi ; fi
@@ -598,7 +598,7 @@ done'
       ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
     disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower\|pstore"
 
-    enable_services="firewalld\|apparmor\|run-shm.mount"
+    #enable_services="firewalld\|apparmor\|run-shm.mount"
     # for accidental protection
     exclude_from_disabling="sudo\|alsa\|anacron\|apparmor\|firewalld\|ufw\|run-shm.mount\|rtkit"
 
@@ -675,7 +675,7 @@ done'
       if grep -q "wrt" /etc/os-release ; then echo "console=ttyS0,115200 rootfstype=squashfs,jffs2 $par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
   ### android libre tv
-      else echo "$par" | tee /root/cmdline &&
+      else mkdir -p /root ; echo "$par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
       # echo "doesnt work anyways" ; else echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
@@ -3214,183 +3214,6 @@ net.core.xfrm_acq_expires = 30
 net.core.xfrm_aevent_etime = 10
 net.core.xfrm_aevent_rseqth = 2
 net.core.xfrm_larval_drop = 1
-net.ipv4.cipso_cache_bucket_size = 0
-net.ipv4.cipso_cache_enable = 0
-net.ipv4.cipso_rbm_optfmt = 0
-net.ipv4.cipso_rbm_strictvalid = 0
-net.ipv4.conf.all.accept_local = 0
-net.ipv4.conf.all.accept_redirects = 0
-net.ipv4.conf.all.accept_source_route = 0
-net.ipv4.conf.all.arp_accept = 0
-net.ipv4.conf.all.arp_announce = 0
-net.ipv4.conf.all.arp_evict_nocarrier = 1
-net.ipv4.conf.all.arp_filter = 0
-net.ipv4.conf.all.arp_ignore = 1
-net.ipv4.conf.all.arp_notify = 0
-net.ipv4.conf.all.bc_forwarding = 0
-net.ipv4.conf.all.bootp_relay = 0
-net.ipv4.conf.all.disable_policy = 0
-net.ipv4.conf.all.disable_xfrm = 0
-net.ipv4.conf.all.drop_gratuitous_arp = 0
-net.ipv4.conf.all.drop_unicast_in_l2_multicast = 0
-net.ipv4.conf.all.force_igmp_version = 0
-net.ipv4.conf.all.forwarding = 1
-net.ipv4.conf.all.igmpv2_unsolicited_report_interval = 10000
-net.ipv4.conf.all.igmpv3_unsolicited_report_interval = 1000
-net.ipv4.conf.all.ignore_routes_with_linkdown = 0
-net.ipv4.conf.all.log_martians = 0
-net.ipv4.conf.all.mc_forwarding = 0
-net.ipv4.conf.all.medium_id = 0
-net.ipv4.conf.all.promote_secondaries = 0
-net.ipv4.conf.all.proxy_arp = 0
-net.ipv4.conf.all.proxy_arp_pvlan = 0
-net.ipv4.conf.all.route_localnet = 0
-net.ipv4.conf.all.rp_filter = 1
-net.ipv4.conf.all.secure_redirects = 0
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.all.send_redirects = 0
-net.ipv4.conf.all.shared_media = 1
-net.ipv4.conf.all.src_valid_mark = 0
-net.ipv4.conf.all.tag = 0
-net.ipv4.conf.default.accept_local = 0
-net.ipv4.conf.default.accept_redirects = 0
-net.ipv4.conf.default.accept_source_route = 1
-net.ipv4.conf.default.arp_accept = 0
-net.ipv4.conf.default.arp_announce = 0
-net.ipv4.conf.default.arp_evict_nocarrier = 1
-net.ipv4.conf.default.arp_filter = 0
-net.ipv4.conf.default.arp_ignore = 1
-net.ipv4.conf.default.arp_notify = 0
-net.ipv4.conf.default.bc_forwarding = 0
-net.ipv4.conf.default.bootp_relay = 0
-net.ipv4.conf.default.disable_policy = 0
-net.ipv4.conf.default.disable_xfrm = 0
-net.ipv4.conf.default.drop_gratuitous_arp = 0
-net.ipv4.conf.default.drop_unicast_in_l2_multicast = 0
-net.ipv4.conf.default.force_igmp_version = 0
-net.ipv4.conf.default.forwarding = 1
-net.ipv4.conf.default.igmpv2_unsolicited_report_interval = 10000
-net.ipv4.conf.default.igmpv3_unsolicited_report_interval = 1000
-net.ipv4.conf.default.ignore_routes_with_linkdown = 0
-net.ipv4.conf.default.log_martians = 0
-net.ipv4.conf.default.mc_forwarding = 0
-net.ipv4.conf.default.medium_id = 0
-net.ipv4.conf.default.promote_secondaries = 0
-net.ipv4.conf.default.proxy_arp = 0
-net.ipv4.conf.default.proxy_arp_pvlan = 0
-net.ipv4.conf.default.route_localnet = 0
-net.ipv4.conf.default.rp_filter = 1
-net.ipv4.conf.default.secure_redirects = 0
-net.ipv4.conf.default.send_redirects = 0
-net.ipv4.conf.default.shared_media = 1
-net.ipv4.conf.default.src_valid_mark = 0
-net.ipv4.conf.default.tag = 0
-net.ipv4.fib_multipath_hash_fields = 7
-net.ipv4.fib_multipath_hash_policy = 0
-net.ipv4.fib_multipath_use_neigh = 0
-net.ipv4.fib_notify_on_flag_change = 0
-net.ipv4.fib_sync_mem = 524288
-net.ipv4.fwmark_reflect = 0
-net.ipv4.icmp_echo_enable_probe = 0
-net.ipv4.icmp_echo_ignore_all = 1
-net.ipv4.icmp_echo_ignore_broadcasts = 1
-net.ipv4.icmp_errors_use_inbound_ifaddr = 0
-net.ipv4.icmp_ignore_bogus_error_responses = 1
-net.ipv4.icmp_msgs_burst = 0
-net.ipv4.icmp_msgs_per_sec = 0
-net.ipv4.icmp_ratelimit = 0
-net.ipv4.icmp_ratemask = 0
-net.ipv4.igmp_link_local_mcast_reports = 0
-net.ipv4.igmp_max_memberships = 100
-net.ipv4.igmp_max_msf = 10
-net.ipv4.igmp_qrv = 2
-net.ipv4.inet_peer_maxttl = 600
-net.ipv4.inet_peer_minttl = 120
-net.ipv4.inet_peer_threshold = 65664
-net.ipv4.ip_autobind_reuse = 0
-net.ipv4.ip_default_ttl = 64
-net.ipv4.ip_dynaddr = 0
-net.ipv4.ip_early_demux = 1
-net.ipv4.ip_forward = 1
-net.ipv4.ip_forward_update_priority = 1
-net.ipv4.ip_forward_use_pmtu = 0
-net.ipv4.ip_local_port_range = 30000 65535
-net.ipv4.ip_local_reserved_ports =
-net.ipv4.ip_no_pmtu_disc = 0
-net.ipv4.ip_nonlocal_bind = 0
-net.ipv4.ip_unprivileged_port_start = 1024
-net.ipv4.ipfrag_high_thresh = 4194304
-net.ipv4.ipfrag_low_thresh = 446464
-net.ipv4.ipfrag_max_dist = 64
-net.ipv4.ipfrag_secret_interval = 0
-net.ipv4.ipfrag_time = 24
-net.ipv4.neigh.default.anycast_delay = 100
-net.ipv4.neigh.default.app_solicit = 0
-net.ipv4.neigh.default.base_reachable_time_ms = 30000
-net.ipv4.neigh.default.delay_first_probe_time = 5
-net.ipv4.neigh.default.gc_interval = 30
-net.ipv4.neigh.default.gc_stale_time = 60
-net.ipv4.neigh.default.gc_thresh1 = 32
-net.ipv4.neigh.default.gc_thresh2 = 1024
-net.ipv4.neigh.default.gc_thresh3 = 2048
-net.ipv4.neigh.default.interval_probe_time_ms = 5000
-net.ipv4.neigh.default.locktime = 100
-net.ipv4.neigh.default.mcast_resolicit = 0
-net.ipv4.neigh.default.mcast_solicit = 3
-net.ipv4.neigh.default.proxy_delay = 80
-net.ipv4.neigh.default.proxy_qlen = 64
-net.ipv4.neigh.default.retrans_time_ms = 1000
-net.ipv4.neigh.default.ucast_solicit = 3
-net.ipv4.neigh.default.unres_qlen = 101
-net.ipv4.neigh.default.unres_qlen_bytes = 212992
-net.ipv4.neigh.eth0.anycast_delay = 100
-net.ipv4.neigh.eth0.app_solicit = 0
-net.ipv4.neigh.eth0.base_reachable_time_ms = 30000
-net.ipv4.neigh.eth0.delay_first_probe_time = 5
-net.ipv4.neigh.eth0.gc_stale_time = 60
-net.ipv4.neigh.eth0.interval_probe_time_ms = 5000
-net.ipv4.neigh.eth0.locktime = 100
-net.ipv4.neigh.eth0.mcast_resolicit = 0
-net.ipv4.neigh.eth0.mcast_solicit = 3
-net.ipv4.neigh.eth0.proxy_delay = 80
-net.ipv4.neigh.eth0.proxy_qlen = 64
-net.ipv4.neigh.eth0.retrans_time_ms = 1000
-net.ipv4.neigh.eth0.ucast_solicit = 3
-net.ipv4.neigh.eth0.unres_qlen = 101
-net.ipv4.neigh.eth0.unres_qlen_bytes = 212992
-net.ipv4.neigh.lo.anycast_delay = 100
-net.ipv4.neigh.lo.app_solicit = 0
-net.ipv4.neigh.lo.base_reachable_time_ms = 30000
-net.ipv4.neigh.lo.delay_first_probe_time = 5
-net.ipv4.neigh.lo.gc_stale_time = 60
-net.ipv4.neigh.lo.interval_probe_time_ms = 5000
-net.ipv4.neigh.lo.locktime = 100
-net.ipv4.neigh.lo.mcast_resolicit = 0
-net.ipv4.neigh.lo.mcast_solicit = 3
-net.ipv4.neigh.lo.proxy_delay = 80
-net.ipv4.neigh.lo.proxy_qlen = 64
-net.ipv4.neigh.lo.retrans_time_ms = 1000
-net.ipv4.neigh.lo.ucast_solicit = 3
-net.ipv4.neigh.lo.unres_qlen = 101
-net.ipv4.neigh.lo.unres_qlen_bytes = 212992
-net.ipv4.nexthop_compat_mode = 1
-net.ipv4.ping_group_range = 100 100
-net.ipv4.raw_l3mdev_accept = 1
-net.ipv4.route.error_burst = 1250
-net.ipv4.route.error_cost = 250
-net.ipv4.route.gc_elasticity = 8
-net.ipv4.route.gc_interval = 60
-net.ipv4.route.gc_min_interval = 0
-net.ipv4.route.gc_min_interval_ms = 500
-net.ipv4.route.gc_thresh = -1
-net.ipv4.route.gc_timeout = 300
-net.ipv4.route.max_size = 2147483647
-net.ipv4.route.min_adv_mss = 256
-net.ipv4.route.min_pmtu = 552
-net.ipv4.route.mtu_expires = 600
-net.ipv4.route.redirect_load = 5
-net.ipv4.route.redirect_number = 9
-net.ipv4.route.redirect_silence = 5120
 net.ipv4.tcp_abort_on_overflow = 0
 net.ipv4.tcp_adv_win_scale = 1
 net.ipv4.tcp_allowed_congestion_control = reno cubic bbr
@@ -3616,6 +3439,185 @@ vm.watermark_scale_factor = 200
 vm.zone_reclaim_mode = 0
 #include = latency-performance
 stack_erasing = 0' | tee /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl
+
+if ! grep -q wrt /etc/os-release ; then
+echo 'net.ipv4.cipso_cache_bucket_size = 0
+net.ipv4.cipso_cache_enable = 0
+net.ipv4.cipso_rbm_optfmt = 0
+net.ipv4.cipso_rbm_strictvalid = 0
+net.ipv4.conf.all.accept_local = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.accept_source_route = 0
+net.ipv4.conf.all.arp_accept = 0
+net.ipv4.conf.all.arp_announce = 0
+net.ipv4.conf.all.arp_evict_nocarrier = 1
+net.ipv4.conf.all.arp_filter = 0
+net.ipv4.conf.all.arp_ignore = 1
+net.ipv4.conf.all.arp_notify = 0
+net.ipv4.conf.all.bc_forwarding = 0
+net.ipv4.conf.all.bootp_relay = 0
+net.ipv4.conf.all.disable_policy = 0
+net.ipv4.conf.all.disable_xfrm = 0
+net.ipv4.conf.all.drop_gratuitous_arp = 0
+net.ipv4.conf.all.drop_unicast_in_l2_multicast = 0
+net.ipv4.conf.all.force_igmp_version = 0
+net.ipv4.conf.all.forwarding = 1
+net.ipv4.conf.all.igmpv2_unsolicited_report_interval = 10000
+net.ipv4.conf.all.igmpv3_unsolicited_report_interval = 1000
+net.ipv4.conf.all.ignore_routes_with_linkdown = 0
+net.ipv4.conf.all.log_martians = 0
+net.ipv4.conf.all.mc_forwarding = 0
+net.ipv4.conf.all.medium_id = 0
+net.ipv4.conf.all.promote_secondaries = 0
+net.ipv4.conf.all.proxy_arp = 0
+net.ipv4.conf.all.proxy_arp_pvlan = 0
+net.ipv4.conf.all.route_localnet = 0
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.all.secure_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.shared_media = 1
+net.ipv4.conf.all.src_valid_mark = 0
+net.ipv4.conf.all.tag = 0
+net.ipv4.conf.default.accept_local = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.conf.default.accept_source_route = 1
+net.ipv4.conf.default.arp_accept = 0
+net.ipv4.conf.default.arp_announce = 0
+net.ipv4.conf.default.arp_evict_nocarrier = 1
+net.ipv4.conf.default.arp_filter = 0
+net.ipv4.conf.default.arp_ignore = 1
+net.ipv4.conf.default.arp_notify = 0
+net.ipv4.conf.default.bc_forwarding = 0
+net.ipv4.conf.default.bootp_relay = 0
+net.ipv4.conf.default.disable_policy = 0
+net.ipv4.conf.default.disable_xfrm = 0
+net.ipv4.conf.default.drop_gratuitous_arp = 0
+net.ipv4.conf.default.drop_unicast_in_l2_multicast = 0
+net.ipv4.conf.default.force_igmp_version = 0
+net.ipv4.conf.default.forwarding = 1
+net.ipv4.conf.default.igmpv2_unsolicited_report_interval = 10000
+net.ipv4.conf.default.igmpv3_unsolicited_report_interval = 1000
+net.ipv4.conf.default.ignore_routes_with_linkdown = 0
+net.ipv4.conf.default.log_martians = 0
+net.ipv4.conf.default.mc_forwarding = 0
+net.ipv4.conf.default.medium_id = 0
+net.ipv4.conf.default.promote_secondaries = 0
+net.ipv4.conf.default.proxy_arp = 0
+net.ipv4.conf.default.proxy_arp_pvlan = 0
+net.ipv4.conf.default.route_localnet = 0
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.default.secure_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.default.shared_media = 1
+net.ipv4.conf.default.src_valid_mark = 0
+net.ipv4.conf.default.tag = 0
+net.ipv4.fib_multipath_hash_fields = 7
+net.ipv4.fib_multipath_hash_policy = 0
+net.ipv4.fib_multipath_use_neigh = 0
+net.ipv4.fib_notify_on_flag_change = 0
+net.ipv4.fib_sync_mem = 524288
+net.ipv4.fwmark_reflect = 0
+net.ipv4.icmp_echo_enable_probe = 0
+net.ipv4.icmp_echo_ignore_all = 1
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+net.ipv4.icmp_errors_use_inbound_ifaddr = 0
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv4.icmp_msgs_burst = 0
+net.ipv4.icmp_msgs_per_sec = 0
+net.ipv4.icmp_ratelimit = 0
+net.ipv4.icmp_ratemask = 0
+net.ipv4.igmp_link_local_mcast_reports = 0
+net.ipv4.igmp_max_memberships = 100
+net.ipv4.igmp_max_msf = 10
+net.ipv4.igmp_qrv = 2
+net.ipv4.inet_peer_maxttl = 600
+net.ipv4.inet_peer_minttl = 120
+net.ipv4.inet_peer_threshold = 65664
+net.ipv4.ip_autobind_reuse = 0
+net.ipv4.ip_default_ttl = 64
+net.ipv4.ip_dynaddr = 0
+net.ipv4.ip_early_demux = 1
+net.ipv4.ip_forward = 1
+net.ipv4.ip_forward_update_priority = 1
+net.ipv4.ip_forward_use_pmtu = 0
+net.ipv4.ip_local_port_range = 30000 65535
+net.ipv4.ip_local_reserved_ports =
+net.ipv4.ip_no_pmtu_disc = 0
+net.ipv4.ip_nonlocal_bind = 0
+net.ipv4.ip_unprivileged_port_start = 1024
+net.ipv4.ipfrag_high_thresh = 4194304
+net.ipv4.ipfrag_low_thresh = 446464
+net.ipv4.ipfrag_max_dist = 64
+net.ipv4.ipfrag_secret_interval = 0
+net.ipv4.ipfrag_time = 24
+net.ipv4.neigh.default.anycast_delay = 100
+net.ipv4.neigh.default.app_solicit = 0
+net.ipv4.neigh.default.base_reachable_time_ms = 30000
+net.ipv4.neigh.default.delay_first_probe_time = 5
+net.ipv4.neigh.default.gc_interval = 30
+net.ipv4.neigh.default.gc_stale_time = 60
+net.ipv4.neigh.default.gc_thresh1 = 32
+net.ipv4.neigh.default.gc_thresh2 = 1024
+net.ipv4.neigh.default.gc_thresh3 = 2048
+net.ipv4.neigh.default.interval_probe_time_ms = 5000
+net.ipv4.neigh.default.locktime = 100
+net.ipv4.neigh.default.mcast_resolicit = 0
+net.ipv4.neigh.default.mcast_solicit = 3
+net.ipv4.neigh.default.proxy_delay = 80
+net.ipv4.neigh.default.proxy_qlen = 64
+net.ipv4.neigh.default.retrans_time_ms = 1000
+net.ipv4.neigh.default.ucast_solicit = 3
+net.ipv4.neigh.default.unres_qlen = 101
+net.ipv4.neigh.default.unres_qlen_bytes = 212992
+net.ipv4.neigh.eth0.anycast_delay = 100
+net.ipv4.neigh.eth0.app_solicit = 0
+net.ipv4.neigh.eth0.base_reachable_time_ms = 30000
+net.ipv4.neigh.eth0.delay_first_probe_time = 5
+net.ipv4.neigh.eth0.gc_stale_time = 60
+net.ipv4.neigh.eth0.interval_probe_time_ms = 5000
+net.ipv4.neigh.eth0.locktime = 100
+net.ipv4.neigh.eth0.mcast_resolicit = 0
+net.ipv4.neigh.eth0.mcast_solicit = 3
+net.ipv4.neigh.eth0.proxy_delay = 80
+net.ipv4.neigh.eth0.proxy_qlen = 64
+net.ipv4.neigh.eth0.retrans_time_ms = 1000
+net.ipv4.neigh.eth0.ucast_solicit = 3
+net.ipv4.neigh.eth0.unres_qlen = 101
+net.ipv4.neigh.eth0.unres_qlen_bytes = 212992
+net.ipv4.neigh.lo.anycast_delay = 100
+net.ipv4.neigh.lo.app_solicit = 0
+net.ipv4.neigh.lo.base_reachable_time_ms = 30000
+net.ipv4.neigh.lo.delay_first_probe_time = 5
+net.ipv4.neigh.lo.gc_stale_time = 60
+net.ipv4.neigh.lo.interval_probe_time_ms = 5000
+net.ipv4.neigh.lo.locktime = 100
+net.ipv4.neigh.lo.mcast_resolicit = 0
+net.ipv4.neigh.lo.mcast_solicit = 3
+net.ipv4.neigh.lo.proxy_delay = 80
+net.ipv4.neigh.lo.proxy_qlen = 64
+net.ipv4.neigh.lo.retrans_time_ms = 1000
+net.ipv4.neigh.lo.ucast_solicit = 3
+net.ipv4.neigh.lo.unres_qlen = 101
+net.ipv4.neigh.lo.unres_qlen_bytes = 212992
+net.ipv4.nexthop_compat_mode = 1
+net.ipv4.ping_group_range = 100 100
+net.ipv4.raw_l3mdev_accept = 1
+net.ipv4.route.error_burst = 1250
+net.ipv4.route.error_cost = 250
+net.ipv4.route.gc_elasticity = 8
+net.ipv4.route.gc_interval = 60
+net.ipv4.route.gc_min_interval = 0
+net.ipv4.route.gc_min_interval_ms = 500
+net.ipv4.route.gc_thresh = -1
+net.ipv4.route.gc_timeout = 300
+net.ipv4.route.max_size = 2147483647
+net.ipv4.route.min_adv_mss = 256
+net.ipv4.route.min_pmtu = 552
+net.ipv4.route.mtu_expires = 600
+net.ipv4.route.redirect_load = 5
+net.ipv4.route.redirect_number = 9
+net.ipv4.route.redirect_silence = 5120' | tee -a /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl ; fi
 
 
 if dmesg | grep -q raid ; then
@@ -4050,9 +4052,16 @@ export KWIN_DRM_PREFER_COLOR_DEPTH=24
 export KDE_NO_IPV6=1
 export KDE_USE_IPV6=no
 export KDEWM=kwin_gles
-export KWIN_OPENGL_INTERFACE=EGL
 export KWIN_EXPLICIT_SYNC=0
-if [ $XDG_SESSION_TYPE = wayland ] ; then export KWIN_OPENGL_INTERFACE=egl_wayland ; export QT_QPA_PLATFORM=wayland-egl ; export GDK_BACKEND=wayland ; fi
+
+#if [ $XDG_SESSION_TYPE = wayland ] ; then
+#export KWIN_OPENGL_INTERFACE=egl_wayland
+#export QT_QPA_PLATFORM=wayland-egl
+#fi
+
+#if [ ! $XDG_SESSION_TYPE = wayland ] ; then
+export KWIN_OPENGL_INTERFACE=EGL
+#fi
 
   #export XDG_SESSION_TYPE=wayland
 export KWIN_TRIPLE_BUFFER=1
@@ -4169,7 +4178,7 @@ export PAGER=less
 export QT_LOGGING_RULES='\''*=false'\''
 export MESA_DEBUG=silent
 export LIBGL_DEBUG=0
-
+export GNUTLS_CPUID_OVERRIDE=0x1 
 export MESA_NO_DITHER=1
 export MESA_NO_ERROR=1
 
@@ -4187,6 +4196,9 @@ export LIBGL_ALWAYS_SOFTWARE=0
 export QT_SELECT=6
 export QT_QPA_PLATFORMTHEME=qt6ct
 #export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/radeon_icd.i686.json:/usr/share/vulkan/icd.d/radeon_icd.x86_64.json
+
+if [ $XDG_SESSION_TYPE = wayland ] ; then export KWIN_OPENGL_INTERFACE=egl_wayland ; export QT_QPA_PLATFORM=wayland-egl ; fi
+if [ ! $XDG_SESSION_TYPE = wayland ] ; then export KWIN_OPENGL_INTERFACE=EGL ;  fi
 
 export VAAPI_MPEG4_ENABLED
 if [ ! "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
@@ -4248,16 +4260,34 @@ export GTK_USE_PORTAL=1
 
 export OBS_USE_EGL=1
 
-if [ $(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1) = radeon ] ; then
+# statements dont seem to work btw, read online people using them... doesnt work 
+
+#if [ $(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1) = radeon ] ; then
 export radeonsi_enable_nir=true
-fi
+#fi
 
-if dmesg | grep -q amdgpu ; then 
+#if [ $XDG_SESSION_TYPE = wayland ] ; then
+#export KWIN_OPENGL_INTERFACE=egl_wayland
+#export QT_QPA_PLATFORM=wayland-egl
+#fi
+
+#if [ ! $XDG_SESSION_TYPE = wayland ] ; then
+export KWIN_OPENGL_INTERFACE=EGL
+#fi
+
+#if dmesg | grep -q amdgpu ; then 
 export amdgpusi_enable_nir=true
-fi
+#fi
 
-if [ $XDG_SESSION_TYPE = x11 ] ; then export MOZ_X11_EGL=1 ; export MOZ_ENABLE_WAYLAND=0 ;fi
-if [ $XDG_SESSION_TYPE = wayland ] ; then export MOZ_ENABLE_WAYLAND=1 ; export MOZ_X11_EGL=0 ; fi
+#if [ $XDG_SESSION_TYPE = x11 ] ; then 
+export MOZ_X11_EGL=1 
+export MOZ_ENABLE_WAYLAND=0 
+#fi
+
+#if [ $XDG_SESSION_TYPE = wayland ] ; then 
+#export MOZ_ENABLE_WAYLAND=1 
+#export MOZ_X11_EGL=0 
+f#i
 
 #VDPAU_DRIVER=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
 #LIBVA_DRIVER_NAME=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
@@ -4276,43 +4306,21 @@ for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i
 
 
 
-
-
 ### IF ANDROID
 # android props etc
 if [ -f /system/build.prop ] ; then
-prop='#boot.fps=20
+prop=' 
+#boot.fps=20
 #debug.egl.hw=1
 #debug.egl.profiler=1
-persist.sys.scrollingcache=3
-persist.radio.add_power_save=1
-video.accelerate.hw=1
-debug.hwui.renderer=vulkan
-sys.use_fifo_ui=1
-net.tcp.buffersize.default=6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.wifi=524288,1048576,2097152,524288,1048576,2097152
-net.tcp.buffersize.umts=6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.gprs=6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.edge=6144,87380,524288,6144,16384,262144
-net.tcp.buffersize.hspa=6144,87380,524288,6144,16384,262144
-net.tcp.buffersize.lte=524288,1048576,2097152,524288,1048576,2097152
-net.tcp.buffersize.hsdpa=6144,87380,1048576,6144,87380,1048576
-net.tcp.buffersize.evdo_b=6144,87380,1048576,6144,87380,1048576
-logcat.live=disable
-debugtool.anrhistory=0
-profiler.debugmonitor=false
-profiler.launch=false
-profiler.hung.dumpdobugreport=false
-persist.android.strictmode=0
-persist.sys.purgeable_assets=1
-ro.config.hw_quickpoweron=true
 dalvik.vm.dexopt-flags=m=y
 dalvik.vm.heapgrowthlimit=512m
 dalvik.vm.heapsize=1024m
-dalvik.vm.heapstartsize=5m
+dalvik.vm.heapstartsize=8m
 dalvik.vm.verify-bytecode=false
 debug.composition.type=vulkan
 debug.enabletr=true
+debug.hwui.renderer=vulkan
 debug.kill_allocating_task=0
 debug.overlayui.enable=1
 debug.performance.tuning=1
@@ -4321,12 +4329,14 @@ debug.qctwa.preservebuf=1
 debug.qctwa.statusbar=1
 debug.sf.hw=1
 debug.sf.nobootanimation=1
+debugtool.anrhistory=0
 dev.pm.dyn_samplingrate=1
 force_hw_ui=true
 hw2d.force=1
 hw3d.force=1
 hwui.disable_vsync=true
 hwui.render_dirty_regions=false
+logcat.live=disable
 media.stagefright.enable-aac=true
 media.stagefright.enable-http=true
 media.stagefright.enable-meta=true
@@ -4335,18 +4345,38 @@ media.stagefright.enable-qcp=true
 media.stagefright.enable-record=true
 media.stagefright.enable-scan=true
 mpq.audio.decode=true
+net.tcp.buffersize.default=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.edge=6144,87380,524288,6144,16384,262144
+net.tcp.buffersize.evdo_b=6144,87380,1048576,6144,87380,1048576
+net.tcp.buffersize.gprs=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.hsdpa=6144,87380,1048576,6144,87380,1048576
+net.tcp.buffersize.hspa=6144,87380,524288,6144,16384,262144
+net.tcp.buffersize.lte=524288,1048576,2097152,524288,1048576,2097152
+net.tcp.buffersize.umts=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.wifi=524288,1048576,2097152,524288,1048576,2097152
+persist.android.strictmode=0
+persist.radio.add_power_save=1
 persist.service.lgospd.enable=0
 persist.service.pcsync.enable=0
 persist.sys.composition.type=vulkan
 persist.sys.NV_FPSLIMIT=244
 persist.sys.purgeable_assets=1
+persist.sys.purgeable_assets=1
+persist.sys.scrollingcache=3
 persist.sys.ui.hw=1
 persist.sys.use_16bpp_alpha=1
 persist.sys.use_dithering=0
+persyst.sys.usb.config=mtp,adb
 pm.sleep_mode=1
+profiler.debugmonitor=false
+profiler.hung.dumpdobugreport=false
+profiler.launch=false
+ro.allow.mock.location=1
 ro.config.enable.hw_accel=true
 ro.config.hw_fast_dormancy=1
 ro.config.hw_quickpoweron=true
+ro.config.hw_quickpoweron=true
+ro.debuggable=1
 ro.fb.mode=1
 ro.HOME_APP_ADJ=1
 ro.kernel.android.checkjni=0
@@ -4362,7 +4392,7 @@ ro.media.dec.vid.wmv.enabled=1
 ro.media.enc.aud.mp3.enabled=1
 ro.media.enc.aud.wma.enabled=1
 ro.media.enc.hprof.vid.bps=8000000
-ro.media.enc.hprof.vid.fps=70
+ro.media.enc.hprof.vid.fps=244
 ro.media.enc.jpeg.quality=100
 ro.media.enc.vid.mp4.enabled=1
 ro.media.enc.vid.wmv.enabled=1
@@ -4381,18 +4411,39 @@ ro.ril.hsupa.category=7
 ro.ril.hsxpa=2
 ro.ril.htcmaskw1.bitmask=4294967295
 ro.ril.htcmaskw1=14449
+ro.secure=1
 ro.sf.compbypass.enable=0
+ro.sf.lcd_density=500
 ro.telephony.call_ring.delay=0
-ro.vold.umsdirtyratio=20
+ro.vold.umsdirtyratio=50
+sys.use_fifo_ui=1
 touch.pressure.scale=0.1
+video.accelerate.hw=1
 vm.dirty_background_ratio=90
 vm.dirty_ratio=90
 vm.min_free_kbytes=4096
 vm.vfs_cache_pressure=50
 wifi.supplicant_scan_interval=180
-windowsmgr.max_events_per_sec=244'
+windowsmgr.max_events_per_sec=244
+'
 
-for i in $(echo $prop) ; do
+if [ -f /system/build.prop ] && ! grep -q "c2d\|vulkan" /system/build.prop ; then
+echo "$prop" >> /system/build.prop ; fi
+
+if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 10 ] ; then
+sed -i 's/debug.composition.type=.*/debug.composition.type=c2d/g' /system/build.prop  
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=skiagl/g' /system/build.prop  
+sed -i 's/#debug.egl.hw=1/debug.egl.hw=1/g' /system/build.prop  
+sed -i 's/#debug.egl.profiler=1/debug.egl.profiler=1/g' /system/build.prop  
+sed -i 's/persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' /system/build.prop  
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' /system/build.prop  
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' /system/build.prop ; fi
+
+if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' /system/build.prop ; fi
+
+
+for i in $(echo /system/build.prop) ; do
 setprop $($i | sed 's/=/ /g' | awk '{print $1, $2}') ; done
 
 busybox sysctl -w fs.inotify.max_queued_events=32768
@@ -4426,21 +4477,20 @@ echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
 
 echo 1 > /dev/stune/top-app/schedtune.prefer_idle
 
-umount /vendor || true
-mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-sed -i 's/noatime/lazytime/g' /vendor/etc/fstab*
-sed -i 's/nodiratime/lazytime/g' /vendor/etc/fstab*
-sed -i 's/relatime/lazytime/g' /vendor/etc/fstab*
-umount /vendor || true
-mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
+#umount /vendor || true
+#mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
+sed -i 's/noatime/lazytime/g' /vendor/etc/fstab* $droidfstab
+sed -i 's/nodiratime/lazytime/g' /vendor/etc/fstab* $droidfstab
+sed -i 's/relatime/lazytime/g' /vendor/etc/fstab* $droidfstab
+
 
 ### for older devices only, most doesnt apply
-for part in system data
-do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
-else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
+#for part in system data
+#do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
+#else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
 
-if ! grep -q "force_hw_ui=true" /system/build.prop ; then
-echo "$prop" >> /system/build.prop ; fi
+
+
 fstrim /data;
 fstrim /cache;
 fstrim /system;
@@ -4494,7 +4544,7 @@ if grep -q wrt /etc/os-release && grep -q "ppp" $iface ; then modprobe pppox ppp
 
 
 # blacklist
-if ! grep -q magol /etc/modprobe.d/nomisc.conf ; then
+if ! grep -q mac_hid /etc/modprobe.d/nomisc.conf ; then
 echo 'blacklist pcspkr
 blacklist snd_pcsp
 blacklist lpc_ich
@@ -4613,8 +4663,8 @@ if [ ! -f /system/build.prop ] ; then systemctl disable bluetooth && systemctl m
 disableserv=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
 maskdisable=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | grep -v "mask" | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
 
-startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled | awk '{print $1}')
-maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
+#startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled | awk '{print $1}')
+#maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
 
 # dunno if mdadm is needed for raid. checkout to be sure
 if ! grep -q wrt /etc/os-release ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
@@ -4623,11 +4673,11 @@ systemctl disable $disableserv
 systemctl mask $maskdisable
 
 #systemctl unmask $maskenable
-systemctl start --now $startserv
-systemctl enable $startserv
+#systemctl start --now $startserv
+#systemctl enable $startserv
 fi
 
-if ! grep -q "ipv6.conf.all.disable_ipv6" && [ $ipv6 = on ] ; then
+if ! grep -q "ipv6.conf.all.disable_ipv6" /etc/sysctl.conf || [ $ipv6 = on ] ; then
 echo 'net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
 net.ipv6.conf.lo.disable_ipv6 = 0
