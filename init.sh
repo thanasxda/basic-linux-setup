@@ -10,12 +10,15 @@
 ##    https://github.com/thanasxda/basic-linux-setup.git   ##
 #############################################################
 #############################################################
-
 # setup meant as universal config for:
 # x86, android, openwrt & general
-
-### if things dont get applied add delay prior to execution
-sleep 10
+### if things dont get applied add delay prior to execution 
+if [ -f /system/build.prop ] && [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
+sleep 60 ; echo " less or equal to android 7, sleep 60 seconds..." ; elif  [ -f /system/build.prop ] ; then sleep 30 ; echo " android 8 or above found, sleep 30 seconds..." ; fi
+if [ ! -f /system/build.prop ] && [ "$(grep bogomips /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then sleep 30 " bogomips less or equal to 4000, sleep 30 seconds..." ; elif [ ! -f /system/build.prop ] ; then sleep 5 ; "script starting..." ; fi 
+### busybox... since script aims for compatibility without compromising too much... for legacy devices its a must to upgrade busybox. i dont feel like typing every command with a variable. will use this only on important parts.
+### on legacy devices it can be an issue since after testing busybox uses default binaries instead of /xbin. many commands are not present in that case. find a way to update your device for best results. 
+if [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; elif [ -f /system/bin/sh ] ; then bb="/system/bin/" ; elif [ -f /sbin/sh ] ; then bb="/sbin/sh" ; elif [ -f /bin/sh ] ; then bb="/bin/sh" ; fi
 # script vars
 #s="sudo"
 
@@ -27,6 +30,9 @@ sleep 10
         sourceslist_update="no"
       # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
         clean_sources_list_d="yes"
+      # to avoid much maintenance is partial
+        restore_backup="no"
+        uninstall="no"
 
 
 
@@ -40,7 +46,7 @@ sleep 10
         dns61="2606:4700:4700::1111"
         dns62="2606:4700:4700::1001"
       # preferred address to ping
-        ping="1.1.1.1"
+        pingaddr="1.1.1.1"
 
 
 
@@ -73,7 +79,7 @@ sleep 10
       ### < TCP CONGESTION CONTROL >
       # - linux kernel tcp congestion algorithm
         tcp_con="bbr"
-
+        if [ ! -f /proc/sys/net/core/default_qdisc ] ; then if grep -q westwood /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then export tcp_con=westwood ; else export tcp_con="cubic" ; fi ; fi
 
 
 
@@ -89,7 +95,7 @@ sleep 10
       # - wireless regulatory settings per country 00 for global
         country="00"
 
-        # meanwhile serves as list to make me remember how to figure out user
+        # meanwhile serves as list to make me remember how to figure out user. srry ppl with x in name. lazy
         if grep -q "wrt" /etc/os-release || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
 
 
@@ -121,9 +127,13 @@ sleep 10
 
       ### < FSTAB FLAGS >
       # - /etc/fstab - let fstrim.timer handle discard
-        xfs="defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=128k,noquota,allocsize=64m,largeio,swalloc"
-       ext4="defaults,rw,lazytime,commit=60,quota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc,user_xattr"
-       f2fs="defaults,rw,lazytime,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,quota"
+      # https://www.kernel.org/doc/Documentation/filesystems/ext4.txt
+      # https://www.kernel.org/doc/Documentation/filesystems/f2fs.txt
+      # https://www.kernel.org/doc/Documentation/filesystems/xfs.txt
+        xfs="defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=128k,noquota,allocsize=64m,largeio,swalloc,nodiscard,filestreams"
+       ext4="defaults,rw,lazytime,commit=60,noquota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc,user_xattr,lazy_itable_init=0,lazy_journal_init=0,
+max_batch_time=120,nodiscard"
+       f2fs="defaults,rw,lazytime,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,noquota,ram_thresh=20,cp_interval=120,nodiscard,background_gc=off,active_logs=0"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
        swap="sw,lazytime"
@@ -139,8 +149,10 @@ sleep 10
         cec="off"
         zpool="z3fold"
         zpoolpercent="40"
-        
-        
+        pagec="0"
+        ksm="0"
+
+
 
 
 
@@ -158,7 +170,17 @@ sleep 10
         # in case of using dracut
         #raid="no"
         
-        
+        # android dirs
+        droidprop="/system/build.prop"
+    if [ -f /system/build.prop ] ; then
+droidfstab=$(if [ -f /system/build.prop ] ; then "$bb"find / -name "fstab*" -type f -not -name "*bak" | grep -v "sbin" | sort -u ; fi)
+droidresolv="/system/etc/resolv.conf"
+droidsysctl="/system/etc/sysctl.conf"
+droidhosts="/system/etc/hosts"
+droidcmdline="/system/etc/root/cmdline"
+    fi
+
+
       ### < MEMORY ALLOCATION >
       # - if memory under 2gb or swap or zram considered low spec if not high spec
       # lowspec options scripted for 2g exactly
@@ -183,6 +205,7 @@ EOL
 echo lz4 >> /etc/initramfs-tools/modules
 echo lz4_compress >> /etc/initramfs-tools/modules
 echo z3fold >> /etc/initramfs-tools/modules
+echo zsmalloc >> /etc/initramfs-tools/modules
 update-initramfs -u
 echo 1 > /sys/module/zswap/parameters/enabled
 echo lz4 > /sys/module/zswap/parameters/compressor
@@ -196,6 +219,7 @@ sudo sed -i '\''s/PERCENT.*/PERCENT=40/g'\'' /etc/default/zramswap; fi'
 # if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
 overcommit=3
+oratio=150
 shmmax=100000000
 shmmni=1600000
 shmall=35000000
@@ -209,6 +233,8 @@ sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
+
 if ! grep -q '* soft nofile 524288' /etc/security/limits.conf ; then
 echo '* hard nofile 524288
 * soft nofile 524288
@@ -244,7 +270,7 @@ root hard stack unlimited' | tee /etc/security/limits.conf ; fi
 if ! grep -q "524288" /etc/systemd/system.conf ; then
 echo 'DefaultLimitNOFILE=524288' | tee -a /etc/systemd/system.conf /etc/systemd/user.conf ; fi
 
-if ! grep -q "wrt\|tv" /etc/os-release ; then
+if ! grep -q "wrt" /etc/os-release ; then
 
 hpages=' kvm.nx_huge_pages=off transparent_hugepage=never'
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
@@ -266,11 +292,13 @@ shmmax=4000000000
 shmmni=64000000
 shmall=100000000
 overcommit=3
+oratio=200
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 16 gb
@@ -284,11 +312,14 @@ hugepagesz="2MB"
 shmmax=6000000000
 shmmni=64000000
 shmall=100000000
+overcommit=3
+oratio=250
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 32 gb
@@ -303,11 +334,14 @@ sysctl -w =$hugepages
 shmmax=12000000000
 shmmni=64000000
 shmall=100000000
+overcommit=3
+oratio=400
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 4gb
@@ -319,11 +353,13 @@ hugepagesz="2MB"
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
 overcommit=2
+oratio=180
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
@@ -343,11 +379,13 @@ shmall=350000000
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
 overcommit=1
+oratio=140
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
@@ -362,19 +400,24 @@ shmall=35000000
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
 overcommit=1
+oratio=100
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
 sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
+sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # all mem amounts but not generic devices
 # removed
 fi
 
+#
+ping=$(echo ''"$pingaddr"'')
 
 # bootarg scripting for options # in a weird order due to my own testing # be careful with spacing, i think it lead me to bootloop. edit flags during grub boot to boot if it fails. dunno if this was reason, part is really buggy but as is underneath stable.
+
 
 # zswap, only if 2gb or under
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
@@ -479,14 +522,6 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
        echo manual > /sys/class/drm/card0/device/power_dpm_force_performance_level
        echo $perfamdgpu > /sys/class/drm/card0/device/power_dpm_force_performance_level
 
-       
-    # android dirs
-    if [ -f /system/build.prop ] ; then
-droidresolv=$(if [ -f /system/build.prop ] ; then echo "/etc/system/resolv.conf /etc/resolv.conf" ; fi)
-droidhosts=$(if [ -f /system/build.prop ] ; then echo "/etc/system/hosts /etc/hosts /hosts" ; fi)
-droidfstab=$(if [ -f /system/build.prop ] ; then echo "/etc/vendor/fstab* /system/etc/fstab* /etc/fstab* /fstab*" ; fi) 
-droidsysctl=$(if [ -f /system/build.prop ] ; then echo "/system/etc/sysctl.conf /system/etc/sysctl.d/sysctl.conf" ; fi) ; fi
-
 
 
 
@@ -512,7 +547,7 @@ u7="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/mas
 u8="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts1"
 u9="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts2"
 u10="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts3"
-ping '"$ping"' -c 3
+ping -c3 '"$ping"'
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
@@ -557,7 +592,7 @@ wrtsh='#!/bin/sh
 link=https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
 while [ ! -f /tmp/init.sh ];
 sleep 10
-do ping $ping -c 3
+do ping -c3 $ping
 if [ $? -eq 0 ]; then wget --continue -4 "$link" -O /tmp/init.sh ; fi
 if grep -q thanas /tmp/init.sh
 then chmod +x /tmp/init.sh && sh /tmp/init.sh && echo "succes"; exit 0; fi
@@ -577,22 +612,80 @@ done'
     .........................................
     ........................................"
 
+
+
+
+
+
+
+
+
+
+
+
     ### make backups - fstab may vary and other dirs maybe depending on phone. qcom is /vendor/fstab.qcom
     # remount rw
      if [ -f /system/build.prop ] ; then
-    mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-    mount -o rw /dev/block/bootdevice/by-name/system /system
-    mount -o rw,remount /system
-    mount -o rw,remount /vendor 
+    "$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
+    "$bb"mount -o rw /dev/block/bootdevice/by-name/system /system
+    "$bb"mount -o rw /dev/block/bootdevice/by-name/data /data
+    "$bb"mount -o remount,rw /system
+    "$bb"mount -o remount,rw /vendor
+    "$bb"mount -o remount,rw /data
+    "$bb"mount -o remount,rw rootfs /
+    mkdir -p /etc/bak/system
+    mkdir -p /etc/bak/vendor
+    mkdir -p /etc/bak/data/adb/service.d
     fi
-      mkdir -p /etc/bak
-  if [ ! -f /etc/bak/fstab.bak ] ; then cp /etc/fstab /etc/bak/fstab.bak ; if [ -f /system/build.prop ] ; then cp /etc/vendor/fstab* /sdcard/bak/fstab.android.bak ; fi ; fi
-  if [ -f /system/build.prop ] && [ ! -f /etc/bak/build.prop.bak ] ; then cp /system/build.prop /sdcard/bak/build.prop.android.bak ; fi
-  if [ ! -f /etc/bak/hosts.bak ] ; then cp /etc/hosts /etc/bak/hosts.bak ;  if [ -f /system/build.prop ] ; then cp /etc/hosts /sdcard/bak/hosts.android.bak ; fi ; fi
-  if [ ! -f /etc/bak/resolv.conf.bak ] ; then cp /etc/resolv.conf /etc/bak/resolv.conf.bak ; fi
-  if [ ! -f /etc/bak/sysctl.conf.bak ] ; then cp /etc/sysctl.conf /etc/bak/sysctl.conf.bak ; fi
-  if [ ! -f /etc/bak/NetworkManager.conf.bak ] ; then cp /etc/NetworkManager/NetworkManager.conf /etc/bak/NetworkManager.conf.bak ; fi
- 
+    mkdir /etc/bak/etc/sysctl.d ; mkdir -p /etc/bak/etc/environment.d
+
+
+
+        if [ -f /system/build.prop ] && [ ! -f /data/adb/service.d/init.sh ] ; then export firstrun=yes ; fi
+
+
+
+        # droid
+if [ -f /system/build.prop ] ; then
+  if [ ! -f /etc/bak$droidfstab ] && [ -f $droidfstab ] ; then
+  for i in $("$bb"echo "$("$bb"echo "$droidfstab" | sed 's/fstab*/ /g' | awk '{print $1}')") ; do mkdir -p /etc/bak$i ; done 
+  for i in "$bb"echo "$droidfstab" ; do "$bb"cp -n $i /etc/bak$i ; done ; fi
+
+  if [ ! -f /etc/bak$droidhosts ] && [ -f $droidhosts ] ; then "$bb"cp -rf $droidhosts /etc/bak$droidhosts ; fi
+
+  if [ ! -f /etc/bak$droidresolv ] && [ -f $droidresolv ] ; then "$bb"cp -rf $droidresolv /etc/bak$droidresolv ; fi
+
+  if [ ! -f /etc/bak$droidsysctl ] && [ -f $droidsysctl ] ; then "$bb"cp -rf $droidresolv /etc/bak$droidresolv ; fi
+
+  if [ ! -f /etc/bak/$droidcmdline ] ; then mkdir -p /etc/bak/system/etc/root ; cat /proc/cmdline | tee /etc/bak$droidcmdline ; fi
+
+  if [ ! -f /etc/bak/system/build.prop ] ; then "$bb"cp -rf /system/build.prop /etc/bak/system/build.prop ; fi
+    # don't know if this is the way to go about it...
+  #if [ -f /system/build.prop ] && [ -f /system/xbin/sh ] && [ ! -f /etc/bak/DO_NOT_DELETE ] ; then /system/xbin/cp -rf /system/xbin/* /system/bin/ ; /system/xbin/echo "DON'T DELETE THESE FILES, SCRIPT USES PARTS OF THIS BACKUP. ONLY EASY WAY OF RESTORING IF BRICKED" | tee /etc/bak/DO_NOT_DELETE ; fi
+fi
+
+
+
+  # all ( but exceptions, like openwrt not)
+  if [ ! -f /etc/bak/etc/environment ] ; then \cp -rf /etc/environment /etc/bak/etc/environment ; fi
+
+
+
+  # all but droid
+if [ ! -f /system/build.prop ] ; then
+  if [ ! -f /etc/bak/etc/fstab ] ; then \cp -rf /etc/fstab /etc/bak/etc/fstab ; fi
+  if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
+  if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
+fi
+
+
+
+# debian only
+if grep -q debian /etc/os-release ; then
+  if [ ! -f /etc/bak/etc/NetworkManager/NetworkManager.conf ] ; then mkdir -p /etc/bak/etc/NetworkManager ; \cp -rf /etc/NetworkManager/NetworkManager.conf /etc/bak/etc/NetworkManager/NetworkManager.conf ; fi
+  if [ ! -f /etc/bak/etc/default/grub ] ; then mkdir -p /etc/bak/etc/default ; \cp -rf /etc/default/grub /etc/bak/etc/default/grub ; fi
+fi
+
 
 
       ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
@@ -645,8 +738,11 @@ done'
     if systemctl list-unit-files | grep -q anacron ; then
     if ! grep rc.local /etc/anacrontabs ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
     elif ! grep rc.local /etc/crontabs/root /etc/crontab ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a /etc/crontabs/root /etc/crontab ; fi
-    
 
+    # cronjob kernel - daily seek for update mainline kernel only from experimental branch. since i dont trust debian experimental repositories no more and am in no mood to fight with the packages and dependencies...
+    if grep -q debian /etc/os-release ; then
+    if ! grep -q "linux-image-amd64" /etc/anacrontabs ; then
+    echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64'" | tee -a /etc/anacrontabs ; fi ; fi
 
 
 
@@ -656,7 +752,7 @@ done'
   ### < SOURCES.LIST >
   ### if ID_LIKE=debian sync sources.list on boot
           if grep -q kali /etc/os-release && [ $sourceslist_update = yes ] ; then
-          ping "$ping" -c 3
+          ping -c3 "$ping"
           if [ $? -eq 0 ]; then
           echo "*BLS*=Syncing sources.list." && "$(wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
 
@@ -668,15 +764,19 @@ done'
 
   ### < HIJACK CMDLINE >
   ### detect if linux or openwrt/android to hijack cmdline to adjust bootargs from userspace (gets applied with '# cat /proc/cmdline' not sure if it works though)
-      if ! grep "debian" /etc/os-release ; then
+      if ! grep "debian" /etc/os-release ; then echo "*BLS*=FOUND DEBIAN NOT HIJACKING CMDLINE"
       #if grep -q "debian" /etc/os-release ; then echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
   ### openwrt
-      if grep -q "wrt" /etc/os-release ; then echo "console=ttyS0,115200 rootfstype=squashfs,jffs2 $par" | tee /root/cmdline &&
+      if grep -q "wrt" /etc/os-release ; then echo "$(cat /etc/bak/root/cmdline) $par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
   ### android libre tv
-      else mkdir -p /root ; echo "$par" | tee /root/cmdline &&
+      if [ -f /system/build.prop ] ; then mkdir -p /etc/root ; "$bb"echo "$(cat /etc/bak/system/root/cmdline) '"$par"'" | tee /etc/root/cmdline ; "$bb"mount -n --bind -o ro /etc/root/cmdline /proc/cmdline ; else
+      mkdir -p /root ; echo "$par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
+      if ! grep -q "/proc/cmdline" /etc/fstab || if [ -f /system/build.prop ] && ! grep -q "/proc/cmdline" $droidfstab ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $droidfstab ; fi
+      then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a "/etc/fstab*" ; fi
+      fi
       # echo "doesnt work anyways" ; else echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
 
@@ -684,7 +784,7 @@ done'
 
 
 
-# 
+#
 
   ### < GRUB KERNEL PARAMETERS >
   ### kernel parameters grub linux
@@ -718,6 +818,32 @@ $s update-grub
 
 
 
+       # i hope there are no bash fuckups running legacy stuff here. rip     
+    if [ -f /system/build.prop ] ; then
+          # f2fs droid
+      dataf2fsdroid=$(echo $(grep data $droidfstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
+      cachef2fsdroid=$(echo $(grep cache $droidfstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
+        dataf2fsreplace=$(echo $(grep data $droidfstab | grep f2fs))
+        cachef2fsreplace=$(echo $(grep data $droidfstab | grep f2fs))
+      # ext4 droid
+      dataext4droid=$(echo $(grep data $droidfstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext"',nosuid,nodev", $5 }'))
+      cacheext4droid=$(echo $(grep cache $droidfstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev", $5 }'))
+        dataext4replace=$(echo $(grep data $droidfstab | grep ext4))
+        cacheext4replace=$(echo $(grep data $droidfstab | grep ext4))
+              systemext4droid=$(echo $(grep system $droidfstab | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g'))
+              systemext4replace=$(echo $(grep system $droidfstab | grep ext4))
+    
+        if ! grep -q f2fs $droidfstab ; then
+echo $dataf2fsdroid | tee -a $droidfstab
+echo $cachef2fsdroid | tee -a $droidfstab
+        fi 
+        
+sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' $droidfstab
+sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' $droidfstab
+sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' $droidfstab
+sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' $droidfstab
+sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $droidfstab
+    fi
 
 
 
@@ -749,9 +875,10 @@ $s update-grub
     $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
     $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
 
-    sed -i 's/noatime/lazytime/g' /etc/fstab* $droidfstab
-    sed -i 's/nodiratime/lazytime/g' /etc/fstab* $droidfstab
-    sed -i 's/relatime/lazytime/g' /etc/fstab* $droidfstab
+    sed -i 's/noatime/lazytime/g' /etc/fstab $droidfstab
+    sed -i 's/nodiratime/lazytime/g' /etc/fstab $droidfstab
+    sed -i 's/relatime/lazytime/g' /etc/fstab $droidfstab
+
 
 
 
@@ -771,7 +898,7 @@ $s update-grub
 
 
   # samba
-      if $s grep -q "deadtime = 30" /etc/samba/smb.conf; then $s echo "Flag exists"; else $s echo 'deadtime = 30
+      if $s grep -q "deadtime = 30" /etc/samba/smb.conf ; then $s echo "Flag exists" ; else $s echo 'deadtime = 30
       use sendfile = yes
       min receivefile size = 16384
       socket options = IPTOS_LOWDELAY TCP_NODELAY IPTOS_THROUGHPUT SO_RCVBUF=131072 SO_SNDBUF=131072' | $s tee /etc/samba/smb.conf ; fi
@@ -786,7 +913,7 @@ $s update-grub
 
 
   # journaling and more
-      if $s grep -q "Storage=none" /etc/systemd/journald.conf; then $s echo "Flag exists"; else $s echo "Storage=none" | $s tee -a /etc/systemd/journald.conf ; fi
+      if $s grep -q "Storage=none" /etc/systemd/journald.conf ; then $s echo "Flag exists" ; else $s echo "Storage=none" | $s tee -a /etc/systemd/journald.conf ; fi
       sed -i s"/\Storage=.*/Storage=none/"g /etc/systemd/coredump.conf
       sed -i s"/\Seal=.*/Seal=no/"g /etc/systemd/coredump.conf
 
@@ -800,10 +927,10 @@ $s update-grub
     $s sed -i "\$aexport PREBUILT_CACHE_DIR=~/.ccache" ~/.zshrc ~/.bashrc
     $s sed -i "\$aexport CCACHE_DIR=~/.ccache" ~/.zshrc ~/.bashrc
     $s sed -i "\$accache -M 30G >/dev/null" ~/.zshrc ~/.bashrc
-    $s sed -i "\$aexport PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH" ~/.zshrc ~/.bashrc 
+    $s sed -i "\$aexport PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH" ~/.zshrc ~/.bashrc
     $s sed -i "\$aexport LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:$LD_LIBRARY_PATH" ~/.zshrc ~/.bashrc ; fi
     if $s grep -q "export PATH" ~/.zshrc; then echo "Flag exists"
-    else $s sed -i "\$aexport PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH" ~/.zshrc ~/.bashrc 
+    else $s sed -i "\$aexport PATH=/usr/lib/ccache/bin/:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:$PATH" ~/.zshrc ~/.bashrc
     $s sed -i "\$aexport LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:$LD_LIBRARY_PATH" ~/.zshrc ~/.bashrc ; fi
 ccache --set-config=sloppiness=locale,time_macros
 
@@ -1012,39 +1139,675 @@ fi
 #scsi_common
 #sd_mod' ; fi)
     #cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
-    
-    
+
+    mount -t debugfs none /sys/kernel/debug
+    sysctl -w vm.min_free_order_shift=4
+    sysctl -w kernel.msgmni=32000
+    sysctl -w kernel.msgmax=8192
+    sysctl -w kernel.msgmnb=16384
+    sysctl -w kernel.sem='250 32000 100 128'
+    echo "0" > /sys/module/lowmemorykiller/parameters/debug_level
+    echo "64" > /sys/kernel/mm/ksm/pages_to_scan
+    echo "500" > /sys/kernel/mm/ksm/sleep_millisecs
+
     if ! grep -q fscache /etc/initramfs-tools/modules ; then
     echo cachefiles >> /etc/initramfs-tools/modules
-    echo fscache >> /etc/initramfs-tools/modules 
+    echo fscache >> /etc/initramfs-tools/modules
     systemctl start --now cachefilesd
     systemctl enable --now cachefilesd ; fi
     sed -i 's/#RUN=.*/RUN=yes/g' /etc/default/cachefilesd
     if ! grep -q jitterentropy /etc/initramfs-tools/modules ; then
     echo jitterentropy-rngd >> /etc/initramfs-tools/modules
-    echo haveged >> /etc/initramfs-tools/modules 
-    echo kvm >> /etc/initramfs-tools/modules 
-    echo msr >> /etc/initramfs-tools/modules 
+    echo haveged >> /etc/initramfs-tools/modules
+    echo kvm >> /etc/initramfs-tools/modules
+    echo msr >> /etc/initramfs-tools/modules
     echo acpi_cpufreq >> /etc/initramfs-tools/modules
     echo cpufreq_performance >> /etc/initramfs-tools/modules
     echo processor >> /etc/initramfs-tools/modules ; fi
-    if dmesg | grep -q amdgpu ; then 
+    if dmesg | grep -q amdgpu ; then
     echo amdgpu >> /etc/initramfs-tools/modules ; fi
-    
-     
+
+
     sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf
     sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf
     sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/user.conf
     sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/user.conf
-    
+
     chmod 0655 /sys/module/*/parameters/*
     chown root /sys/module/*/parameters/*
 
+echo 0 > /sys/module/ext4/parameters/mballoc_debug
+echo Y > /sys/kernel/debug/ufshcd0/reset_controller
+echo 150 > /sys/module/cpu_boost/parameters/min_input_interval
+echo Y > /sys/module/cpu_boost/parameters/input_boost_enabled
+echo Y > /sys/kernel/cpu_input_boost/enabled
+echo 50 > /sys/devices/platform/kgsl/msm_kgsl/kgsl-3d0/io_fraction
+echo Y > /sys/class/kgsl/kgsl-3d0/popp
+echo 64 > /sys/class/kgsl/kgsl-3d0/idle_timer
+echo N > /sys/class/kgsl/kgsl-3d0/throttling
+echo N > /sys/module/mali/parameters/mali_debug_level
+echo 250 > /sys/module/mali/parameters/mali_gpu_utilization_timeout
+echo Y > /proc/mali/dvfs_enable
+echo 56 > /d/mdss_panel_fb0/intf0/min_refresh_rate
+echo 60 > /proc/sys/net/ipv4/tcp_default_init_rwnd
+echo 2 > /sys/module/tcp_cubic/parameters/hystart_detect
+echo N > /sys/module/mmc_core/parameters/crc
+echo N > /sys/module/mmc_core/parameters/removable
+echo N > /sys/module/mmc_core/parameters/use_spi_crc
+echo N > /sys/module/mmc_core/parameters/removable
+echo 64 > /sys/block/zram0/queue/read_ahead_kb
+echo N > /sys/kernel/sched/gentle_fair_sleepers
+echo Y > /sys/kernel/sched/arch_power
+echo ARCH_CAPACITY > /sys/kernel/debug/sched_features
+echo Y > /proc/sys/vm/highmem_is_dirtyable
+echo Y > /proc/sys/vm/compact_memory
+echo Y > /proc/sys/vm/compact_unevictable_allowed
+echo N > /proc/sys/kernel/softlockup_panic
+echo N > /proc/sys/kernel/panic_on_oops
+echo 3 > /sys/kernel/power_suspend/power_suspend_mode
+echo 15000 > /sys/power/pm_freeze_timeout
+echo 5 > /proc/sys/kernel/sched_walt_init_task_load_pct
+echo N > /proc/sys/kernel/sched_walt_rotate_big_tasks
+echo 2 > /proc/sys/kernel/sched_tunable_scaling
+if [ -f /system/build.prop ] ; then
+echo Y > /proc/sys/kernel/sched_enable_power_aware ; else echo N > /proc/sys/kernel/sched_enable_power_aware ; fi
+echo Y > /proc/sys/kernel/power_aware_timer_migration
+echo N > /proc/sys/kernel/sched_smt_power_savings
+echo N > /proc/sys/kernel/sched_mc_power_savings
+echo 0 > /proc/sys/kernel/sched_ravg_hist_size
+echo N > /proc/sys/kernel/sched_enable_thread_grouping
+echo N > /sys/module/msm_thermal/core_control/enabled
+echo Y > /sys/module/msm_thermal/core_control/parameters/enabled
+echo 10 > /sys/class/thermal/thermal_message/sconfig
+echo Y > /sys/module/lowmemorykiller/parameters/lmk_fast_run
+echo Y > /sys/module/lowmemorykiller/parameters/enable_adaptive_lmk
+echo Y > /sys/module/lowmemorykiller/parameters/oom_reaper
+echo 5000 > /sys/kernel/mm/uksm/sleep_millisecs
+echo 128 > /sys/kernel/mm/uksm/pages_to_scan
+echo Y > /sys/kernel/mm/uksm/deferred_timer
+echo $ksm > /sys/kernel/mm/uksm/run
+echo 5000 > /sys/kernel/mm/ksm/sleep_millisecs
+echo 128 > /sys/kernel/mm/ksm/pages_to_scan
+echo Y > /sys/kernel/mm/ksm/deferred_timer
+echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_cmd
+echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_ctxt
+echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_drv
+echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_mem
+echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_pwr
+
+
+
+
+ echo "0" > /sys/devices/system/cpu/sched_mc_power_savings;
+ echo "1024" > /dev/cpuctl/cpu.shares
+ echo -1 > /dev/cpuctl/cpu.rt_runtime_us
+ echo -1 > /dev/cpuctl/cpu.rt_period_us
+ echo "62" > /dev/cpuctl/bg_non_interactive/cpu.shares
+ echo -1 > /dev/cpuctl/bg_non_interactive/cpu.rt_runtime_us
+ echo -1 > /dev/cpuctl/bg_non_interactive/cpu.rt_period_us
+ echo "1" > /sys/fs/selinux/enforce
+ echo "64" > /sys/module/lowmemorykiller/parameters/cost
+ echo "1" > /sys/kernel/dyn_fsync/Dyn_fsync_active
+ echo "0" > /sys/module/lowmemorykiller/parameters/debug_level
+ echo "1" > /sys/kernel/fast_charge/force_fast_charge
+ echo "1" > /sys/module/tpd_setting/parameters/tpd_mode
+ echo "63" > /sys/module/hid_magicmouse/parameters/scroll_speed
+
+
+echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
+echo "0-$(nproc -all)" > /dev/cpuset/top-app/cpus
+echo "0-$(nproc -all)" /dev/cpuset/foreground/cpus
+echo "0" > /dev/cpuset/restricted/cpus
+#echo "0-7" /dev/cpuset/background/cpus
+#echo "0-7" /dev/cpuset/system-background/cpus
+#echo "0-3" > /dev/cpuset/kernel/cpus
+
+echo "0" > /sys/module/workqueue/parameters/power_efficient
+echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
+
+echo N > /sys/module/lpm_levels/parameters/sleep_disabled
+# write /sys/module/lpm_levels/parameters/sleep_disabled "N" 2>/dev/null
+
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
+
+echo 1 > /dev/stune/top-app/schedtune.prefer_idle
+echo 1 > /dev/stune/foreground/schedtune.prefer_idle
+echo 1 > /dev/stune/top-app/schedtune.prefer_idle
+echo 3 > /dev/stune/top-app/schedtune.sched_boost
+echo 1 > /dev/stune/top-app/schedtune.sched_boost_enabled
+
+sysctl -w fs.inotify.max_queued_events=32768
+sysctl -w fs.inotify.max_user_instances=256
+sysctl -w fs.inotify.max_user_watches=16384
+sysctl -w kernel.sched_scaling_enable=1
+
+
+
+
+echo "1" /proc/sys/fs/leases-enable
+echo "0" > /proc/sys/fs/dir-notify-enable
+echo "20" > /proc/sys/fs/lease-break-time
+echo 1 > /proc/sys/vm/overcommit_memory
+echo 80 > /proc/sys/vm/overcommit_ratio
+
+echo "write through" | sudo tee /sys/block/*/queue/write_cache
+
+#setprop sys.use_fifo_ui 1
+setprop persist.radio.add_power_save 1
+#setprop debug.composition.type c2d
+setprop video.accelerate.hw 1
+#setprop persist.sys.ui.hw 1
+#setprop debug.egl.buffcount 4
+#setprop debug.egl.hw 1
+if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -ge 11 ] ; then
+setprop debug.hwui.renderer vulkan
+fi
+setprop net.tcp.buffersize.default 6144,87380,1048576,6144,87380,524288
+setprop net.tcp.buffersize.wifi 524288,1048576,2097152,524288,1048576,2097152
+setprop net.tcp.buffersize.umts 6144,87380,1048576,6144,87380,524288
+setprop net.tcp.buffersize.gprs 6144,87380,1048576,6144,87380,524288
+setprop net.tcp.buffersize.edge 6144,87380,524288,6144,16384,262144
+setprop net.tcp.buffersize.hspa 6144,87380,524288,6144,16384,262144
+setprop net.tcp.buffersize.lte 524288,1048576,2097152,524288,1048576,2097152
+setprop net.tcp.buffersize.hsdpa 6144,87380,1048576,6144,87380,1048576
+setprop net.tcp.buffersize.evdo_b 6144,87380,1048576,6144,87380,1048576
+#setprop MIN_HIDDEN_APPS false
+#setprop ACTIVITY_INACTIVE_RESET_TIME false
+#setprop MIN_RECENT_TASKS false
+#setprop PROC_START_TIMEOUT false
+#setprop CPU_MIN_CHECK_DURATION false
+#setprop GC_TIMEOUT false
+#setprop SERVICE_TIMEOUT false
+#setprop MIN_CRASH_INTERVAL false
+#setprop ENFORCE_PROCESS_LIMIT false
+
+echo $qdisc > /proc/sys/net/core/default_qdisc
+
+########################
+#echo 0 > /dev/cpuctl/cgroup.clone_children
+#echo 0 > /dev/cpuctl/cgroup.procs
+#echo 0 > /dev/cpuctl/cgroup.sane_behavior
+#echo 0 > /dev/cpuctl/cpu.rt_period_us
+#echo 0 > /dev/cpuctl/cpu.rt_runtime_us
+#echo 0 > /dev/cpuctl/cpu.shares
+#echo 0 > /dev/cpuctl/notify_on_release
+#echo 0 > /dev/cpuctl/release_agent
+#echo 0 > /dev/cpuctl/tasks
+
+#echo 0 > /dev/cpuset/cgroup.clone_children
+#echo 0 > /dev/cpuset/cgroup.sane_behavior
+#echo 0 > /dev/cpuset/notify_on_release
+
+#echo 0 > /dev/stune/background/cgroup.clone_children
+#echo 0 > /dev/stune/background/cgroup.procs
+#echo 0 > /dev/stune/background/notify_on_release
+#echo 0 > /dev/stune/background/schedtune.boost
+#echo 0 > /dev/stune/background/schedtune.colocate
+#echo 0 > /dev/stune/background/schedtune.prefer_idle
+#echo 0 > /dev/stune/background/schedtune.sched_boost
+#echo 0 > /dev/stune/background/schedtune.sched_boost_enabled
+#echo 0 > /dev/stune/background/schedtune.sched_boost_no_override
+#echo 0 > /dev/stune/background/tasks
+
+#echo 0 > /dev/stune/cgroup.clone_children
+#echo 0 > /dev/stune/cgroup.procs
+#echo 0 > /dev/stune/cgroup.sane_behavior
+#echo 0 > /dev/stune/notify_on_release
+#echo 0 > /dev/stune/release_agent
+#echo 0 > /dev/stune/schedtune.boost
+#echo 0 > /dev/stune/schedtune.colocate
+#echo 0 > /dev/stune/schedtune.prefer_idle
+#echo 0 > /dev/stune/schedtune.sched_boost
+#echo 0 > /dev/stune/schedtune.sched_boost_enabled
+#echo 0 > /dev/stune/schedtune.sched_boost_no_override
+#echo 0 > /dev/stune/tasks
+
+#echo 0 > /dev/stune/foreground/cgroup.clone_children
+#echo 0 > /dev/stune/foreground/cgroup.procs
+#echo 0 > /dev/stune/foreground/notify_on_release
+#echo 0 > /dev/stune/foreground/schedtune.boost
+#echo 0 > /dev/stune/foreground/schedtune.colocate
+echo 1 > /dev/stune/foreground/schedtune.prefer_idle
+#echo 1 > /dev/stune/foreground/schedtune.sched_boost
+#echo 0 > /dev/stune/foreground/schedtune.sched_boost_enabled
+#echo 0 > /dev/stune/foreground/schedtune.sched_boost_no_override
+#echo 0 > /dev/stune/foreground/tasks
+
+#echo 0 > /dev/stune/rt/cgroup.clone_children
+#echo 0 > /dev/stune/rt/cgroup.procs
+#echo 0 > /dev/stune/rt/notify_on_release
+#echo 0 > /dev/stune/rt/schedtune.boost
+#echo 0 > /dev/stune/rt/schedtune.colocate
+#echo 0 > /dev/stune/rt/schedtune.prefer_idle
+#echo 0 > /dev/stune/rt/schedtune.sched_boost
+#echo 0 > /dev/stune/rt/schedtune.sched_boost_enabled
+#echo 0 > /dev/stune/rt/schedtune.sched_boost_no_override
+#echo 0 > /dev/stune/rt/tasks
+
+#echo 0 > /dev/stune/top-app/cgroup.clone_children
+#echo 0 > /dev/stune/top-app/cgroup.procs
+#echo 0 > /dev/stune/top-app/notify_on_release
+#echo 0 > /dev/stune/top-app/schedtune.boost
+#echo 0 > /dev/stune/top-app/schedtune.colocate
+echo 1 > /dev/stune/top-app/schedtune.prefer_idle
+echo 3 > /dev/stune/top-app/schedtune.sched_boost
+echo 1 > /dev/stune/top-app/schedtune.sched_boost_enabled
+#echo 0 > /dev/stune/top-app/schedtune.sched_boost_no_override
+#echo 0 > /dev/stune/top-app/tasks
+
+sysctl -w kernel.sched_scaling_enable=1
+echo 1 > /proc/sys/kernel/sched_scaling_enable
+echo 2 > /proc/sys/kernel/sched_tunable_scaling
+#echo 0 > /proc/sys/kernel/sched_boost
+echo 1 > /proc/sys/kernel/sched_child_runs_first
+##echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
+##echo 2000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
+#echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
+echo 40000 > /proc/sys/kernel/sched_latency_ns
+
+#echo "0" > /sys/module/cpu_boost/parameters/dynamic_stune_boost
+##echo '0:0' > /sys/module/cpu_boost/parameters/input_boost_freq
+##echo '0:1324800' > /sys/module/cpu_boost/parameters/input_boost_freq
+##echo '1:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
+##echo '2:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
+##echo '3:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
+echo 40 > /sys/module/cpu_boost/parameters/input_boost_ms
+#echo 0 > /sys/module/cpu_boost/parameters/powerkey_input_boost_freq
+echo 1200 > /sys/module/cpu_boost/parameters/powerkey_input_boost_ms
+#echo 0 > /sys/module/cpu_boost/parameters/sched_boost_on_input
+#echo 0 > /sys/module/cpu_boost/parameters/shed_boost_on_powerkey_input
+
+
+
+echo "0" > /sys/module/workqueue/parameters/power_efficient
+
+echo "0" > /sys/devices/system/cpu/cpu0/core_ctl/enable
+##echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+echo "1000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
+echo "5000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
+##echo "1324800" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
+echo "75" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/pl
+echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/iowait_boost_enable
+
+
+echo "0" > /sys/devices/system/cpu/cpu4/core_ctl/enable
+##echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
+echo "1000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/up_rate_limit_us
+echo "5000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us
+##echo "1574400" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_freq
+echo "75" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/pl
+echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
+
+#echo 1 > /proc/sys/kernel/sched_walt_rotate_big_tasks
+
+##echo "0:300000" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "1:300000" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "2:300000" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "3:300000" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "4:825600" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "5:825600" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "6:825600" > /sys/module/msm_performance/parameters/cpu_min_freq
+##echo "7:825600" > /sys/module/msm_performance/parameters/cpu_min_freq
+
+##echo "825600" > /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+##echo "825600" > /sys/devices/system/cpu/cpu5/cpufreq/scaling_min_freq
+##echo "825600" > /sys/devices/system/cpu/cpu6/cpufreq/scaling_min_freq
+##echo "825600" > /sys/devices/system/cpu/cpu7/cpufreq/scaling_min_freq
+##echo "300000" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+##echo "300000" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
+##echo "300000" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq
+##echo "300000" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
+
+#echo "Y" > /sys/module/lpm_levels/L3/cpu0/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu1/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu2/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu3/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu4/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu5/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu6/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu7/rail-pc/idle_enabled
+
+#echo "Y" > /sys/module/lpm_levels/L3/l3-wfi/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/llcc-off/idle_enabled
+
+#echo "Y" > /sys/module/lpm_levels/L3/cpu0/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu1/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu2/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu3/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu4/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu5/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu6/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu7/pc/idle_enabled
+
+echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
+
+# write /sys/module/lpm_levels/parameters/sleep_disabled "N" 2>/dev/null
+
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+
+#echo "5000" > /sys/power/pm_freeze_timeout
+#echo "CACHE_HOT_BUDDY" >> /sys/kernel/debug/sched_features
+#echo "ENERGY_AWARE" >> /sys/kernel/debug/sched_features
+#echo "FBT_STRICT_ORDER" >> /sys/kernel/debug/sched_features
+#echo "LAST_BUDDY" >> /sys/kernel/debug/sched_features
+#echo "NEXT_BUDDY" >> /sys/kernel/debug/sched_features
+#echo "NO_GENTLE_FAIR_SLEEPERS" >> /sys/kernel/debug/sched_features
+#echo "NO_RT_RUNTIME_SHARE" >> /sys/kernel/debug/sched_features
+#echo "NO_TTWU_QUEUE" >> /sys/kernel/debug/sched_features
+#echo "NO_LB_BIAS" >> /sys/kernel/debug/sched_features
+#echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features
+#echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features
+
+sysctl -e -w kernel.panic_on_oops=0
+sysctl -e -w kernel.panic=0
+
+#echo "0" > /sys/kernel/mm/ksm/run
+#echo "0" > /sys/kernel/rcu_expedited
+#echo "1" > /sys/kernel/rcu_normal
+
+chmod 0664 /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
+#echo "710000000" > /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
+#echo "710000000" > /sys/class/kgsl/kgsl-3d0/max_gpuclk
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+#echo "0" > /sys/class/kgsl/kgsl-3d0/max_pwrlvl
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on_enabled
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on_enabled
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
+
+########################
+#echo "1" > /proc/sys/vm/overcommit_memory
+#echo "0" > /proc/sys/vm/oom_dump_tasks
+#echo "0" /proc/sys/vm/overcommit_ratio
+echo "1" > /proc/sys/vm/compact_unevictable_allowed
+#echo "15" > /proc/sys/vm/dirty_background_ratio
+#echo "500" > /proc/sys/vm/dirty_expire_centisecs
+#echo "60" > /proc/sys/vm/dirty_ratio
+#echo "3000" > /proc/sys/vm/dirty_writeback_centisecs
+
+echo "1" > /proc/sys/vm/oom_kill_allocating_task
+#echo "1200" > /proc/sys/vm/stat_interval
+#echo "0" > /proc/sys/vm/swap_ratio
+#echo "0" > /proc/sys/vm/swappiness
+#echo "10" > /proc/sys/vm/vfs_cache_pressure
+
+echo "512" > /proc/sys/kernel/random/read_wakeup_threshold
+echo "90" > /proc/sys/kernel/random/urandom_min_reseed_secs
+echo "1024" > /proc/sys/kernel/random/write_wakeup_threshold
+
+sysctl -e -w kernel.random.read_wakeup_threshold=512
+sysctl -e -w kernel.random.write_wakeup_threshold=1024
+sysctl -e -w kernel.random.urandom_min_reseed_secs=90
+
+chmod 666 /sys/module/lowmemorykiller/parameters/minfree
+chown root /sys/module/lowmemorykiller/parameters/minfree
+
+echo 1 > /proc/sys/kernel/sched_scaling_enable
+echo 2 > /proc/sys/kernel/sched_tunable_scaling
+#echo 0 > /proc/sys/kernel/sched_boost
+echo 1 > /proc/sys/kernel/sched_child_runs_first
+echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
+echo 2000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
+#echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
+echo 40000 > /proc/sys/kernel/sched_latency_ns
+#echo '0:1324800' > /sys/module/cpu_boost/parameters/input_boost_freq
+#echo '1:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
+#echo '2:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
+#echo '3:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
+echo 40 > /sys/module/cpu_boost/parameters/input_boost_ms
+echo 1200 > /sys/module/cpu_boost/parameters/powerkey_input_boost_ms
+echo "0" > /sys/module/workqueue/parameters/power_efficient
+
+echo "0" > /sys/devices/system/cpu/cpu0/core_ctl/enable
+#echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+echo "1000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
+echo "5000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
+#echo "1324800" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
+echo "75" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/pl
+echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/iowait_boost_enable
+
+echo "0" > /sys/devices/system/cpu/cpu4/core_ctl/enable
+#echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
+echo "1000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/up_rate_limit_us
+echo "5000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us
+#echo "1574400" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_freq
+echo "75" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/pl
+echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
+
+
+echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
+
+
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+
+sysctl -e -w kernel.panic_on_oops=0
+sysctl -e -w kernel.panic=0
+
+
+chmod 0664 /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
+#echo "710000000" > /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
+#echo "710000000" > /sys/class/kgsl/kgsl-3d0/max_gpuclk
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+#echo "0" > /sys/class/kgsl/kgsl-3d0/max_pwrlvl
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on_enabled
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_rail_on_enabled
+#echo "1" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
+
+chmod 666 /sys/module/lowmemorykiller/parameters/minfree
+chown root /sys/module/lowmemorykiller/parameters/minfree
+
+echo "1" > /sys/kernel/fast_charge/force_fast_charge
+
+echo "1" > /sys/kernel/sound_control/mic_gain
+
+echo "1" > /proc/sys/dev/cnss/randomize_mac
+
+#echo "mem" > /sys/power/autosleep
+
+echo "deep" > /sys/power/mem_sleep
+
+echo "10" > /sys/class/thermal/thermal_message/sconfig
+
+echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
+echo "0-$(nproc -all)" > /dev/cpuset/top-app/cpus
+echo "0-$(nproc -all)" /dev/cpuset/foreground/cpus
+echo "0" > /dev/cpuset/restricted/cpus
+echo "0" > /sys/module/workqueue/parameters/power_efficient
+echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
+echo N /sys/module/lpm_levels/parameters/sleep_disabled
+echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
+echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
+echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
+echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
+echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
+echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
+
+########################
+echo userspace > /sys/class/devfreq/soc:qcom,l3-cdsp/governor
+for cpubw in /sys/class/devfreq/*qcom,cpubw*
+do
+    echo "bw_hwmon" > $cpubw/governor
+    echo 50 > $cpubw/polling_interval
+    echo "2288 4577 6500 8132 9155 10681" > $cpubw/bw_hwmon/mbps_zones
+    echo 4 > $cpubw/bw_hwmon/sample_ms
+    echo 50 > $cpubw/bw_hwmon/io_percent
+    echo 20 > $cpubw/bw_hwmon/hist_memory
+    echo 10 > $cpubw/bw_hwmon/hyst_length
+    echo 0 > $cpubw/bw_hwmon/guard_band_mbps
+    echo 250 > $cpubw/bw_hwmon/up_scale
+    echo 1600 > $cpubw/bw_hwmon/idle_mbps
+done
+for llccbw in /sys/class/devfreq/*qcom,llccbw*
+do
+    echo "bw_hwmon" > $llccbw/governor
+    echo 50 > $llccbw/polling_interval
+    echo "1720 2929 3879 5931 6881" > $llccbw/bw_hwmon/mbps_zones
+    echo 4 > $llccbw/bw_hwmon/sample_ms
+    echo 80 > $llccbw/bw_hwmon/io_percent
+    echo 20 > $llccbw/bw_hwmon/hist_memory
+    echo 10 > $llccbw/bw_hwmon/hyst_length
+    echo 0 > $llccbw/bw_hwmon/guard_band_mbps
+    echo 250 > $llccbw/bw_hwmon/up_scale
+    echo 1600 > $llccbw/bw_hwmon/idle_mbps
+done
+for memlat in /sys/class/devfreq/*qcom,memlat-cpu*
+do
+    echo "mem_latency" > $memlat/governor
+    echo 10 > $memlat/polling_interval
+    echo 400 > $memlat/mem_latency/ratio_ceil
+done
+for memlat in /sys/class/devfreq/*qcom,l3-cpu*
+do
+    echo "mem_latency" > $memlat/governor
+    echo 10 > $memlat/polling_interval
+    echo 400 > $memlat/mem_latency/ratio_ceil
+done
+for l3cdsp in /sys/class/devfreq/*qcom,l3-cdsp*
+do
+    echo "userspace" > $l3cdsp/governor
+    chown -h system $l3cdsp/userspace/set_freq
+done
+echo 4000 > /sys/class/devfreq/soc:qcom,l3-cpu4/mem_latency/ratio_ceil
+echo "compute" > /sys/class/devfreq/soc:qcom,mincpubw/governor
+echo 10 > /sys/class/devfreq/soc:qcom,mincpubw/polling_interval
+
+chmod 0644 /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
+echo "898000.qcom,qup_uart;IPA_WS;NETLINK;[timerfd];c440000.qcom,spmi:qcom,pmi8998@2:qcom,qpnp-smb2;enable_ipa_ws;enable_netlink_ws;enable_netmgr_wl_ws;enable_qcom_rx_wakelock_ws;enable_timerfd_ws;enable_wlan_etscan_wl_ws;enable_wlan_wow_wl_ws;enable_wlan_ws;hal_bluetooth_lock;netmgr_wl;qcom_rx_wakelock;sensor_ind;wcnss_filtr_lock;wlan;wlan_extscan_wl;wlan_ipa;wlan_pno_wl;wlan_wow_wl;wcnss_filter_lock" > /sys/class/misc/boeffla_wakelock_blocker/wakelock_blocker
+echo 8 > /sys/module/bcmdhd/parameters/wlrx_divide
+echo 8 > /sys/module/bcmdhd/parameters/wlctrl_divide
+echo Y > /sys/module/wakeup/parameters/enable_bluetooth_timer
+echo N > /sys/module/wakeup/parameters/enable_wlan_ipa_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_pno_wl_ws
+echo N > /sys/module/wakeup/parameters/enable_wcnss_filter_lock_ws
+echo N > /sys/module/wakeup/parameters/wlan_wake
+echo N > /sys/module/wakeup/parameters/wlan_ctrl_wake
+echo N > /sys/module/wakeup/parameters/wlan_rx_wake
+echo N > /sys/module/wakeup/parameters/enable_msm_hsic_ws
+echo N > /sys/module/wakeup/parameters/enable_si_ws
+echo N > /sys/module/wakeup/parameters/enable_si_ws
+echo N > /sys/module/wakeup/parameters/enable_bluedroid_timer_ws
+echo N > /sys/module/wakeup/parameters/enable_ipa_ws
+echo N > /sys/module/wakeup/parameters/enable_netlink_ws
+echo N > /sys/module/wakeup/parameters/enable_netmgr_wl_ws
+echo N > /sys/module/wakeup/parameters/enable_qcom_rx_wakelock_ws
+echo N > /sys/module/wakeup/parameters/enable_timerfd_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_extscan_wl_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_rx_wake_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_wake_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_wow_wl_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_ws
+echo N > /sys/module/wakeup/parameters/enable_wlan_ctrl_wake_ws
+
+#if [ -f /system/build.prop ] ; then
+#su -c "pm enable com.google.android.gms"
+#su -c "pm enable com.google.android.gsf"
+#su -c "pm enable com.google.android.gms/.update.SystemUpdateActivity"
+#su -c "pm enable com.google.android.gms/.update.SystemUpdateService"
+#su -c "pm enable com.google.android.gms/.update.SystemUpdateServiceActiveReceiver"
+#su -c "pm enable com.google.android.gms/.update.SystemUpdateServiceReceiver"
+#su -c "pm enable com.google.android.gms/.update.SystemUpdateServiceSecretCodeReceiver"
+#su -c "pm enable com.google.android.gsf/.update.SystemUpdateActivity"
+#su -c "pm enable com.google.android.gsf/.update.SystemUpdatePanoActivity"
+#su -c "pm enable com.google.android.gsf/.update.SystemUpdateService" ; fi
+
+echo 0 > /sys/module/binder/parameters/debug_mask
+echo Y > /sys/module/bluetooth/parameters/disable_ertm
+echo Y > /sys/module/bluetooth/parameters/disable_esco
+echo 0 > /sys/module/debug/parameters/enable_event_log
+echo 0 > /sys/module/dwc3/parameters/ep_addr_rxdbg_mask
+echo 0 > /sys/module/dwc3/parameters/ep_addr_txdbg_mask
+echo 0 > /sys/module/edac_core/parameters/edac_mc_log_ce
+echo 0 > /sys/module/edac_core/parameters/edac_mc_log_ue
+echo 0 > /sys/module/glink/parameters/debug_mask
+echo N > /sys/module/hid_magicmouse/parameters/emulate_3button
+echo N > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
+echo 0 > /sys/module/ip6_tunnel/parameters/log_ecn_error
+echo 0 > /sys/module/lowmemorykiller/parameters/debug_level
+echo 0 > /sys/module/mdss_fb/parameters/backlight_dimmer
+echo 0 > /sys/module/msm_show_resume_irq/parameters/debug_mask
+echo 0 > /sys/module/msm_smd/parameters/debug_mask
+echo 0 > /sys/module/msm_smem/parameters/debug_mask
+echo N > /sys/module/otg_wakelock/parameters/enabled
+echo 0 > /sys/module/service_locator/parameters/enable
+echo N > /sys/module/sit/parameters/log_ecn_error
+echo 0 > /sys/module/smem_log/parameters/log_enable
+echo 0 > /sys/module/smp2p/parameters/debug_mask
+echo Y > /sys/module/sync/parameters/fsync_enabled
+echo 0 > /sys/module/touch_core_base/parameters/debug_mask
+echo 0 > /sys/module/usb_bam/parameters/enable_event_log
+echo Y > /sys/module/printk/parameters/console_suspend
+echo 0 > /sys/module/wakelock/parameters/debug_mask
+echo 0 > /sys/module/userwakelock/parameters/debug_mask
+echo 0 > /sys/module/earlysuspend/parameters/debug_mask
+echo 0 > /sys/module/alarm/parameters/debug_mask
+echo 0 > /sys/module/alarm_dev/parameters/debug_mask
+echo 0 > /sys/module/binder/parameters/debug_mask
+echo 0 > /sys/devices/system/edac/cpu/log_ce
+echo 0 > /sys/devices/system/edac/cpu/log_ue
+
+sysctl -w kernel.panic_on_oops=0
+sysctl -w kernel.panic=0
+
+for i in $( find /sys/ -name debug_mask) ; do
+ echo 0 > $i
+done
+
+if [ -e /sys/module/logger/parameters/log_mode ] ; then
+ echo 0 > /sys/module/logger/parameters/log_mode
+fi
+
+
+#settings put global device_idle_constants light_after_inactive_to=5000,light_pre_idle_to=10000,light_max_idle_to=86400000,light_idle_to=43200000,light_idle_maintenance_max_budget=20000,light_idle_maintenance_min_budget=5000,min_time_to_alarm=60000,inactive_to=120000,motion_inactive_to=120000,idle_after_inactive_to=5000,locating_to=2000,sensing_to=120000,idle_to=7200000,wait_for_unlock=true
+
+
+#adb -d shell pm grant org.kde.kdeconnect_tp android.permission.READ_LOGS;
+##adb -d shell appops set org.kde.kdeconnect_tp SYSTEM_ALERT_WINDOW allow;
+##adb -d shell am force-stop org.kde.kdeconnect_tp;
+
+
+# above from old android scripts, need to sort all and put correct values thats why i left them up here for now.
 
   ### < START PARAMETER CONFIG >
 ##########################################################################################################
 # systunedump --all | sed 's/:/ /g' | awk '{print "echo "$2" > "$1}' > text
 # just dumped this still needs editing
+echo 60 > /sys/fs/f2fs/*/cp_interval
+echo 0 > proc/sys/vm/block_dump
+echo 0 > /sys/module/ext4/parameters/mballoc_debug
 echo 0 > /proc/sys/abi/vsyscall32
 echo 0 > /proc/sys/debug/exception-trace
 echo 1 > /proc/sys/debug/kprobes-optimization
@@ -1277,7 +2040,7 @@ echo 0 > /proc/sys/net/ipv4/conf/all/promote_secondaries
 echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp
 echo 0 > /proc/sys/net/ipv4/conf/all/proxy_arp_pvlan
 echo 0 > /proc/sys/net/ipv4/conf/all/route_localnet
-echo 1 > /proc/sys/net/ipv4/conf/all/rp_filter
+echo 2 > /proc/sys/net/ipv4/conf/all/rp_filter
 echo 0 > /proc/sys/net/ipv4/conf/all/secure_redirects
 echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects
 echo 1 > /proc/sys/net/ipv4/conf/all/shared_media
@@ -1309,7 +2072,7 @@ echo 0 > /proc/sys/net/ipv4/conf/default/promote_secondaries
 echo 0 > /proc/sys/net/ipv4/conf/default/proxy_arp
 echo 0 > /proc/sys/net/ipv4/conf/default/proxy_arp_pvlan
 echo 0 > /proc/sys/net/ipv4/conf/default/route_localnet
-echo 1 > /proc/sys/net/ipv4/conf/default/rp_filter
+echo 2 > /proc/sys/net/ipv4/conf/default/rp_filter
 echo 0 > /proc/sys/net/ipv4/conf/default/secure_redirects
 echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects
 echo 1 > /proc/sys/net/ipv4/conf/default/shared_media
@@ -1492,7 +2255,7 @@ echo 9 > /proc/sys/net/ipv4/route/redirect_number
 echo 5120 > /proc/sys/net/ipv4/route/redirect_silence
 echo 0 > /proc/sys/net/ipv4/tcp_abort_on_overflow
 echo 1 > /proc/sys/net/ipv4/tcp_adv_win_scale
-echo reno > /proc/sys/net/ipv4/tcp_allowed_congestion_control
+echo $tcp_con > /proc/sys/net/ipv4/tcp_allowed_congestion_control
 echo 31 > /proc/sys/net/ipv4/tcp_app_win
 echo 0 > /proc/sys/net/ipv4/tcp_autocorking
 echo 1024 > /proc/sys/net/ipv4/tcp_base_mss
@@ -2012,8 +2775,9 @@ echo 1 > /proc/sys/vm/oom_dump_tasks
 echo 1 > /proc/sys/vm/oom_kill_allocating_task
 #echo 0 > /proc/sys/vm/overcommit_kbytes
 echo $overcommit > /proc/sys/vm/overcommit_memory
-echo 100 > /proc/sys/vm/overcommit_ratio
-echo 0 > /proc/sys/vm/page-cluster
+echo $oratio > /proc/sys/vm/overcommit_ratio
+echo $pagec > /proc/sys/vm/page-cluster
+echo 1 > /proc/sys/vm/pagecache
 echo 1 > /proc/sys/vm/page_lock_unfairness
 echo 0 > /proc/sys/vm/panic_on_oom
 echo 0 > /proc/sys/vm/percpu_pagelist_high_fraction
@@ -2045,7 +2809,7 @@ fi
 echo 1 > /sys/module/processor/parameters/ignore_tpc
 echo 0 > /sys/module/processor/parameters/nocst
 
-echo 1 > /sys/kernel/mm/ksm/run
+echo $ksm > /sys/kernel/mm/ksm/run
 echo 1 > /sys/kernel/mm/ksm/merge_across_nodes
 
 
@@ -2061,7 +2825,7 @@ echo "1" > /sys/kernel/sound_control/mic_gain
 echo "1" > /proc/sys/dev/cnss/randomize_mac
 
 # amdgpu
-if dmesg | grep -q amdgpu ; then 
+if dmesg | grep -q amdgpu ; then
 # command to dump yours: for i in $(ls /sys/module/amdgpu/parameters) ; do echo "#echo -1 > /sys/module/amdgpu/parameters/$i" ; done
 # more info: https://www.kernel.org/doc/html/v4.20/gpu/amdgpu.html
 #echo -1 > /sys/module/amdgpu/parameters/abmlevel
@@ -2182,7 +2946,7 @@ echo 0 > /sys/module/radeon/parameters/tv
 #echo -1 > /sys/module/radeon/parameters/vramlimit
 fi
 
-if echo $zswap | grep -q "zswap.enabled=1" ; then 
+if echo $zswap | grep -q "zswap.enabled=1" ; then
 echo 90 > /sys/module/zswap/parameters/accept_threshold_percent
 echo lz4 > /sys/module/zswap/parameters/compressor
 echo Y > /sys/module/zswap/parameters/enabled
@@ -2192,7 +2956,7 @@ echo Y > /sys/module/zswap/parameters/same_filled_pages_enabled
 echo $zpool > /sys/module/zswap/parameters/zpool
 fi
 
-if [ $ipv6 = off ] && ! grep -q wrt /etc/os-release ; then 
+if [ $ipv6 = off ] && ! grep -q wrt /etc/os-release ; then
 echo 0 > /sys/module/ipv6/parameters/autoconf
 echo 1 > /sys/module/ipv6/parameters/disable
 echo 1 > /sys/module/ipv6/parameters/disable_ipv6
@@ -2239,8 +3003,8 @@ echo 0x0000 > /sys/kernel/mm/lru_gen/enabled
 echo false > /sys/kernel/mm/numa/demotion_enabled
 
 echo 1 > /sys/kernel/reboot/cpu
-echo 1 > /sys/kernel/reboot/force 
-echo hard > /sys/kernel/reboot/mode 
+echo 1 > /sys/kernel/reboot/force
+echo hard > /sys/kernel/reboot/mode
 echo triple > /sys/kernel/reboot/type
 
 echo 0xffffff > /sys/kernel/security/apparmor/capability
@@ -2257,13 +3021,13 @@ echo full > /sys/kernel/debug/sched/preempt
 echo Y > /sys/kernel/debug/tracing/set_ftrace_notrace
 
 
-echo N > /sys/module/ip6_gre/parameters/log_ecn_error     
+echo N > /sys/module/ip6_gre/parameters/log_ecn_error
 echo N > /sys/module/ip_gre/parameters/log_ecn_error
-echo N > /sys/module/ip6_tunnel/parameters/log_ecn_error  
+echo N > /sys/module/ip6_tunnel/parameters/log_ecn_error
 echo N > /sys/module/sit/parameters/log_ecn_error
 
-echo N > /sys/module/ehci_hcd/parameters/log2_irq_thresh 
-echo N > /sys/module/nmi_backtrace/parameters/backtrace_idle  
+echo N > /sys/module/ehci_hcd/parameters/log2_irq_thresh
+echo N > /sys/module/nmi_backtrace/parameters/backtrace_idle
 echo N > /sys/module/ramoops/parameters/ftrace_size
 echo 99999999999999999999999999999999 > /sys/module/pstore/parameter/update_ms
 echo "(null)" > /sys/module/pstore/parameters/backend
@@ -2411,7 +3175,7 @@ for i in $(find /sys/block/sd*); do
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "512" > $i/queue/nr_requests
+  echo "1024" > $i/queue/nr_requests
   echo "4096" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -2471,7 +3235,7 @@ for i in $(find /sys/block/mtd*); do
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "512" > $i/queue/nr_requests
+  echo "1024" > $i/queue/nr_requests
   echo "4096" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -2531,7 +3295,7 @@ for i in $(find /sys/block/mmc*); do
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "512" > $i/queue/nr_requests
+  echo "1024" > $i/queue/nr_requests
   echo "2048" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -2635,7 +3399,7 @@ echo 0 > /proc/sys/kernel/bpf_stats_enabled
 echo 0 > /proc/sys/kernel/sched_autogroup_enabled
 echo 0 > /proc/sys/kernel/stack_tracer_enabled
 echo 0 > /proc/sys/kernel/nmi_watchdog
-echo "0" > /sys/kernel/mm/ksm/run
+echo $ksm > /sys/kernel/mm/ksm/run
 echo "1" > /sys/kernel/rcu_expedited
 echo "0" > /sys/kernel/rcu_normal
 echo "512" > /proc/sys/kernel/random/read_wakeup_threshold
@@ -2656,7 +3420,7 @@ echo 8 > /sys/kernel/debug/sched/nr_migrate
 # different path under 5.10
 sysctl -w kernel.sched_scaling_enable=1
 sysctl /proc/sys/kernel/sched_scaling_enable=1
-sysctl /proc/sys/kernel/sched_tunable_scaling=0
+sysctl /proc/sys/kernel/sched_tunable_scaling=2
 sysctl /proc/sys/kernel/sched_child_runs_first=1
 sysctl /proc/sys/kernel/sched_min_granularity_ns=500000
 sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=500000
@@ -2678,11 +3442,16 @@ echo 0 > /proc/sys/kernel/sched_min_task_util_for_colocation
 echo 32 > /proc/sys/kernel/sched_nr_migrate
 echo off > /proc/sys/kernel/printk_devkmsg
 
-echo "5000" > /sys/power/pm_freeze_timeout
+echo "15000" > /sys/power/pm_freeze_timeout
+
+
+
+
+
 # some paths changed since 5.10 so double
 # there are more than listed here though:
 # https://github.com/torvalds/linux/blob/master/kernel/sched/features.h
-for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do 
+for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do
 echo START_DEBIT >> "$i"features
 echo LAST_BUDDY >> "$i"features
 echo CACHE_HOT_BUDDY >> "$i"features
@@ -2713,8 +3482,16 @@ echo NO_LB_BIAS >> "$i"features
 echo NO_ENERGY_AWARE >> "$i"features
 echo WAKEUP_PREEMPTION >> "$i"features
 echo AFFINE_WAKEUPS  >> "$i"features
-echo NO_NORMALIZED_SLEEPER >> "$i"features
+echo NO_NORMALIZED_SLEEPERS >> "$i"features
 echo RT_RUNTIME_GREED >> "$i"features
+echo ARCH_POWER >> "$i"features
+echo NO_FORCE_SD_OVERLAP >> "$i"features
+echo NO_NEW_FAIR_SLEEPERS >> "$i"features
+echo NONTASK_POWER >> "$i"features
+echo NO_OWNER_SPIN >> "$i"features
+echo NO_WAKEUP_OVERLAP >> "$i"features
+echo ARCH_CAPACITY >> "$i"features
+echo NO_MIN_CAPACITY_CAPPING >> "$i"features
 echo N > "$i"debug
 #echo ? > "$i"idle_min_granularity_ns
 echo 40000 > "$i"latency_ns
@@ -2735,8 +3512,8 @@ echo 500000 > "$i"wakeup_granularity_ns
 #echo ? > "$i"scan_size_mb
 done
 
-if [ -f /system/build.prop ] && ! grep -q tv /system/build.prop ; then 
-for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do 
+if [ -f /system/build.prop ] && ! grep -q tv /system/build.prop ; then
+for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do
 echo ENERGY_AWARE >> "$i"features ; done ; fi
 
 echo 3 > /sys/bus/workqueue/devices/writeback/cpumask
@@ -2748,8 +3525,7 @@ echo 2 > /proc/irq/50/smp_affinity
 echo 1 > /proc/sys/vm/page_lock_unfairness
 echo 0 > /proc/sys/vm/zone_reclaim_mode
 echo $overcommit > /proc/sys/vm/overcommit_memory
-echo 100 > /proc/sys/vm/overcommit_ratio
-echo 0 > /proc/sys/vm/page-cluster
+echo $oratio > /proc/sys/vm/overcommit_ratio
 echo "1" /proc/sys/fs/leases-enable
 echo "0" > /proc/sys/fs/dir-notify-enable
 echo "20" > /proc/sys/fs/lease-break-time
@@ -2970,13 +3746,16 @@ echo '# sysctl
 
 #
 # more
+
+net.ipv4.conf.default.rp_filter=2
+net.ipv4.conf.all.rp_filter=2
 kernel.shmall = '"$shmall"'
 kernel.shmmax = '"$shmmax"'
 kernel.shmmni = '"$shmmni"'
 vm.nr_hugepages = '"$hugepages"'
 vm.nr_hugepages_mempolicy = '"$hugepages"'
 if ! grep -q wrt /etc/os-release ; then
-abi.vsyscall32 = 0 
+abi.vsyscall32 = 0
 fi
 crypto.fips_enabled = 1
 debug.exception-trace = 0
@@ -2988,7 +3767,7 @@ dev.scsi.logging_level = 0
 dev.tty.ldisc_autoload = 1
 energy_perf_bias = performance
 if [ '"$cpumaxcstate"' = 0 ] ; then
-force_latency = 1 
+force_latency = 1
 fi
 fs.aio-max-nr = 1048576
 fs.aio-nr = 0
@@ -3033,7 +3812,7 @@ fs.quota.warnings = 1
 fs.quota.writes = 0
 fs.suid_dumpable = 0
 fs.verity.require_signatures = 0
-fs.xfs.error_level = 3
+fs.xfs.error_level = 0
 fs.xfs.filestream_centisecs = 3000
 fs.xfs.inherit_noatime = 1
 fs.xfs.inherit_nodefrag = 1
@@ -3216,10 +3995,10 @@ net.core.xfrm_aevent_rseqth = 2
 net.core.xfrm_larval_drop = 1
 net.ipv4.tcp_abort_on_overflow = 0
 net.ipv4.tcp_adv_win_scale = 1
-net.ipv4.tcp_allowed_congestion_control = reno cubic bbr
+#net.ipv4.tcp_allowed_congestion_control = reno cubic bbr
 net.ipv4.tcp_app_win = 31
 net.ipv4.tcp_autocorking = 0
-net.ipv4.tcp_available_congestion_control = reno cubic bbr
+#net.ipv4.tcp_available_congestion_control = reno cubic bbr
 net.ipv4.tcp_available_ulp = mptcp
 net.ipv4.tcp_base_mss = 1024
 net.ipv4.tcp_challenge_ack_limit = 2147483647
@@ -3423,8 +4202,9 @@ vm.oom_dump_tasks = 1
 vm.oom_kill_allocating_task = 1
 #vm.overcommit_kbytes = 0
 vm.overcommit_memory = '"$overcommit"'
-vm.overcommit_ratio = 100
-vm.page-cluster = 0
+vm.overcommit_ratio = '"$oratio"'
+vm.page-cluster = '"$pagec"'
+vm.pagecache = 1
 vm.page_lock_unfairness = 1
 vm.panic_on_oom = 0
 vm.percpu_pagelist_high_fraction = 0
@@ -3472,7 +4252,6 @@ net.ipv4.conf.all.promote_secondaries = 0
 net.ipv4.conf.all.proxy_arp = 0
 net.ipv4.conf.all.proxy_arp_pvlan = 0
 net.ipv4.conf.all.route_localnet = 0
-net.ipv4.conf.all.rp_filter = 1
 net.ipv4.conf.all.secure_redirects = 0
 net.ipv4.conf.all.send_redirects = 0
 net.ipv4.conf.all.send_redirects = 0
@@ -3506,7 +4285,6 @@ net.ipv4.conf.default.promote_secondaries = 0
 net.ipv4.conf.default.proxy_arp = 0
 net.ipv4.conf.default.proxy_arp_pvlan = 0
 net.ipv4.conf.default.route_localnet = 0
-net.ipv4.conf.default.rp_filter = 1
 net.ipv4.conf.default.secure_redirects = 0
 net.ipv4.conf.default.send_redirects = 0
 net.ipv4.conf.default.shared_media = 1
@@ -3617,17 +4395,19 @@ net.ipv4.route.min_pmtu = 552
 net.ipv4.route.mtu_expires = 600
 net.ipv4.route.redirect_load = 5
 net.ipv4.route.redirect_number = 9
-net.ipv4.route.redirect_silence = 5120' | tee -a /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl ; fi
+net.ipv4.route.redirect_silence = 5120
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv6.conf.all.accept_redirects = 0' | tee -a /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl ; fi
 
 
 if dmesg | grep -q raid ; then
 sysctl -w dev.raid.speed_limit_min=1000000
-sysctl -w dev.raid.speed_limit_max=1000000 
+sysctl -w dev.raid.speed_limit_max=1000000
 echo 8 > /sys/block/md0/md/group_thread_cnt; fi
 
 
 
-if ! grep -q wrt /etc/os-release ; then 
+if ! grep -q wrt /etc/os-release ; then
 sysctl -w net.ipv4.conf.all.accept_source_route=0
 sysctl -w net.ipv4.conf.all.forwarding=0
 sysctl -w net.ipv6.conf.all.forwarding=0
@@ -3769,7 +4549,7 @@ $s mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.conf
 
 # disable polling gpu
 if ! grep -q poll=0 /etc/modprobe.d/modprobe.conf ; then
-echo'options drm_kms_helper poll=0' | tee -a /etc/modprobe.d/modprobe.conf ; fi
+echo 'options drm_kms_helper poll=0' | tee -a /etc/modprobe.d/modprobe.conf ; fi
 
 
 
@@ -4178,7 +4958,7 @@ export PAGER=less
 export QT_LOGGING_RULES='\''*=false'\''
 export MESA_DEBUG=silent
 export LIBGL_DEBUG=0
-export GNUTLS_CPUID_OVERRIDE=0x1 
+export GNUTLS_CPUID_OVERRIDE=0x1
 export MESA_NO_DITHER=1
 export MESA_NO_ERROR=1
 
@@ -4202,7 +4982,8 @@ if [ ! $XDG_SESSION_TYPE = wayland ] ; then export KWIN_OPENGL_INTERFACE=EGL ;  
 
 export VAAPI_MPEG4_ENABLED
 if [ ! "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
-export CONFIG_SND_HDA_PREALLOC_SIZE=64 ; fi
+export CONFIG_SND_HDA_PREALLOC_SIZE=4
+fi
 
 export ANV_ENABLE_PIPELINE_CACHE=1
 export __GL_SHADER_DISK_CACHE=1
@@ -4258,9 +5039,11 @@ export DXVK_CONFIG_FILE=/etc/dxvk.conf
 export QT_STYLE_OVERRIDE=kvantum
 export GTK_USE_PORTAL=1
 
+export tlink="https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh"
+
 export OBS_USE_EGL=1
 
-# statements dont seem to work btw, read online people using them... doesnt work 
+# statements dont seem to work btw, read online people using them... doesnt work
 
 #if [ $(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1) = radeon ] ; then
 export radeonsi_enable_nir=true
@@ -4275,18 +5058,18 @@ export radeonsi_enable_nir=true
 export KWIN_OPENGL_INTERFACE=EGL
 #fi
 
-#if dmesg | grep -q amdgpu ; then 
+#if dmesg | grep -q amdgpu ; then
 export amdgpusi_enable_nir=true
 #fi
 
-#if [ $XDG_SESSION_TYPE = x11 ] ; then 
-export MOZ_X11_EGL=1 
-export MOZ_ENABLE_WAYLAND=0 
+#if [ $XDG_SESSION_TYPE = x11 ] ; then
+export MOZ_X11_EGL=1
+export MOZ_ENABLE_WAYLAND=0
 #fi
 
-#if [ $XDG_SESSION_TYPE = wayland ] ; then 
-#export MOZ_ENABLE_WAYLAND=1 
-#export MOZ_X11_EGL=0 
+#if [ $XDG_SESSION_TYPE = wayland ] ; then
+#export MOZ_ENABLE_WAYLAND=1
+#export MOZ_X11_EGL=0
 f#i
 
 #VDPAU_DRIVER=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
@@ -4308,43 +5091,228 @@ for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i
 
 ### IF ANDROID
 # android props etc
+# since script aims for broad range of devices legacy props included
+# wont get applied on newer devices anyway. no harm
 if [ -f /system/build.prop ] ; then
-prop=' 
+prop='#####################################
+ 
+###
+#BOARD_EGL_NEEDS_LEGACY_FB=false
+#POWER_SAVE_PRE_CLEAN_MEMORY_TIME=1800
+#adaptive_battery_management_enabled=1
 #boot.fps=20
+#dalvik.vm.heapmaxfree=2m
+#dalvik.vm.heapminfree=512k
+#dalvik.vm.heaptargetutilization=0.99
+#debug.egl.buffcount=2
 #debug.egl.hw=1
 #debug.egl.profiler=1
-dalvik.vm.dexopt-flags=m=y
+#debug.hwui.swap_with_damage=true
+#debug.sf.nobootanimation=1
+#font_scale=1.25
+#hwui.text_gamma.black_threshold=64
+#hwui.text_gamma.white_threshold=192
+#hwui.text_gamma=1.4
+#hwui.text_gamma_correction=lookup
+#hwui.use_gpu_pixel_buffers=true
+#k2hd_effect=1
+#lmk.autocalc=false
+#persist.sys.force_highendgfx=true
+#ro.board_ram_size=low
+#ro.bq.gpu_to_cpu_unsupported=1
+#ro.build.selinux=1
+#ro.config.low_ram=true
+#ro.config.zram.support=false
+#ro.config.zram=false
+#ro.hwui.disable_scissor_opt=false
+#ro.hwui.drop_shadow_cache_size=2
+#ro.hwui.gradient_cache_size=64k
+#ro.hwui.layer_cache_size=16
+#ro.hwui.patch_cache_size=128
+#ro.hwui.path_cache_size=4
+#ro.hwui.r_buffer_cache_size=2
+#ro.hwui.shape_cache_size=1
+#ro.hwui.text_large_cache_height=512
+#ro.hwui.text_large_cache_width=2048
+#ro.hwui.text_small_cache_height=256
+#ro.hwui.text_small_cache_width=1024
+#ro.hwui.texture_cache_flush_rate=0.6
+#ro.hwui.texture_cache_size=24
+#ro.qualcomm.perf.cores_online=2
+#ro.sys.fw.bg_apps_limit=78
+#ro.vendor.qti.am.reschedule_service=true
+#ro.vendor.qti.sys.fw.bservice_age=5000
+#ro.vendor.qti.sys.fw.bservice_enable true
+#ro.vendor.qti.sys.fw.bservice_limit=5
+#ro.zygote.disable_gl_preload=false
+#ro.zygote.preload.disable=2
+#sys.config.samp_enable=false
+#sys.config.samp_spcm_enable=false
+#vnswap.enabled=false
+#zram.disksize=0
+#persist.sys.shutdown.mode=hibernate
+#thermal_limit_refresh_rate=0
+#tube_amp_effect=1
+ACTIVITY_INACTIVE_RESET_TIME=false
+ACTIVITY_INACTIVITY_RESET_TIME=false
+activity_starts_logging_enabled=0
+af.fast_track_multiplier=1
+animator_duration_scale=0.0
+app_auto_restriction_enabled=1
+app_restriction_enabled=true
+app_standby_enabled=1
+APP_SWITCH_DELAY_TIME=false
+audio.deep_buffer.media=true
+audio.offload.buffer.size.kb=32
+audio.offload.gapless.enabled=true
+audio.offload.pcm.16bit.enable=true
+audio.offload.pcm.24bit.enable=true
+audio.offload.track.enable=true
+audio.offload.video=true
+ble_scan_always_enabled=0
+bluetooth_discoverability=1
+cached_apps_freezer=enabled
+config.disable_consumerir=true
+CONTENT_APP_IDLE_OFFSET=false
+cpu.fps=auto
+CPU_MIN_CHECK_DURATION=false
+dalvik.gc.type=precise
+dalvik.vm.check-dex-sum=false
+dalvik.vm.checkjni=false
+dalvik.vm.deadlock-predict=off
+dalvik.vm.debug.alloc=0
+dalvik.vm.dex2oat-filter=speed
+dalvik.vm.dex2oat-flags=--no-watch-dog
+dalvik.vm.dex2oat-minidebuginfo=false
+dalvik.vm.dex2oat-swap=true
+dalvik.vm.dex2oat64.enabled=true
+dalvik.vm.dexopt-data-only=1
+dalvik.vm.dexopt-flags=m=y,v=n,o=y,u=n
+dalvik.vm.dexopt.secondary=true
+dalvik.vm.execution-mode=int:jit
 dalvik.vm.heapgrowthlimit=512m
 dalvik.vm.heapsize=1024m
 dalvik.vm.heapstartsize=8m
+dalvik.vm.heaptargetutilization=0.55
+dalvik.vm.heaputilization=0.55
+dalvik.vm.image-dex2oat-filter=--no-watch-dog
+dalvik.vm.jniopts=forcecopy
+dalvik.vm.lockprof.threshold=500
+dalvik.vm.usejit=true
 dalvik.vm.verify-bytecode=false
+debug.atrace.tags.enableflags=0
+debug.bt.lowspeed=true
 debug.composition.type=vulkan
+debug.cpurend.vsync=true
+debug.doze.component=1
+debug.egl.hw=1
+debug.egl.profiler=1
+debug.egl.swapinterval=0
+debug.enable.sglscale=1
 debug.enabletr=true
+debug.gr.numframebuffers=2
+debug.gr.swapinterval=1
+debug.gralloc.enable_fb_ubwc=1
+debug.hwc.otf=1
+debug.hwc.winupdate=1
+debug.hwui.force_dark=true
+debug.hwui.level=0
+debug.hwui.render_dirty_regions=false
 debug.hwui.renderer=vulkan
+debug.hwui.show_dirty_regions=false
+debug.hwui.use_buffer_age=true
+debug.hwui.use_gpu_pixel_buffers=true
 debug.kill_allocating_task=0
+debug.mdpcomp.logs=0
 debug.overlayui.enable=1
 debug.performance.tuning=1
 debug.qc.hardware=true
 debug.qctwa.preservebuf=1
 debug.qctwa.statusbar=1
+debug.sf.ddms=0
+debug.sf.disable_backpressure=1
+debug.sf.disable_client_composition_cache=0
+debug.sf.enable_gl_backpressure=1
+debug.sf.enable_hwc_vds=1
 debug.sf.hw=1
-debug.sf.nobootanimation=1
+debug.sf.latch_unsignaled=1
+debug.sf.recomputecrop=0
+debug.sf.swaprect=1
+debug.sf.use_phase_offsets_as_durations=1
+debug.sqlite.syncmode=1
+debug.stagefright.ccodec=1
 debugtool.anrhistory=0
+dev.bootcomplete=0
 dev.pm.dyn_samplingrate=1
+display_color_mode=0
+dk_log_level=0
+doze.pickup.vibration.threshold=2000
+doze.pulse.brightness=15
+doze.pulse.delay.in=200
+doze.pulse.duration.in=1000
+doze.pulse.duration.out=1000
+doze.pulse.duration.visible=5000
+doze.pulse.notifications=0
+doze.pulse.notifications=true
+doze.pulse.proxcheck=0
+doze.pulse.schedule.resets=3
+doze.pulse.schedule=1s,10s,30s,60s,120s
+doze.pulse.sigmotion=0
+doze.shake.acc.threshold=10
+doze.use.accelerometer=0
+doze.vibrate.sigmotion=0
+drm.service.enabled=true
+EMPTY_APP_IDLE_OFFSET=false
+enable_diskstats_logging=0
+ENFORCE_PROCESS_LIMIT=false
+enhanced_processing=1
+fancy_ime_animations=0
 force_hw_ui=true
+forced_app_standby_enabled=1
+foreground_service_starts_logging_enabled=0
+fstrim_mandatory_interval=1
+game_driver_all_apps=1
+GC_TIMEOUT=false
 hw2d.force=1
 hw3d.force=1
-hwui.disable_vsync=true
+hwui.disable_vsync=false
 hwui.render_dirty_regions=false
+intelligent_sleep_mode=0
+keep_profile_in_background=0
+libc.debug.malloc=0
 logcat.live=disable
+logd.logpersistd.enable=false
+long_press_timeout=250
+master_motion=0
+MAX_SERVICE_INACTIVITY=false
 media.stagefright.enable-aac=true
+media.stagefright.enable-fma2dp=true
 media.stagefright.enable-http=true
 media.stagefright.enable-meta=true
 media.stagefright.enable-player=true
 media.stagefright.enable-qcp=true
 media.stagefright.enable-record=true
 media.stagefright.enable-scan=true
+media.stagefright.thumbnail.prefer_hw_codecs=true
+media.stagefright.use-awesome=true
+media.xloud.enable=1
+media.xloud.supported=true
+MIN_CRASH_INTERVAL=false
+MIN_HIDDEN_APPS=false
+MIN_RECENT_TASKS=false
+min_refresh_rate=1.0
+mm.enable.smoothstreaming=true
+mobile_data_always_on=0
+mot.proximity.delay=25
 mpq.audio.decode=true
+multi_press_timeout=250
+multicore_packet_scheduler=1
+net.dns1='"$dns1"'
+net.dns2='"$dns2"'
+net.ppp0.dns1='"$dns1"'
+net.ppp0.dns2='"$dns2"'
+net.rmnet0.dns1='"$dns1"'
+net.rmnet0.dns2='"$dns2"'
 net.tcp.buffersize.default=6144,87380,1048576,6144,87380,524288
 net.tcp.buffersize.edge=6144,87380,524288,6144,16384,262144
 net.tcp.buffersize.evdo_b=6144,87380,1048576,6144,87380,1048576
@@ -4354,36 +5322,126 @@ net.tcp.buffersize.hspa=6144,87380,524288,6144,16384,262144
 net.tcp.buffersize.lte=524288,1048576,2097152,524288,1048576,2097152
 net.tcp.buffersize.umts=6144,87380,1048576,6144,87380,524288
 net.tcp.buffersize.wifi=524288,1048576,2097152,524288,1048576,2097152
+omap.enhancement=true
+persist.adb.notify=0
 persist.android.strictmode=0
+#persist.audio.hifi=true
+persist.bootanim.preload=1
+persist.cust.tel.eons=1
+persist.device_config.runtime_native.usap_pool_enabled=true
+persist.device_config.runtime_native_boot.iorap_perfetto_enable=true
+persist.device_config.runtime_native_boot.iorap_readahead_enable=true
+persist.dpm.feature=1
+persist.mm.enable.prefetch=true
+persist.preload.common=1
 persist.radio.add_power_save=1
+persist.radio.data_no_toggle=1
+persist.radio.ramdump=0
+persist.ril.uart.flowctrl=99
+persist.sampling_profiler=0
 persist.service.lgospd.enable=0
 persist.service.pcsync.enable=0
+persist.service.xloud.enable=1
+persist.speaker.prot.enable=false
+persist.sys.binary_xml=false
 persist.sys.composition.type=vulkan
+persist.sys.dalvik.hyperthreading=true
+persist.sys.dalvik.multithread=true
+persist.sys.job_delay=false
+persist.sys.lowcost=1
 persist.sys.NV_FPSLIMIT=244
-persist.sys.purgeable_assets=1
+persist.sys.NV_POWERMODE=1
 persist.sys.purgeable_assets=1
 persist.sys.scrollingcache=3
+persist.sys.sf.color_saturation=1.25
+persist.sys.ssr.enable_ramdumps=0
+persist.sys.storage_preload=1
 persist.sys.ui.hw=1
 persist.sys.use_16bpp_alpha=1
 persist.sys.use_dithering=0
+persist.traced.enable=0
+persist.vendor.sys.ssr.enable_ramdumps=0
+persist.wpa_supplicant.debug=false
 persyst.sys.usb.config=mtp,adb
+pm.dexopt.bg-dexopt=speed
+pm.dexopt.shared=speed
 pm.sleep_mode=1
+power.saving.mode=1
+power_supply.wakeup=enable
+PROC_START_TIMEOUT=false
 profiler.debugmonitor=false
+profiler.force_disable_err_rpt=true
+profiler.force_disable_ulog=true
 profiler.hung.dumpdobugreport=false
 profiler.launch=false
+qcom.hw.aac.encoder=true
+rakuten_denwa=0
+ram_expand_size_list=1
+refresh_rate_mode=2
+remote_control=0
+restricted_device_performance=1.0
 ro.allow.mock.location=1
+ro.am.reschedule_service=true
+ro.audio.flinger_standbytime_ms=300
+ro.boot.warranty_bit=0
+ro.bq.gpu_to_cpu_unsupported=1
+ro.camcorder.videoModes=true
+ro.charger.disable_init_blank=true
+ro.com.google.locationfeatures=0
+ro.com.google.networklocation=0
+ro.compcache.default=1
+ro.config.combined_signal=true
+ro.config.dha_tunnable=1
+ro.config.disable.hw_accel=false
+ro.config.ehrpd=true
 ro.config.enable.hw_accel=true
+ro.config.fha_enable=true
+ro.config.htc.nocheckin=1
 ro.config.hw_fast_dormancy=1
+ro.config.hw_power_saving=true
 ro.config.hw_quickpoweron=true
-ro.config.hw_quickpoweron=true
-ro.debuggable=1
+ro.config.low_mem=true
+ro.config.low_ram.mod=true
+ro.config.low_ram=true
+ro.config.nocheckin=1
+ro.config.rm_preload_enabled=1
+ro.dalvik.vm.native.bridge=0
+ro.debuggable=0
+ro.DontUseAnimate=true
+ro.fast.dormancy=1
 ro.fb.mode=1
+ro.floatingtouch.available=1
 ro.HOME_APP_ADJ=1
+ro.hwui.disable_scissor_opt=false
+ro.hwui.drop_shadow_cache_size=6
+ro.hwui.gradient_cache_size=0.1
+ro.hwui.gradient_cache_size=1
+ro.hwui.layer_cache_size=48
+ro.hwui.path_cache_size=32
+ro.hwui.r_buffer_cache_size=8
+ro.hwui.text_large_cache_height=1024
+ro.hwui.text_large_cache_width=2048
+ro.hwui.text_small_cache_height=1024
+ro.hwui.text_small_cache_width=1024
+ro.hwui.texture_cache_flush_rate=0.5
+ro.hwui.texture_cache_flushrate=0.4
+ro.hwui.texture_cache_size=20
+ro.hwui.texture_cache_size=72
 ro.kernel.android.checkjni=0
 ro.kernel.checkjni=0
 ro.lge.proximity.delay=25
+ro.lmk.log_stats=0
+ro.malloc.impl=jemalloc
 ro.max.fling_velocity=12000
+ro.media.cam.preview.fps=0
+ro.media.capture.fast.fps=4
+ro.media.capture.flash=led
+ro.media.capture.flashIntensity=70
+ro.media.capture.flashMinV=3300000
 ro.media.capture.maxres=8m
+ro.media.capture.slow.fps=244
+ro.media.capture.torchIntensity=40
+ro.media.codec_priority_for_thumb=so
 ro.media.dec.aud.mp3.enabled=1
 ro.media.dec.aud.wma.enabled=1
 ro.media.dec.jpeg.memcap=8000000
@@ -4396,116 +5454,195 @@ ro.media.enc.hprof.vid.fps=244
 ro.media.enc.jpeg.quality=100
 ro.media.enc.vid.mp4.enabled=1
 ro.media.enc.vid.wmv.enabled=1
-ro.min.fling_velocity=8000
+ro.media.panorama.defres=3264x1840
+ro.media.panorama.frameres=1280x720
+ro.min.fling_velocity=900
+ro.min_pointer_dur=1
+ro.min_pointer_dur=8
+ro.mot.eri.losalert.delay=1000
+ro.mtk_perfservice_support=0
 ro.product.gpu.driver=1
+ro.qcom.ad.calib.data=/system/etc/ad_calib.cfg
+ro.qcom.ad=1
+ro.recentMode=0
 ro.ril.disable.power.collapse=1
 ro.ril.enable.3g.prefix=1
 ro.ril.enable.a52=1
 ro.ril.enable.a53=1
+ro.ril.enable.amr.wideband
 ro.ril.enable.amr.wideband=1
 ro.ril.enable.dtm=1
+ro.ril.enable.fd.plmn.prefix=23402,23410,23411
+ro.ril.enable.gea3=1
+ro.ril.enable.sdr=0
+ro.ril.enable.sdr=1
+ro.ril.fast.dormancy.rule=1
 ro.ril.gprsclass=12
 ro.ril.hep=1
 ro.ril.hsdpa.category=28
 ro.ril.hsupa.category=7
-ro.ril.hsxpa=2
+ro.ril.hsxpa=3
 ro.ril.htcmaskw1.bitmask=4294967295
 ro.ril.htcmaskw1=14449
-ro.secure=1
+ro.ril.power_collapse=0
+ro.ril.sensor.sleep.control=1
+ro.ril.set.mtu1492=1
+ro.secure=0
+ro.semc.sound_effects_enabled=true
+ro.semc.xloud.supported=true
+ro.service.remove_unused=1
 ro.sf.compbypass.enable=0
+ro.sf.disable_triple_buffer=1
 ro.sf.lcd_density=500
+ro.storage_manager.enabled=true
+ro.support.signalsmooth=true
+ro.surface_flinger.has_wide_color_display=false
+ro.surface_flinger.use_content_detection_for_refresh_rate=true
+ro.sys.fw.bservice_enable=true
+ro.sys.fw.use_trim_settings=true
+ro.tb.mode=1
 ro.telephony.call_ring.delay=0
+ro.telephony.call_ring.multiple=0
+ro.tether.denied=false
+ro.trim.config=true
+ro.trim.memory.font_cache=1
+ro.trim.memory.launcher=1
+ro.vendor.perf.scroll_opt=true
+ro.vold.umsdirtyratio=20
 ro.vold.umsdirtyratio=50
+ro.warmboot.capability=1
+ro.warranty_bit=0
+ro.wmt.blcr.enable=0
+screen_auto_brightness_adj=0
+sem_enhanced_cpu_responsiveness=1
+send_action_app_error=0
+send_security_reports=0
+slider_animation_duration=0
+speed_mode=1
+speed_mode_enable=1
+speed_mode_on=1
+support_highfps=1
+sys.config.activelaunch_enable=true
+sys.config.phone_start_early=true
+sys.disable_ext_animation=1
+sys.display-size=3840x2160
+sys.sysctl.tcp_def_init_rwnd=60
 sys.use_fifo_ui=1
+sys_traced=0
+sys_vdso=1
+tap_duration_threshold=0.0
+touch.distance.scale=0
 touch.pressure.scale=0.1
+touch.size.bias=0
+touch_blocking_period=0.0
+transition_animation_scale=0.0
+trustkernel.log.state=disable
+tunnel.decode=false
+unused_static_shared_lib_min_cache_period_ms=3600
+upload_debug_log_pref=0
+upload_log_pref=0
+usb_wakeup=enable
+user_log_enabled=0
+vendor.debug.egl.swapinterval=1
+vendor.display.disable_metadata_dynamic_fps=1
+vendor.display.enable_optimize_refresh=1
+vendor.display.enhance_idle_time=1
+vendor.display.idle_time=0
+vendor.display.idle_time_inactive=0
+vidc.debug.level=0
+#vidc.debug.perf.mode=2 
+vidc.enc.dcvs.extra-buff-count=2
 video.accelerate.hw=1
+view.scroll_friction=0
+view.touch_slop=1
 vm.dirty_background_ratio=90
 vm.dirty_ratio=90
 vm.min_free_kbytes=4096
 vm.vfs_cache_pressure=50
 wifi.supplicant_scan_interval=180
+wifi_scan_always_enabled=0
+wifi_verbose_logging_enabled=0
+window_animation_scale=0.0
+window_orientation_listener_log=0
 windowsmgr.max_events_per_sec=244
 '
 
-if [ -f /system/build.prop ] && ! grep -q "c2d\|vulkan" /system/build.prop ; then
+if [ -f /system/build.prop ] && ! grep -q "net.dns1" /system/build.prop ; then
 echo "$prop" >> /system/build.prop ; fi
 
+#sed -i 's/dalvik.vm.heaptargetutilization=.*/dalvik.vm.heaptargetutilization=0.99/g' /system/build.prop
+sed -i 's/dalvik.vm.dexopt-flags=.*/dalvik.vm.dexopt-flags=m=y,v=n,o=v/g' /system/build.prop
+sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=8m/g' /system/build.prop
+
 if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 10 ] ; then
-sed -i 's/debug.composition.type=.*/debug.composition.type=c2d/g' /system/build.prop  
-sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=skiagl/g' /system/build.prop  
-sed -i 's/#debug.egl.hw=1/debug.egl.hw=1/g' /system/build.prop  
-sed -i 's/#debug.egl.profiler=1/debug.egl.profiler=1/g' /system/build.prop  
-sed -i 's/persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' /system/build.prop  
-sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' /system/build.prop  
+sed -i 's/debug.composition.type=.*/debug.composition.type=c2d/g' /system/build.prop
+sed -i 's/persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' /system/build.prop
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=skiagl/g' /system/build.prop
+sed -i 's/#debug.egl.hw=1/debug.egl.hw=1/g' /system/build.prop
+sed -i 's/#debug.egl.profiler=1/debug.egl.profiler=1/g' /system/build.prop
+sed -i 's/#debug.egl.buffcount=.*/debug.egl.buffcount=2/g' /system/build.prop
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' /system/build.prop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' /system/build.prop ; fi
 
 if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
-sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' /system/build.prop ; fi
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' /system/build.prop
+#sed -i 's/#BOARD_EGL_NEEDS_LEGACY_FB=.*/BOARD_EGL_NEEDS_LEGACY_FB=false/g' /system/build.prop
+#sed -i 's/#ro.hwui.disable_scissor_opt=.*/ro.hwui.disable_scissor_opt=false/g' /system/build.prop
+#sed -i 's/#ro.hwui.drop_shadow_cache_size=.*/
+#sed -i 's/#ro.hwui.gradient_cache_size=.*/
+#sed -i 's/#ro.hwui.layer_cache_size=.*/
+#sed -i 's/#ro.hwui.patch_cache_size=.*/
+#sed -i 's/#ro.hwui.path_cache_size=.*/
+#sed -i 's/#ro.hwui.r_buffer_cache_size=.*/
+#sed -i 's/#ro.hwui.shape_cache_size=.*/
+#sed -i 's/#ro.hwui.texture_cache_flush_rate=.*/
+#sed -i 's/#ro.hwui.texture_cache_size=.*/
+#sed -i 's/#ro.hwui.text_large_cache_height=.*/
+#sed -i 's/#ro.hwui.text_large_cache_width=.*/
+#sed -i 's/#ro.hwui.text_small_cache_height=.*/
+#sed -i 's/#ro.hwui.text_small_cache_width=.*/
+#sed -i 's/#ro.zygote.disable_gl_preload=.*/ro.zygote.disable_gl_preload=false/g' /system/build.prop
+sed -i 's/#debug.hwui.swap_with_damage=.*/#debug.hwui.swap_with_damage=true/g' /system/build.prop
+#sed -i 's/#hwui.text_gamma.black_threshold=.*
+#sed -i 's/#hwui.text_gamma.white_threshold=.*
+#sed -i 's/#hwui.text_gamma=.*
+#sed -i 's/#hwui.text_gamma_correction=.*
+#sed -i 's/vidc.debug.perf.mode=.*/#vidc.debug.perf.mode=#/g' /system/build.prop # slows down playback on old devices, probably worth for newer if it saves energy consumption if these legacy props even apply at all on new devices
+sed -i 's/#hwui.use_gpu_pixel_buffers=.*/hwui.use_gpu_pixel_buffers=true/g' /system/build.prop
+if ! grep -q "persist.sys.dalvik.vm.lib.2=libart.so" /system/build.prop ; then if [ -f /system/apex/com.android.runtime.release/lib64/libart.so ] || [ -f /system/lib64/libart.so ] || [ -f /system/lib/libart.so ] ; then echo "persist.sys.dalvik.vm.lib.2=libart.so" | tee -a /system/build.prop ; fi ; fi
+fi
 
 
-for i in $(echo /system/build.prop) ; do
-setprop $($i | sed 's/=/ /g' | awk '{print $1, $2}') ; done
+# setprop breaks system i remember from past as well with some flags so leave them in build.prop only. depending on rom ofcourse.
+sh -cx 'for i in $(cat /system/build.prop) ; do
+"$(setprop $(echo "$i" | sed '\''s/=/ /g'\'' | awk '\''{print $1, $2}'\''))"
+done'
+setprop sys.use_fifo_ui 1
 
-busybox sysctl -w fs.inotify.max_queued_events=32768
-busybox sysctl -w fs.inotify.max_user_instances=256
-busybox sysctl -w fs.inotify.max_user_watches=16384
+
 
 # echo 10 > /sys/class/thermal/thermal_message/sconfig
 
 killall -9 android.process.media
 killall -9 mediaserver
 
-echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
-echo "0-$(nproc -all)" > /dev/cpuset/top-app/cpus
-echo "0-$(nproc -all)" /dev/cpuset/foreground/cpus
-echo "0" > /dev/cpuset/restricted/cpus
-echo "0" > /sys/module/workqueue/parameters/power_efficient
-echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
-echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
-echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
 
-write /sys/module/lpm_levels/parameters/sleep_disabled "N" 2>/dev/null
-
-echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
-echo "0" > /sys/class/kgsl/kgsl-3d0/bus_split
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_bus_on
-echo "1" > /sys/class/kgsl/kgsl-3d0/force_clk_on
-echo "0" > /sys/class/kgsl/kgsl-3d0/throttling
-echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
-echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
-echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
-
-echo 1 > /dev/stune/top-app/schedtune.prefer_idle
 
 #umount /vendor || true
 #mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-sed -i 's/noatime/lazytime/g' /vendor/etc/fstab* $droidfstab
-sed -i 's/nodiratime/lazytime/g' /vendor/etc/fstab* $droidfstab
-sed -i 's/relatime/lazytime/g' /vendor/etc/fstab* $droidfstab
+sed -i 's/noatime/lazytime/g' $droidfstab
+sed -i 's/nodiratime/lazytime/g' $droidfstab
+sed -i 's/relatime/lazytime/g' $droidfstab
 
 
-### for older devices only, most doesnt apply
 #for part in system data
 #do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
 #else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
 
-
-
 fstrim /data;
 fstrim /cache;
 fstrim /system;
-### if not on phone enable these for performance, if on phone expect drainage
-if grep -q tv /system/build.prop ; then
-setprop MIN_HIDDEN_APPS false
-setprop ACTIVITY_INACTIVE_RESET_TIME false
-setprop MIN_RECENT_TASKS false
-setprop PROC_START_TIMEOUT false
-setprop CPU_MIN_CHECK_DURATION false
-setprop GC_TIMEOUT false
-setprop SERVICE_TIMEOUT false
-setprop MIN_CRASH_INTERVAL false
-setprop ENFORCE_PROCESS_LIMIT false
-fi ; fi
+ fi
 
 ### ANDROID SECTION STOPPED HERE
 
@@ -4578,7 +5715,7 @@ if systemctl list-unit-files | grep -q anacron ; then systemctl disable cron && 
 # stop some kmod for all but wrt again
 if ! grep -q wrt /etc/os-release && [ ! $ipv6 = on ] ; then echo "blacklist ipv6" | sudo tee /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
-if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi 
+if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
 
 # blacklist old radeon cards - if you cant boot remove this blacklist
@@ -4617,18 +5754,21 @@ if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron 
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 if [ $script_autoupdate = yes ] ; then
 # if online
-ping "$ping" -c 3
+ping -c3 "$ping"
 if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
-mkdir -p /etc/sysctl.d 
+mkdir -p /etc/sysctl.d
 # if debian
 if grep -q "debian" /etc/os-release ; then wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local ; fi
 # if wrt
 if grep -q "wrt" /etc/os-release ; then echo "*BLS*=OPENWRT found" &&
-grep -q "ping "$ping" -c 3" /etc/rc.local
+grep -q "ping -c3 "$ping"" /etc/rc.local
 if [ $? -eq 1 ] ; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && sed -i 's/$ping/'"$ping"'/g' /etc/rc.local && chmod +x /etc/rc.local ; else echo "*BLS*=rc.local up to date" ; fi ; fi
+# if android
+if [ -f /system/build.prop ] ; then rm -rf init.sh && wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && rm -rf /etc/rc.local ; rm -rf /data/adb/service.d/init.sh
+if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\/system\/xbin\/sh/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; chmod 755 init.sh ; chmod +x init.sh ; cp init.sh /etc/rc.local ; mkdir -p /data/adb/service.d ; cp init.sh /data/adb/service.d/init.sh ; fi
 # general devices and other distros
-elif ping "$ping" -c 3
-[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local ; if [ -f /system/build.prop ] ; then mkdir -p /system/etc/sysctl.d ; sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' /tmp/init.sh ; cp /tmp/init.sh /system/etc/rc.local && chmod +x /system/etc/rc.local ; fi ; fi ; fi
+elif ping -c3 "$ping"
+[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local ; fi ; fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
 
@@ -4644,13 +5784,6 @@ service procps force-reload
 # disable bluetooth for all but android
 if [ ! -f /system/build.prop ] ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
 
-    # remount ro android
-     if [ -f /system/build.prop ] ; then
-    mount -o ro,remount /system
-    mount -o ro,remount /vendor 
-    mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
-    mount -o ro /dev/block/bootdevice/by-name/system /system
-    fi
 
 
 
@@ -4693,7 +5826,7 @@ net.ipv6.conf.all.accept_ra = 0' | tee -a /etc/sysctl.d/sysctl.conf /etc/sysctl.
 sed -i 's/net.ipv6.conf.all.disable_ipv6.*/net.ipv6.conf.all.disable_ipv6 = 1/g'
 sed -i 's/net.ipv6.conf.default.disable_ipv6.*/net.ipv6.conf.default.disable_ipv6 = 1/g'
 sed -i 's/net.ipv6.conf.lo.disable_ipv6.*/net.ipv6.conf.lo.disable_ipv6 = 1/g'
-sed -i 's/net.ipv6.conf.all.accept_ra.*/net.ipv6.conf.all.accept_ra = 0/g' ; fi 
+sed -i 's/net.ipv6.conf.all.accept_ra.*/net.ipv6.conf.all.accept_ra = 0/g' ; fi
 
 
 
@@ -4825,18 +5958,42 @@ fi
 
 
 
+if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE ; fi
 
+if [ $uninstall = yes ] ; then 
+rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/service.d/init.sh ; \cp -rf /etc/bak/* / 
+if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi 
+if grep -q "cmdline" /etc/fstab $droidfstab ; then sed -i '/cmdline/c\' /etc/fstab $droidfstab ; fi 
+rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
+
+
+
+
+
+
+    # remount ro android
+
+    if [ $firstrun = yes ] ; then
+    mount -o remount,rw /cache
+    rm -rf /cache/*
+    rm -rf /data/cache/*
+    rm -rf /data/dalvik-cache/*
+    if [ -f /system/xbin/sh ] ; then /system/xbin/fstrim -v /cache ; else /system/bin/fstrim -v /cache ; fi ; fi
+
+    if [ -f /system/build.prop ] ; then
+    mount -o remount,ro /system
+    mount -o remount,ro /vendor
+    mount -o remount,ro /data
+    mount -o remount,ro rootfs /
+    mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
+    mount -o ro /dev/block/bootdevice/by-name/system /system
+    mount -o ro /dev/block/bootdevice/by-name/data /data ; fi
 
 
 
 # drop all caches upon finalizing
-echo 3 > /proc/sys/vm/drop_caches
-
-
-
-
-
-
+    sysctl -w vm.drop_caches=3
+    echo 3 > /proc/sys/vm/drop_caches
 
 
 #tuned -p network-throughput

@@ -19,7 +19,7 @@ restore="\033[0m"
 source="$(pwd)"
 tmp=$source/tmp
 s="sudo"
-ins="$s aptitude -f install -y -t experimental"
+ins="$s aptitude -f install -y"
 up="$s apt update"
 a="$s apt -f -y install"
 fl="$s flatpak install  -y"
@@ -83,7 +83,7 @@ $rem akonadi-server \
 $a libdvdcss2 \
 mencoder \
 libvorbisidec1 \
-libavcodec59 \
+libavcodec59 
 
 $a q4wine \
  wine \
@@ -105,10 +105,8 @@ $a q4wine \
  tasksel \
  uget \
  ccache \
- ksmtuned \
  libxgks2 \
  libmkl-def \
- kerneltop \
  blktool \
  tuned-utils \
  npm \
@@ -138,7 +136,7 @@ $a q4wine \
  libclc-$llver-dev \
  libunwind-$llver-dev \
  libmlir-$llver-dev \
- mlir-$llver-tools \
+ mlir-$llver-tools 
  
  $a binwalk \
  firmware-mod-kit \
@@ -167,7 +165,7 @@ $a q4wine \
  kali-defaults \
  kali-defaults-desktop \
  htop \
- qapt-deb-installer \
+ qapt-deb-installer 
 
  $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
  libosmesa6 \
@@ -205,8 +203,7 @@ $a q4wine \
  mesa-utils \
  vulkan-tools \
  mesa-common-dev \
- mesa-vdpau-drivers \
- 
+ mesa-vdpau-drivers 
  
   $rem akonadi-server \
  openssh-server openssh-sftp-server \
@@ -227,6 +224,7 @@ $a q4wine \
  lz4 \
  arch-install-scripts \
  kde-config-systemd \
+ kdeconnect \
  openbox-kde-session \
  anacron \
  qt5-style-kvantum-themes qt5-style-kvantum-l10n qt5-style-kvantum \
@@ -244,14 +242,16 @@ $a q4wine \
  efibootmgr systemd-boot systemd-boot-efi \
  kde-config-plymouth \
  kde-config-updates \
+ plasma-browser-integration \
  partitionmanager \
  irqbalance \
- plasma-discover-backend-flatpak plasma-discover-backend-fwupd plasma-discover-backend-snap \
+ plasma-discover-backend-flatpak plasma-discover-backend-fwupd \
  adb fastboot
-
- $a qdbus-qt6
  
- $a libpoppler-qt6-3 qt6-base-dev 
+ #plasma-discover-backend-snap
+ #$a qdbus-qt6
+ 
+ #$a libpoppler-qt6-3 qt6-base-dev 
  
 $a llvm-$llver 
 $a gcc-$gccver 
