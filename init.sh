@@ -12,13 +12,19 @@
 #############################################################
 # setup meant as universal config for:
 # x86, android, openwrt & general
-### if things dont get applied add delay prior to execution 
-if [ -f /system/build.prop ] && [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
-sleep 60 ; echo " less or equal to android 7, sleep 60 seconds..." ; elif  [ -f /system/build.prop ] ; then sleep 30 ; echo " android 8 or above found, sleep 30 seconds..." ; fi
-if [ ! -f /system/build.prop ] && [ "$(grep bogomips /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then sleep 30 " bogomips less or equal to 4000, sleep 30 seconds..." ; elif [ ! -f /system/build.prop ] ; then sleep 5 ; "script starting..." ; fi 
+### if things dont get applied add delay prior to execution
+        droidprop="/system/build.prop"
+        wrt="grep -q wrt /etc/os-release"
+        debian="grep -q debian /etc/os-release"
+        if [ $testing = yes ] ; then echo "skip delay, testing..." ; else
+if [ -f $droidprop ] && [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
+echo " less or equal to android 7, sleep 60 seconds..." ; sleep 60 ; elif  [ -f $droidprop ] ; then echo " android 8 or above found, sleep 30 seconds..." ; sleep 30 ; fi
+if [ ! -f $droidprop ] && [ "$(grep bogomips /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " bogomips less or equal to 4000, sleep 30 seconds..." ; sleep 30 ; elif [ ! -f $droidprop ] ; then sleep 5 ; "script starting..." ; fi
+        fi
 ### busybox... since script aims for compatibility without compromising too much... for legacy devices its a must to upgrade busybox. i dont feel like typing every command with a variable. will use this only on important parts.
-### on legacy devices it can be an issue since after testing busybox uses default binaries instead of /xbin. many commands are not present in that case. find a way to update your device for best results. 
-if [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; elif [ -f /system/bin/sh ] ; then bb="/system/bin/" ; elif [ -f /sbin/sh ] ; then bb="/sbin/sh" ; elif [ -f /bin/sh ] ; then bb="/bin/sh" ; fi
+### on legacy devices it can be an issue since after testing busybox uses default binaries instead of /xbin. many commands are not present in that case. find a way to update your device for best results.
+if [ -f $doidprop ] ; then if [ -f /sbin/sh ] ; then bb="/sbin/" ; elif [ -f /bin/sh ] ; then bb="/bin/" ; elif [ -f /system/bin/sh ] ; then bb="/system/bin/" ; elif [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; fi ; fi
+
 # script vars
 #s="sudo"
 
@@ -58,7 +64,7 @@ if [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; elif [ -f /system/bin/sh ]
         sdsched="bfq"
         mtdsched="bfq"
         mmcsched="cfq"
-        if ! grep -q cfq /sys/block/mmc*/queue/scheduler ; then mmcsched="bfq" ; fi
+        if $(! grep -q cfq /sys/block/mmc*/queue/scheduler) ; then mmcsched="bfq" ; fi
 
 
 
@@ -86,7 +92,7 @@ if [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; elif [ -f /system/bin/sh ]
       ### < QDISC >
       # - queue managment
         qdisc="fq_codel"
-        #if grep -q wrt /etc/os-release ; then qdisc="cake" ; fi
+        #if $wrt ; then export qdisc="cake" ; fi
 
 
 
@@ -96,7 +102,7 @@ if [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; elif [ -f /system/bin/sh ]
         country="00"
 
         # meanwhile serves as list to make me remember how to figure out user. srry ppl with x in name. lazy
-        if grep -q "wrt" /etc/os-release || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
+        if $wrt || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
 
 
 
@@ -169,15 +175,27 @@ max_batch_time=120,nodiscard"
         #scsi="off"
         # in case of using dracut
         #raid="no"
-        
+        ls -f /etc/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(echo "$(ls /etc/fstab*)")
+        ls -f /vendor/fstab* | grep -q fstab ; elif [ $? = 0 ] ; then export fstab=$(echo "$(ls /vendor/fstab*)")
+        ls -f /fstab* | grep -q fstab ; elif [ $? = 0 ] ; then export fstab=$(echo "$(ls /fstab*)") ; fi
+
+
         # android dirs
-        droidprop="/system/build.prop"
-    if [ -f /system/build.prop ] ; then
-droidfstab=$(if [ -f /system/build.prop ] ; then "$bb"find / -name "fstab*" -type f -not -name "*bak" | grep -v "sbin" | sort -u ; fi)
+    if [ -f $droidprop ] ; then
+#droidfstab=$(if [ -f $droidprop ] ; then "$bb"find / -name "fstab*" -type f -not -name "*bak" | grep -v "sbin\|storage\|sdcard" | sort -u ; fi)
 droidresolv="/system/etc/resolv.conf"
 droidsysctl="/system/etc/sysctl.conf"
 droidhosts="/system/etc/hosts"
 droidcmdline="/system/etc/root/cmdline"
+#droidshell="/system\/bin\/sh"
+droidshell="/system\/xbin\/sh"
+    "$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
+    "$bb"mount -o rw /dev/block/bootdevice/by-name/system /system
+    "$bb"mount -o rw /dev/block/bootdevice/by-name/data /data
+    "$bb"mount -o remount,rw /system
+    "$bb"mount -o remount,rw /vendor
+    "$bb"mount -o remount,rw /data
+    "$bb"mount -o remount,rw rootfs /
     fi
 
 
@@ -186,15 +204,18 @@ droidcmdline="/system/etc/root/cmdline"
       # lowspec options scripted for 2g exactly
 
 
-zram='#!/bin/sh
+export zram='#!/bin/sh
 modprobe zram
 modprobe lz4
 modprobe lz4_compress
 echo lz4 > /sys/block/zram0/comp_algorithm
 echo "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)"G  > /sys/block/zram0/disksize
-mkswap --label zram0 /dev/zram0
-swapon --priority 1000 /dev/zram0
-if ! grep "lz4" /etc/modules ; then
+if [ "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo )" -lt 1000000 ] ; then
+echo "0."$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)"G"  > /sys/block/zram0/disksize ; fi
+echo 2 > /sys/block/zram0/max_comp_streams
+mkswap -L zram0 /dev/zram0
+swapon -p 1000 /dev/zram0
+if $(! grep "lz4" /etc/modules) ; then
 sed -i -r '\''/^z3fold?/D'\'' /etc/modules
 cat <<EOL>> /etc/modules
 lz4
@@ -235,7 +256,7 @@ sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
 sysctl -w vm.overcommit_ratio=$oratio
 
-if ! grep -q '* soft nofile 524288' /etc/security/limits.conf ; then
+if $(! grep -q '* soft nofile 524288' /etc/security/limits.conf) ; then
 echo '* hard nofile 524288
 * soft nofile 524288
 * soft as unlimited
@@ -267,12 +288,12 @@ root hard sigpending unlimited
 root soft stack unlimited
 root hard stack unlimited' | tee /etc/security/limits.conf ; fi
 
-if ! grep -q "524288" /etc/systemd/system.conf ; then
+if $(! grep -q "524288" /etc/systemd/system.conf) ; then
 echo 'DefaultLimitNOFILE=524288' | tee -a /etc/systemd/system.conf /etc/systemd/user.conf ; fi
 
-if ! grep -q "wrt" /etc/os-release ; then
+if $(! $wrt) ; then
 
-hpages=' kvm.nx_huge_pages=off transparent_hugepage=never'
+hpages=' transparent_hugepage=never'
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
@@ -363,7 +384,7 @@ sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 2 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 2200000 ] ; then
 devshm=",size=128m"
 vmalloc="128"
 hugepages="32"
@@ -377,7 +398,9 @@ shmmni=16000000
 shmall=350000000
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
-zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4" ; $s echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee /etc/zram.sh ; if ! grep -q "zram" /etc/crontab /etc/anacrontabs ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; fi
+zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4"
+if $droidprop ; then export droidzram="/system" ; fi
+echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; if $droidprop ; then echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
 overcommit=1
 oratio=140
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
@@ -389,7 +412,7 @@ sysctl -w vm.overcommit_ratio=$oratio
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 1 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 1100000 ] ; then
 devshm=",size=64m"
 vmalloc="128"
 hugepages="16"
@@ -423,7 +446,7 @@ ping=$(echo ''"$pingaddr"'')
 zsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0"; fi)"
 # mitigations
 x0="$(if [ $mitigations = off ] ; then
-echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never" ; else echo " mitigations=on" ; fi)"
+echo " mitigations=off cpu_spec_mitigations=off ibpb=off ibrs=off l1tf=off noibpb noibrs pti=off nopti nospec_store_bypass_disable nospectre_v1 nospectre_v2 retbleed=off spec_store_bypass_disable=off spectre_v1=off spectre_v2=off spectre_v2_user=off ssbd=force-off tsx_async_abort=off kpti=0 mds=off nobp=0 mmio_stale_data=off nospectre_bhb kvm-intel.vmentry_l1d_flush=never kvm.nx_huge_pages=off" ; else echo " mitigations=on" ; fi)"
 # cpu amd or intel
 x1="$( if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 amd_pstate=passive kvm-amd.avic=1 amd_iommu_intr=vapic notsx kvm-amd.nested=1" ; elif lscpu | grep -q Intel ; then echo " intel_idle.max_cstate=$cpumaxcstate intel_pstate=per_cpu_perf_limits kvm-intel.nested=1 intel=intel_iommu=on tsx=on kvm-intel.vmentry_l1d_flush=never intel.power_save=0" ; fi)"
 # logging
@@ -472,7 +495,7 @@ x22="$( if dmesg | grep -q i915 ; then echo " i915.modeset=1 i915.enable_ppgtt=3
 #
 x23="$( if dmesg | grep -q iwlwifi ; then echo " iwlmvm_power_scheme=2" ; fi)"
 #
-x24="$( if [ ! $ipv6 = on ] || grep -q wrt /etc/os-release ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
+x24="$( if [ ! $ipv6 = on ] || $wrt ; then echo " autoconf=0 ipv6.disable=1 disable=1" ; else echo " autoconf=1 ipv6.disable=0 disable=0" ; fi)"
 #
 x25=" processor.max_cstate=$cpumaxcstate biosdevname=0 drm.vblankoffdelay=0 vt.global_cursor_default=0 plymouth.ignore-serial-consoles page_poison=0 page_alloc.shuffle=1 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax acpi_backlight=vendor sk nosoftlockup enable_mtrr_cleanup mtrr_spare_reg_nr=1 nopcid msr.allow_writes=on ahci.mobile_lpm_policy=0 disable_power_well=0 fastboot=1 acpi_rev_override=1 enable_fbc=1 rd.fstab=no fstab=yes trusted.rng=default stack_depot_disable=true reboot=j,g,a,k,f,t,e random.trust_cpu=off random.trust_bootloader=off powersave=off tp_printk_stop_on_boot"
 #
@@ -522,7 +545,7 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
        echo manual > /sys/class/drm/card0/device/power_dpm_force_performance_level
        echo $perfamdgpu > /sys/class/drm/card0/device/power_dpm_force_performance_level
 
-
+if lscpu | grep -q x86 ; then wg="--random-wait " ; fi
 
 
 
@@ -536,7 +559,7 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
   ### < BLOCKLISTS >
     # - /etc/hosts & /etc/update_hosts.sh - not on openwrt
 blocklist='#!/bin/sh
-### pihole default blocklists /etc/hosts weekly updated
+### pihole default blocklists & more, /etc/hosts weekly updated
 u1="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
 u2="https://mirror1.malwaredomains.com/files/justdomains"
 u3="http://sysctl.org/cameleon/hosts"
@@ -551,19 +574,19 @@ ping -c3 '"$ping"'
 if [ $? -eq 0 ]; then
 rm -rf /etc/hosts /etc/hosts_temp &&
 mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
-echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
+'"$bb"'echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
 echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
-x1="$(wget $u1 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
-x2="$(wget $u2 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
-x3="$(wget $u3 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
-x4="$(wget $u4 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
-x5="$(wget $u5 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
-x6="$(wget $u6 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
-x7="$(wget $u7 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-x8="$(wget $u8 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-x9="$(wget $u9 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-x10="$(wget $u10 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+x1="$('"$bb"'wget $u1 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
+x2="$('"$bb"'wget $u2 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
+x3="$('"$bb"'wget $u3 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
+x4="$('"$bb"'wget $u4 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
+x5="$('"$bb"'wget $u5 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
+x6="$('"$bb"'wget $u6 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
+x7="$('"$bb"'wget $u7 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+x8="$('"$bb"'wget $u8 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+x9="$('"$bb"'wget $u9 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+x10="$('"$bb"'wget $u10 '"$wg"' --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
 $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || echo fail
 
               ### yours
@@ -571,10 +594,10 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7
               l2='"$list2"'
               l3='"$list3"'
               l4='"$list4"'
-              c1="$(wget $l1 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-              c2="$(wget $l2 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-              c3="$(wget $l3 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-              c4="$(wget $l4 --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+              c1="$('"$bb"'wget $l1 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+              c2="$('"$bb"'wget $l2 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+              c3="$('"$bb"'wget $l3 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+              c4="$('"$bb"'wget $l4 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
             if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || echo fail ; fi
 
 cd /etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a /etc/hosts
@@ -592,7 +615,7 @@ wrtsh='#!/bin/sh
 link=https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
 while [ ! -f /tmp/init.sh ];
 sleep 10
-do ping -c3 $ping
+do ping -c3 '"$ping"'
 if [ $? -eq 0 ]; then wget --continue -4 "$link" -O /tmp/init.sh ; fi
 if grep -q thanas /tmp/init.sh
 then chmod +x /tmp/init.sh && sh /tmp/init.sh && echo "succes"; exit 0; fi
@@ -625,31 +648,25 @@ done'
 
     ### make backups - fstab may vary and other dirs maybe depending on phone. qcom is /vendor/fstab.qcom
     # remount rw
-     if [ -f /system/build.prop ] ; then
-    "$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-    "$bb"mount -o rw /dev/block/bootdevice/by-name/system /system
-    "$bb"mount -o rw /dev/block/bootdevice/by-name/data /data
-    "$bb"mount -o remount,rw /system
-    "$bb"mount -o remount,rw /vendor
-    "$bb"mount -o remount,rw /data
-    "$bb"mount -o remount,rw rootfs /
+     if [ -f $droidprop ] ; then
     mkdir -p /etc/bak/system
     mkdir -p /etc/bak/vendor
     mkdir -p /etc/bak/data/adb/service.d
+    mkdir -p /etc/bak/data/adb/post-fs-data.d
     fi
     mkdir /etc/bak/etc/sysctl.d ; mkdir -p /etc/bak/etc/environment.d
 
 
 
-        if [ -f /system/build.prop ] && [ ! -f /data/adb/service.d/init.sh ] ; then export firstrun=yes ; fi
+        if [ -f $droidprop ] && [ ! -f /data/adb/post-fs-data.d/init.sh ] ; then export firstrun=yes ; fi
 
 
 
         # droid
-if [ -f /system/build.prop ] ; then
-  if [ ! -f /etc/bak$droidfstab ] && [ -f $droidfstab ] ; then
-  for i in $("$bb"echo "$("$bb"echo "$droidfstab" | sed 's/fstab*/ /g' | awk '{print $1}')") ; do mkdir -p /etc/bak$i ; done 
-  for i in "$bb"echo "$droidfstab" ; do "$bb"cp -n $i /etc/bak$i ; done ; fi
+if [ -f $droidprop ] ; then
+  if [ ! -f /etc/bak$fstab ] && [ -f $fstab ] ; then
+  for i in $("$bb"echo "$("$bb"echo "$fstab" | sed 's/fstab*/ /g' | awk '{print $1}')") ; do mkdir -p /etc/bak$i ; done
+  for i in "$bb"echo "$fstab" ; do "$bb"cp -n $i /etc/bak$i ; done ; fi
 
   if [ ! -f /etc/bak$droidhosts ] && [ -f $droidhosts ] ; then "$bb"cp -rf $droidhosts /etc/bak$droidhosts ; fi
 
@@ -659,9 +676,9 @@ if [ -f /system/build.prop ] ; then
 
   if [ ! -f /etc/bak/$droidcmdline ] ; then mkdir -p /etc/bak/system/etc/root ; cat /proc/cmdline | tee /etc/bak$droidcmdline ; fi
 
-  if [ ! -f /etc/bak/system/build.prop ] ; then "$bb"cp -rf /system/build.prop /etc/bak/system/build.prop ; fi
+  if [ ! -f /etc/bak$droidprop ] ; then "$bb"cp -rf $droidprop /etc/bak$droidprop ; fi
     # don't know if this is the way to go about it...
-  #if [ -f /system/build.prop ] && [ -f /system/xbin/sh ] && [ ! -f /etc/bak/DO_NOT_DELETE ] ; then /system/xbin/cp -rf /system/xbin/* /system/bin/ ; /system/xbin/echo "DON'T DELETE THESE FILES, SCRIPT USES PARTS OF THIS BACKUP. ONLY EASY WAY OF RESTORING IF BRICKED" | tee /etc/bak/DO_NOT_DELETE ; fi
+  #if [ -f $droidprop ] && [ -f /system/xbin/sh ] && [ ! -f /etc/bak/DO_NOT_DELETE ] ; then /system/xbin/cp -rf /system/xbin/* /system/bin/ ; /system/xbin/echo "DON'T DELETE THESE FILES, SCRIPT USES PARTS OF THIS BACKUP. ONLY EASY WAY OF RESTORING IF BRICKED" | tee /etc/bak/DO_NOT_DELETE ; fi
 fi
 
 
@@ -672,7 +689,7 @@ fi
 
 
   # all but droid
-if [ ! -f /system/build.prop ] ; then
+if [ ! -f $droidprop ] ; then
   if [ ! -f /etc/bak/etc/fstab ] ; then \cp -rf /etc/fstab /etc/bak/etc/fstab ; fi
   if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
   if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
@@ -681,7 +698,7 @@ fi
 
 
 # debian only
-if grep -q debian /etc/os-release ; then
+if $debian ; then
   if [ ! -f /etc/bak/etc/NetworkManager/NetworkManager.conf ] ; then mkdir -p /etc/bak/etc/NetworkManager ; \cp -rf /etc/NetworkManager/NetworkManager.conf /etc/bak/etc/NetworkManager/NetworkManager.conf ; fi
   if [ ! -f /etc/bak/etc/default/grub ] ; then mkdir -p /etc/bak/etc/default ; \cp -rf /etc/default/grub /etc/bak/etc/default/grub ; fi
 fi
@@ -720,11 +737,11 @@ fi
   ### < BLOCKLISTS >
   ### if NOT wrt, update /etc/hosts weekly - script in /etc/update_hosts.sh & cronjob
     # add script /etc/update_hosts.sh
-    if ! grep wrt /etc/os-release ; then
+    if $(! $wrt) ; then
     blsync="$(echo "$blocklist" | tee /etc/update_hosts.sh)"
     if systemctl list-unit-files | grep -q anacron ; then
-    if ! grep update_hosts.sh /etc/anacrontabs ; then echo "@weekly sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
-    elif ! grep update_hosts.sh /etc/crontab /etc/crontab/root ; then echo "0 0 * * 0 root sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/crontab /etc/crontabs/root && "$blsync" ; fi ; fi
+    if $(! grep update_hosts.sh /etc/anacrontabs) ; then echo "@weekly sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
+  elif $(! grep update_hosts.sh /etc/crontab /etc/crontab/root) ; then echo "0 0 * * 0 root sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/crontab /etc/crontabs/root && "$blsync" ; fi ; fi
 
 
 
@@ -736,12 +753,12 @@ fi
   ### < CRONJOB INIT.SH >
 
     if systemctl list-unit-files | grep -q anacron ; then
-    if ! grep rc.local /etc/anacrontabs ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
-    elif ! grep rc.local /etc/crontabs/root /etc/crontab ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a /etc/crontabs/root /etc/crontab ; fi
+    if $(! grep rc.local /etc/anacrontabs) ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
+  elif $(! grep rc.local /etc/crontabs/root /etc/crontab) ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a /etc/crontabs/root /etc/crontab ; fi
 
     # cronjob kernel - daily seek for update mainline kernel only from experimental branch. since i dont trust debian experimental repositories no more and am in no mood to fight with the packages and dependencies...
-    if grep -q debian /etc/os-release ; then
-    if ! grep -q "linux-image-amd64" /etc/anacrontabs ; then
+    if $debian ; then
+    if $(! grep -q "linux-image-amd64" /etc/anacrontabs) ; then
     echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64'" | tee -a /etc/anacrontabs ; fi ; fi
 
 
@@ -754,7 +771,7 @@ fi
           if grep -q kali /etc/os-release && [ $sourceslist_update = yes ] ; then
           ping -c3 "$ping"
           if [ $? -eq 0 ]; then
-          echo "*BLS*=Syncing sources.list." && "$(wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
+          echo "*BLS*=Syncing sources.list." && "$(wget "$wg"--connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
 
 
 
@@ -764,19 +781,18 @@ fi
 
   ### < HIJACK CMDLINE >
   ### detect if linux or openwrt/android to hijack cmdline to adjust bootargs from userspace (gets applied with '# cat /proc/cmdline' not sure if it works though)
-      if ! grep "debian" /etc/os-release ; then echo "*BLS*=FOUND DEBIAN NOT HIJACKING CMDLINE"
-      #if grep -q "debian" /etc/os-release ; then echo "$par" | tee /root/cmdline &&
+      #if $(! $debian) ; then echo "*BLS*=FOUND DEBIAN NOT HIJACKING CMDLINE"
+      #if $debian ; then echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
   ### openwrt
-      if grep -q "wrt" /etc/os-release ; then echo "$(cat /etc/bak/root/cmdline) $par" | tee /root/cmdline &&
+      if $wrt ; then echo "$(cat /etc/bak/root/cmdline) $par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
-  ### android libre tv
-      if [ -f /system/build.prop ] ; then mkdir -p /etc/root ; "$bb"echo "$(cat /etc/bak/system/root/cmdline) '"$par"'" | tee /etc/root/cmdline ; "$bb"mount -n --bind -o ro /etc/root/cmdline /proc/cmdline ; else
-      mkdir -p /root ; echo "$par" | tee /root/cmdline &&
-      mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
-      if ! grep -q "/proc/cmdline" /etc/fstab || if [ -f /system/build.prop ] && ! grep -q "/proc/cmdline" $droidfstab ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $droidfstab ; fi
-      then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a "/etc/fstab*" ; fi
-      fi
+  ### android
+      if [ -f $droidprop ] ; then mkdir -p /system/etc/root ; "$bb"echo "$(cat /etc/bak/system/root/cmdline) '"$par"'" | tee /system/etc/root/cmdline ; "$bb"mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; else
+      mkdir -p /system/etc/root ; echo "$par" | tee /system/etc/root/cmdline &&
+      mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; fi
+      if $(! grep -q "/proc/cmdline" $fstab) && [ ! $droidfstab ] ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; elif $(! grep -q "/proc/cmdline" $fstab) &&  [ -f $droidfstab ] ; then echo "/system/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; fi
+       
       # echo "doesnt work anyways" ; else echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
 
@@ -792,10 +808,10 @@ fi
     $s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub
     $s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=""' /etc/default/grub
     $s sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT=""/GRUB_CMDLINE_LINUX_DEFAULT="'"$par"'"/g' /etc/default/grub
-    $s sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="splash quiet'"$x1"'"/g' /etc/default/grub
+    $s sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="splash quiet'"$x0"'"/g' /etc/default/grub
     $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
     $s sed -i "/#GRUB_DISABLE_OS_PROBER=false/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
-    if ! grep -q "GRUB_GFXPAYLOAD_LINUX" /etc/default/grub ; then echo "GRUB_GFXPAYLOAD_LINUX=" | tee -a /etc/default/grub ; fi
+    if $(! grep -q "GRUB_GFXPAYLOAD_LINUX" /etc/default/grub) ; then echo "GRUB_GFXPAYLOAD_LINUX=" | tee -a /etc/default/grub ; fi
     $s sed -i 's/GRUB_GFXPAYLOAD_LINUX=.*/GRUB_GFXPAYLOAD_LINUX="'"$resolution"'"/g' /etc/default/grub
     $s sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE="'"$resolution"'"/g' /etc/default/grub
 
@@ -810,41 +826,43 @@ $s update-grub
 
   ### < FSTAB UPDATE >
   ### fstab update
-    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab #$droidfstab
-    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab #$droidfstab
-    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab #$droidfstab
-    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab #$droidfstab
-    $s sed -i 's/swap .*/swap     '"$swap"' 0 0/g' /etc/fstab #$droidfstab
+  if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
+    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab #$fstab
+    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab #$fstab
+    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab #$fstab
+    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab #$fstab
+    $s sed -i 's/swap .*/swap     '"$swap"' 0 0/g' /etc/fstab #$fstab
+  fi
 
 
-
-       # i hope there are no bash fuckups running legacy stuff here. rip     
-    if [ -f /system/build.prop ] ; then
+       # i hope there are no bash fuckups running legacy stuff here. rip
+       if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
+    if [ -f $droidprop ] ; then
           # f2fs droid
-      dataf2fsdroid=$(echo $(grep data $droidfstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
-      cachef2fsdroid=$(echo $(grep cache $droidfstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
-        dataf2fsreplace=$(echo $(grep data $droidfstab | grep f2fs))
-        cachef2fsreplace=$(echo $(grep data $droidfstab | grep f2fs))
+      dataf2fsdroid=$(echo $(grep data $fstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
+      cachef2fsdroid=$(echo $(grep cache $fstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
+        dataf2fsreplace=$(echo $(grep data $fstab | grep f2fs))
+        cachef2fsreplace=$(echo $(grep data $fstab | grep f2fs))
       # ext4 droid
-      dataext4droid=$(echo $(grep data $droidfstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext"',nosuid,nodev", $5 }'))
-      cacheext4droid=$(echo $(grep cache $droidfstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev", $5 }'))
-        dataext4replace=$(echo $(grep data $droidfstab | grep ext4))
-        cacheext4replace=$(echo $(grep data $droidfstab | grep ext4))
-              systemext4droid=$(echo $(grep system $droidfstab | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g'))
-              systemext4replace=$(echo $(grep system $droidfstab | grep ext4))
-    
-        if ! grep -q f2fs $droidfstab ; then
-echo $dataf2fsdroid | tee -a $droidfstab
-echo $cachef2fsdroid | tee -a $droidfstab
-        fi 
-        
-sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' $droidfstab
-sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' $droidfstab
-sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' $droidfstab
-sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' $droidfstab
-sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $droidfstab
-    fi
+      dataext4droid=$(echo $(grep data $fstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext"',nosuid,nodev", $5 }'))
+      cacheext4droid=$(echo $(grep cache $fstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev", $5 }'))
+        dataext4replace=$(echo $(grep data $fstab | grep ext4))
+        cacheext4replace=$(echo $(grep data $fstab | grep ext4))
+              systemext4droid=$(echo $(grep system $fstab | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g'))
+              systemext4replace=$(echo $(grep system $fstab | grep ext4))
 
+        if $(! grep -q f2fs $fstab) ; then
+echo $dataf2fsdroid | tee -a $fstab
+echo $cachef2fsdroid | tee -a $fstab
+        fi
+
+sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' $fstab
+sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' $fstab
+sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' $fstab
+sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' $fstab
+sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $fstab
+    fi
+      fi
 
 
 
@@ -854,12 +872,12 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $droidfstab
 
   ### fstab tmpfs on ram
     tmpfsadd=$(if grep -q "tmpfs" /etc/fstab ; then echo "*BLS*=TMPFS found not applying to /etc/fstab."; else echo "*BLS*=TMPFS added to /etc/fstab." &&
-    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
-    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
-    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
-    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a /etc/fstab $droidfstab
-    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab
-    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a /etc/fstab $droidfstab ; fi)
+    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
+    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
+    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
+    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a $fstab
+    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
+    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab ; fi)
     #$s echo 'tmpfs    /var/log    tmpfs    '"$tmpfs"',mode=1755,size=10m  0 0' | $s tee -a /etc/fstab
     #$s echo 'tmpfs    /var/spool  tmpfs    '"$tmpfs"',mode=1750,size=4m   0 0' | $s tee -a /etc/fstab
  ### check if zram to avoid tmpfs on ram
@@ -868,16 +886,16 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $droidfstab
  $tmpfsadd # and then there was tmpfs for all.
 
   ### update tmpfs values
-    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
-    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' /etc/fstab $droidfstab
+    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' $fstab
+    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' $fstab
+    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' $fstab
+    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' $fstab
+    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' $fstab
+    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' $fstab
 
-    sed -i 's/noatime/lazytime/g' /etc/fstab $droidfstab
-    sed -i 's/nodiratime/lazytime/g' /etc/fstab $droidfstab
-    sed -i 's/relatime/lazytime/g' /etc/fstab $droidfstab
+    sed -i 's/noatime/lazytime/g' $fstab
+    sed -i 's/nodiratime/lazytime/g' $fstab
+    sed -i 's/relatime/lazytime/g' $fstab
 
 
 
@@ -909,7 +927,7 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $droidfstab
       sed -i 's/#FastConnectable.*/FastConnectable = false/' /etc/bluetooth/main.conf
       sed -i 's/ReconnectAttempts.*/ReconnectAttempts = 1/' /etc/bluetooth/main.conf
       sed -i 's/ReconnectIntervals.*/ReconnectIntervals = 1/' /etc/bluetooth/main.conf
-      if [ ! -f /system/build.prop ] ; then rm -rfd /var/lib/bluetooth/* ; fi
+      if [ ! -f $droidprop ] ; then rm -rfd /var/lib/bluetooth/* ; fi
 
 
   # journaling and more
@@ -974,14 +992,14 @@ ccache --set-config=sloppiness=locale,time_macros
     $s ufw deny out on lo
     sysctl net.ipv4.conf.all.rp_filter
     sysctl -a --pattern 'net.ipv4.conf.(eth|wlan)0.arp'
-if ! grep -q 'order bind,hosts' /etc/host.conf ; then
+if $(! grep -q 'order bind,hosts' /etc/host.conf) ; then
 echo 'order bind,hosts
 multi on' | tee -a /etc/host.conf ; fi
 
 
 
   # dns
-    if ! grep -q "$dns61" /etc/resolv.conf ; then
+    if $(! grep -q "$dns61" /etc/resolv.conf) ; then
 echo 'nameserver '"$dns1"'
 nameserver '"$dns2"'
 nameserver 127.0.0.1
@@ -995,16 +1013,16 @@ if [ $ipv6 = on ] ; then sed -i 's/#nameserver ::1
 nameserver '"$dns61"'
 nameserver '"$dns62"'/g' /etc/resolv/conf $droidresolv ; fi
 
-    if ! grep -q edns0 /etc/resolv.conf ; then
+    if $(! grep -q edns0 /etc/resolv.conf) ; then
     echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
 
 
 
-  if ! grep -q "filterwin2k " /etc/hosts ; then
+  if $(! grep -q "filterwin2k " /etc/hosts) ; then
 echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost
 ::1 localhost' | tee -a /etc/hosts $droidhosts ; fi
-    if ! grep -a "127.0.1.1 "$(cat /etc/hostname)"" /etc/hosts $droidhosts ; then
+    if $(! grep -a "127.0.1.1 "$(cat /etc/hostname)"" /etc/hosts $droidhosts) ; then
     echo "127.0.1.1 "$(cat /etc/hostname)"" | tee -a /etc/hosts $droidhosts ; fi
 
 
@@ -1014,7 +1032,7 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
 
 
   # extras
-    if ! grep -q wrt /etc/os-release ; then
+    if $(! $wrt) ; then
 
   # disable file indexer
     balooctl suspend
@@ -1067,7 +1085,7 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
     sed -i 's/COMPRESS=.*/COMPRESS=lz4/g' /etc/initramfs-tools/initramfs.conf
     #sed -i 's/# COMPRESSLEVEL=.*/COMPRESSLEVEL=9/g' /etc/initramfs-tools/initramfs.conf
     #sed -i 's/COMPRESSLEVEL=.*/COMPRESSLEVEL=9/g' /etc/initramfs-tools/initramfs.conf
-    if ! grep -q 'Unattended-Upgrade::AutoFixInterruptedDpkg "true";' /etc/apt/apt.conf.d/50unattended-upgrades ; then
+    if $(! grep -q 'Unattended-Upgrade::AutoFixInterruptedDpkg "true";' /etc/apt/apt.conf.d/50unattended-upgrades) ; then
 echo 'APT::Periodic::Unattended-Upgrade "1";
 APT::Periodic::AutocleanInterval "7";
 APT::Periodic::Download-Upgradeable-Packages "1";
@@ -1075,7 +1093,7 @@ APT::Periodic::Update-Package-Lists "1";
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
 Unattended-Upgrade::AutoFixInterruptedDpkg "true";
 Unattended-Upgrade::MinimalSteps "true";' | tee -a /etc/apt/apt.conf.d/50unattended-upgrades ; fi
-if ! grep -q 'bantine = 1d' /etc/fail2ban/jail.local ; then
+if $(! grep -q 'bantine = 1d' /etc/fail2ban/jail.local) ; then
 echo '[DEFAULT]
 banaction = nftables
 banaction_allports = nftables[type=allports]
@@ -1092,7 +1110,7 @@ maxretry  = 5
 findtime  = 1d
 bantime   = 2w
 ignoreip  = 127.0.0.1/8' | tee /etc/fail2ban/jail.local ; fi
-if ! grep -q failregex /etc/fail2ban/filter.d/fwdrop.local ; then
+if $(! grep -q failregex /etc/fail2ban/filter.d/fwdrop.local) ; then
 echo '[Definition]
 failregex = ^.*DROP_.*SRC=<ADDR> DST=.*$
 journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
@@ -1105,7 +1123,7 @@ journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf /etc/systemd/user.conf
     chmod 0600 /etc/hosts.allow
     chmod 0600 /etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
-    if ! grep -q rngd /etc/modules ; then
+    if $(! grep -q rngd /etc/modules) ; then
     sed -i -r '/^fscache?/D' /etc/modules
 cat <<EOL>> /etc/modules
 jitterentropy-rngd
@@ -1127,7 +1145,7 @@ fi
  --hitcount 4 --rttl -j DROP
 
         # config dracut as well in case of not using initramfs-tools - note mdadm probably is raid. reconsidering it probably isnt so no harm. dracut buggy. just use google do ur own homework. setup already to big for me
-            #if grep -q debian /etc/os-release ; then
+            #if $debian ; then
             #dracflags="hostonly=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf='$raid' lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no kernel_cmdline='mitigations=$mitigations' compress=lz4 hostonly_cmdline=yes"
         #if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then
         #echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
@@ -1150,13 +1168,13 @@ fi
     echo "64" > /sys/kernel/mm/ksm/pages_to_scan
     echo "500" > /sys/kernel/mm/ksm/sleep_millisecs
 
-    if ! grep -q fscache /etc/initramfs-tools/modules ; then
+    if $(! grep -q fscache /etc/initramfs-tools/modules) ; then
     echo cachefiles >> /etc/initramfs-tools/modules
     echo fscache >> /etc/initramfs-tools/modules
     systemctl start --now cachefilesd
     systemctl enable --now cachefilesd ; fi
     sed -i 's/#RUN=.*/RUN=yes/g' /etc/default/cachefilesd
-    if ! grep -q jitterentropy /etc/initramfs-tools/modules ; then
+    if $(! grep -q jitterentropy /etc/initramfs-tools/modules) ; then
     echo jitterentropy-rngd >> /etc/initramfs-tools/modules
     echo haveged >> /etc/initramfs-tools/modules
     echo kvm >> /etc/initramfs-tools/modules
@@ -1164,8 +1182,8 @@ fi
     echo acpi_cpufreq >> /etc/initramfs-tools/modules
     echo cpufreq_performance >> /etc/initramfs-tools/modules
     echo processor >> /etc/initramfs-tools/modules ; fi
-    if dmesg | grep -q amdgpu ; then
-    echo amdgpu >> /etc/initramfs-tools/modules ; fi
+    if dmesg | grep -q amdgpu && ! grep -q amdgpu /etc/initramfs-tools/modules ; then
+    echo amdgpu >> /etc/initramfs-tools/modules ; elif dmesg | "$( ! grep -q amdgpu )" ; then sed -i 's/amdgpu//g' /etc/initramfs-tools/modules ; fi
 
 
     sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf
@@ -1188,7 +1206,7 @@ echo N > /sys/class/kgsl/kgsl-3d0/throttling
 echo N > /sys/module/mali/parameters/mali_debug_level
 echo 250 > /sys/module/mali/parameters/mali_gpu_utilization_timeout
 echo Y > /proc/mali/dvfs_enable
-echo 56 > /d/mdss_panel_fb0/intf0/min_refresh_rate
+#echo 56 > /d/mdss_panel_fb0/intf0/min_refresh_rate
 echo 60 > /proc/sys/net/ipv4/tcp_default_init_rwnd
 echo 2 > /sys/module/tcp_cubic/parameters/hystart_detect
 echo N > /sys/module/mmc_core/parameters/crc
@@ -1200,35 +1218,35 @@ echo N > /sys/kernel/sched/gentle_fair_sleepers
 echo Y > /sys/kernel/sched/arch_power
 echo ARCH_CAPACITY > /sys/kernel/debug/sched_features
 echo Y > /proc/sys/vm/highmem_is_dirtyable
-echo Y > /proc/sys/vm/compact_memory
+echo N > /proc/sys/vm/compact_memory
 echo Y > /proc/sys/vm/compact_unevictable_allowed
 echo N > /proc/sys/kernel/softlockup_panic
 echo N > /proc/sys/kernel/panic_on_oops
 echo 3 > /sys/kernel/power_suspend/power_suspend_mode
 echo 15000 > /sys/power/pm_freeze_timeout
-echo 5 > /proc/sys/kernel/sched_walt_init_task_load_pct
+#echo 5 > /proc/sys/kernel/sched_walt_init_task_load_pct
 echo N > /proc/sys/kernel/sched_walt_rotate_big_tasks
-echo 2 > /proc/sys/kernel/sched_tunable_scaling
-if [ -f /system/build.prop ] ; then
+echo 0 > /proc/sys/kernel/sched_tunable_scaling
+if [ -f $droidprop ] ; then
 echo Y > /proc/sys/kernel/sched_enable_power_aware ; else echo N > /proc/sys/kernel/sched_enable_power_aware ; fi
 echo Y > /proc/sys/kernel/power_aware_timer_migration
 echo N > /proc/sys/kernel/sched_smt_power_savings
 echo N > /proc/sys/kernel/sched_mc_power_savings
 echo 0 > /proc/sys/kernel/sched_ravg_hist_size
 echo N > /proc/sys/kernel/sched_enable_thread_grouping
-echo N > /sys/module/msm_thermal/core_control/enabled
+#echo N > /sys/module/msm_thermal/core_control/enabled
 echo Y > /sys/module/msm_thermal/core_control/parameters/enabled
 echo 10 > /sys/class/thermal/thermal_message/sconfig
 echo Y > /sys/module/lowmemorykiller/parameters/lmk_fast_run
 echo Y > /sys/module/lowmemorykiller/parameters/enable_adaptive_lmk
 echo Y > /sys/module/lowmemorykiller/parameters/oom_reaper
-echo 5000 > /sys/kernel/mm/uksm/sleep_millisecs
-echo 128 > /sys/kernel/mm/uksm/pages_to_scan
-echo Y > /sys/kernel/mm/uksm/deferred_timer
+#echo 5000 > /sys/kernel/mm/uksm/sleep_millisecs
+#echo 128 > /sys/kernel/mm/uksm/pages_to_scan
+#echo Y > /sys/kernel/mm/uksm/deferred_timer
 echo $ksm > /sys/kernel/mm/uksm/run
-echo 5000 > /sys/kernel/mm/ksm/sleep_millisecs
-echo 128 > /sys/kernel/mm/ksm/pages_to_scan
-echo Y > /sys/kernel/mm/ksm/deferred_timer
+#echo 5000 > /sys/kernel/mm/ksm/sleep_millisecs
+#echo 128 > /sys/kernel/mm/ksm/pages_to_scan
+#echo Y > /sys/kernel/mm/ksm/deferred_timer
 echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_cmd
 echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_ctxt
 echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_drv
@@ -1279,11 +1297,11 @@ echo "0" > /sys/class/kgsl/kgsl-3d0/force_no_nap
 echo "0" > /sys/class/kgsl/kgsl-3d0/force_rail_on
 echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
 
-echo 1 > /dev/stune/top-app/schedtune.prefer_idle
-echo 1 > /dev/stune/foreground/schedtune.prefer_idle
-echo 1 > /dev/stune/top-app/schedtune.prefer_idle
-echo 3 > /dev/stune/top-app/schedtune.sched_boost
-echo 1 > /dev/stune/top-app/schedtune.sched_boost_enabled
+#echo 1 > /dev/stune/top-app/schedtune.prefer_idle
+#echo 1 > /dev/stune/foreground/schedtune.prefer_idle
+#echo 1 > /dev/stune/top-app/schedtune.prefer_idle
+#echo 3 > /dev/stune/top-app/schedtune.sched_boost
+#echo 1 > /dev/stune/top-app/schedtune.sched_boost_enabled
 
 sysctl -w fs.inotify.max_queued_events=32768
 sysctl -w fs.inotify.max_user_instances=256
@@ -1296,8 +1314,8 @@ sysctl -w kernel.sched_scaling_enable=1
 echo "1" /proc/sys/fs/leases-enable
 echo "0" > /proc/sys/fs/dir-notify-enable
 echo "20" > /proc/sys/fs/lease-break-time
-echo 1 > /proc/sys/vm/overcommit_memory
-echo 80 > /proc/sys/vm/overcommit_ratio
+#echo 1 > /proc/sys/vm/overcommit_memory
+#echo 80 > /proc/sys/vm/overcommit_ratio
 
 echo "write through" | sudo tee /sys/block/*/queue/write_cache
 
@@ -1308,7 +1326,7 @@ setprop video.accelerate.hw 1
 #setprop persist.sys.ui.hw 1
 #setprop debug.egl.buffcount 4
 #setprop debug.egl.hw 1
-if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -ge 11 ] ; then
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -ge 11 ] ; then
 setprop debug.hwui.renderer vulkan
 fi
 setprop net.tcp.buffersize.default 6144,87380,1048576,6144,87380,524288
@@ -1406,7 +1424,7 @@ echo 1 > /dev/stune/top-app/schedtune.sched_boost_enabled
 
 sysctl -w kernel.sched_scaling_enable=1
 echo 1 > /proc/sys/kernel/sched_scaling_enable
-echo 2 > /proc/sys/kernel/sched_tunable_scaling
+echo 0 > /proc/sys/kernel/sched_tunable_scaling
 #echo 0 > /proc/sys/kernel/sched_boost
 echo 1 > /proc/sys/kernel/sched_child_runs_first
 ##echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
@@ -1562,11 +1580,11 @@ chmod 666 /sys/module/lowmemorykiller/parameters/minfree
 chown root /sys/module/lowmemorykiller/parameters/minfree
 
 echo 1 > /proc/sys/kernel/sched_scaling_enable
-echo 2 > /proc/sys/kernel/sched_tunable_scaling
+echo 0 > /proc/sys/kernel/sched_tunable_scaling
 #echo 0 > /proc/sys/kernel/sched_boost
 echo 1 > /proc/sys/kernel/sched_child_runs_first
-echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
-echo 2000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
+#echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
+#echo 2000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
 #echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
 echo 40000 > /proc/sys/kernel/sched_latency_ns
 #echo '0:1324800' > /sys/module/cpu_boost/parameters/input_boost_freq
@@ -1732,7 +1750,7 @@ echo N > /sys/module/wakeup/parameters/enable_wlan_wow_wl_ws
 echo N > /sys/module/wakeup/parameters/enable_wlan_ws
 echo N > /sys/module/wakeup/parameters/enable_wlan_ctrl_wake_ws
 
-#if [ -f /system/build.prop ] ; then
+#if [ -f $droidprop ] ; then
 #su -c "pm enable com.google.android.gms"
 #su -c "pm enable com.google.android.gsf"
 #su -c "pm enable com.google.android.gms/.update.SystemUpdateActivity"
@@ -1803,9 +1821,205 @@ fi
 
   ### < START PARAMETER CONFIG >
 ##########################################################################################################
+# legacy dump from 3.x kernel for compatibility
+# command for you: grep -H '' $(ls /sys/module/*/parameters/*) | sed 's/:/ /g' | awk '{print "echo",  $2, ">", $1}'  
+echo 0 > /sys/module/alarm/parameters/debug_mask
+echo 0 > /sys/module/alarm_dev/parameters/debug_mask
+echo 0 > /sys/module/bcmdhd/parameters/clockoverride
+echo 0 > /sys/module/bcmdhd/parameters/dhd_console_ms
+#echo 1 > /sys/module/bcmdhd/parameters/dhd_doflow
+echo 0 > /sys/module/bcmdhd/parameters/dhd_dpcpoll
+#echo -1 > /sys/module/bcmdhd/parameters/dhd_oob_gpio_num
+echo 0 > /sys/module/bcmdhd/parameters/disable_proptx
+#echo Driver > /sys/module/bcmdhd/parameters/info_string
+#echo Firmware > /sys/module/bcmdhd/parameters/info_string
+#echo Chip > /sys/module/bcmdhd/parameters/info_string
+echo 0 > /sys/module/bcmdhd/parameters/op_mode
+echo 0 > /sys/module/binder/parameters/debug_mask
+echo N > /sys/module/binder/parameters/proc_no_lock
+echo 0 > /sys/module/binder/parameters/stop_on_user_error
+echo 0 > /sys/module/block/parameters/events_dfl_poll_msecs
+#echo N > /sys/module/bluetooth/parameters/disable_ertm
+#echo N > /sys/module/bluetooth/parameters/disable_esco
+#echo N > /sys/module/bluetooth/parameters/enable_le
+#echo N > /sys/module/bluetooth/parameters/enable_mgmt
+#echo Y > /sys/module/bnep/parameters/compress_dst
+#echo Y > /sys/module/bnep/parameters/compress_src
+#echo Y > /sys/module/board_espresso_pmic/parameters/enable_sr
+echo 0 > /sys/module/brd/parameters/max_part
+echo 0 > /sys/module/brd/parameters/rd_nr
+#echo 8192 > /sys/module/brd/parameters/rd_size
+echo N > /sys/module/cfg80211/parameters/cfg80211_disable_40mhz_24ghz
+echo $country > /sys/module/cfg80211/parameters/ieee80211_regdom
+echo N > /sys/module/cpuidle44xx/parameters/disallow_smp_idle
+echo N > /sys/module/cpuidle44xx/parameters/keep_core_on
+echo N > /sys/module/cpuidle44xx/parameters/keep_mpu_on
+echo 0 > /sys/module/cpuidle44xx/parameters/max_state
+echo 0 > /sys/module/cpuidle44xx/parameters/only_state
+echo N > /sys/module/cpuidle44xx/parameters/skip_off
+echo 0 > /sys/module/dns_resolver/parameters/debug
+echo 0 > /sys/module/dsscomp/parameters/debug
+echo 0 > /sys/module/earlysuspend/parameters/debug_mask
+echo 0 > /sys/module/ehci_hcd/parameters/hird
+echo Y > /sys/module/ehci_hcd/parameters/ignore_oc
+echo 0 > /sys/module/ehci_hcd/parameters/log2_irq_thresh
+echo 0 > /sys/module/ehci_hcd/parameters/park
+#echo 312 > /sys/module/fuse/parameters/max_user_bgreq
+#echo 312 > /sys/module/fuse/parameters/max_user_congthresh
+#echo (null) > /sys/module/g_android/parameters/dev_addr
+#echo (null) > /sys/module/g_android/parameters/host_addr
+#echo 5 > /sys/module/g_android/parameters/qmult
+#echo N > /sys/module/hci_uart/parameters/reset
+echo 0 > /sys/module/hid/parameters/debug
+#echo 1 > /sys/module/hid_apple/parameters/fnmode
+#echo 1 > /sys/module/hid_apple/parameters/iso_layout
+#echo Y > /sys/module/hid_magicmouse/parameters/emulate_3button
+#echo Y > /sys/module/hid_magicmouse/parameters/emulate_scroll_wheel
+#echo Y > /sys/module/hid_magicmouse/parameters/report_touches
+#echo N > /sys/module/hid_magicmouse/parameters/report_undeciphered
+#echo N > /sys/module/hid_magicmouse/parameters/scroll_acceleration
+#echo 32 > /sys/module/hid_magicmouse/parameters/scroll_speed
+#echo 1 > /sys/module/hid_ntrig/parameters/activate_slack
+#echo 32 > /sys/module/hid_ntrig/parameters/activation_height
+#echo 64 > /sys/module/hid_ntrig/parameters/activation_width
+#echo 4 > /sys/module/hid_ntrig/parameters/deactivate_slack
+#echo 0 > /sys/module/hid_ntrig/parameters/min_height
+#echo 0 > /sys/module/hid_ntrig/parameters/min_width
+echo N > /sys/module/hid_prodikeys/parameters/enable
+echo "(null)" > /sys/module/hid_prodikeys/parameters/id
+echo 0 > /sys/module/hid_prodikeys/parameters/index
+echo $( if [ $ipv6 = on ] ; then echo "1" ; else echo "0" ; fi) > /sys/module/ipv6/parameters/autoconf
+echo $( if [ $ipv6 = off ] ; then echo "1" ; else echo "0" ; fi) > /sys/module/ipv6/parameters/disable
+echo $( if [ $ipv6 = off ] ; then echo "1" ; else echo "0" ; fi) > /sys/module/ipv6/parameters/disable_ipv6
+#echo 4 > /sys/module/kernel/parameters/alignment
+echo N > /sys/module/kernel/parameters/initcall_debug
+#echo N > /sys/module/kernel/parameters/nousb
+echo 0 > /sys/module/kernel/parameters/panic
+echo 0 > /sys/module/kernel/parameters/pause_on_oops
+echo 0 > /sys/module/loop/parameters/max_loop
+echo 0 > /sys/module/loop/parameters/max_part
+echo 32 > /sys/module/lowmemorykiller/parameters/cost
+echo 0 > /sys/module/lowmemorykiller/parameters/debug_level
+#echo 18432,23040,27648,32256,36864,46080 > /sys/module/lowmemorykiller/parameters/minfree
+#echo 256 > /sys/module/mailbox/parameters/mbox_kfifo_size
+#echo N > /sys/module/mmc_core/parameters/removable
+#echo 8 > /sys/module/mmcblk/parameters/perdev_minors
+#echo 200 > /sys/module/mousedev/parameters/tap_time
+#echo 1024 > /sys/module/mousedev/parameters/xres
+#echo 768 > /sys/module/mousedev/parameters/yres
+echo N > /sys/module/nf_conntrack/parameters/acct
+#echo 1024 > /sys/module/nf_conntrack/parameters/expect_hashsize
+#echo 14653 > /sys/module/nf_conntrack/parameters/hashsize
+#echo 300 > /sys/module/nf_conntrack_amanda/parameters/master_timeout
+#echo kmp > /sys/module/nf_conntrack_amanda/parameters/ts_algo
+#echo N > /sys/module/nf_conntrack_ftp/parameters/loose
+#echo 21 > /sys/module/nf_conntrack_ftp/parameters/ports
+#echo Y > /sys/module/nf_conntrack_h323/parameters/callforward_filter
+#echo 300 > /sys/module/nf_conntrack_h323/parameters/default_rrq_ttl
+#echo 1 > /sys/module/nf_conntrack_h323/parameters/gkrouted_only
+#echo 14653 > /sys/module/nf_conntrack_ipv4/parameters/hashsize
+#echo 300 > /sys/module/nf_conntrack_irc/parameters/dcc_timeout
+#echo 8 > /sys/module/nf_conntrack_irc/parameters/max_dcc_channels
+#echo 6667 > /sys/module/nf_conntrack_irc/parameters/ports
+#echo 3 > /sys/module/nf_conntrack_netbios_ns/parameters/timeout
+#echo 6566 > /sys/module/nf_conntrack_sane/parameters/ports
+#echo 69 > /sys/module/nf_conntrack_tftp/parameters/ports
+echo N > /sys/module/omapdss/parameters/debug
+echo N > /sys/module/omapfb/parameters/debug
+echo N > /sys/module/omapfb/parameters/test
+echo 0 > /sys/module/omaprpc/parameters/debug
+echo N > /sys/module/otg_wakelock/parameters/enabled
+echo N > /sys/module/pl2303/parameters/debug
+#echo Y > /sys/module/printk/parameters/time
+echo 0 > /sys/module/pvrsrvkm/parameters/gPVRDebugLevel
+#echo 0 > /sys/module/rcutree/parameters/rcu_cpu_stall_suppress
+#echo -1 > /sys/module/rfcomm/parameters/channel_mtu
+#echo N > /sys/module/rfcomm/parameters/disable_cfc
+#echo N > /sys/module/rfcomm/parameters/l2cap_ertm
+#echo 1013 > /sys/module/rfcomm/parameters/l2cap_mtu
+#echo 1 > /sys/module/rfkill/parameters/default_state
+#echo 0 > /sys/module/sch_htb/parameters/htb_hysteresis
+#echo 0 > /sys/module/scsi_mod/parameters/default_dev_flags
+#echo 20 > /sys/module/scsi_mod/parameters/inq_timeout
+#echo 512 > /sys/module/scsi_mod/parameters/max_luns
+#echo 511 > /sys/module/scsi_mod/parameters/max_report_luns
+#echo sync > /sys/module/scsi_mod/parameters/scan
+echo 0 > /sys/module/scsi_mod/parameters/scsi_logging_level
+#echo 0 > /sys/module/sg/parameters/allow_dio
+#echo 32768 > /sys/module/sg/parameters/def_reserved_size
+#echo 32768 > /sys/module/sg/parameters/scatter_elem_sz
+#echo 1 > /sys/module/snd/parameters/cards_limit
+#echo 116 > /sys/module/snd/parameters/major
+#echo "(null)" > /sys/module/snd/parameters/slots
+#echo 4 > /sys/module/snd_pcm/parameters/maximum_substreams
+#echo 1 > /sys/module/snd_pcm/parameters/preallocate_dma
+#echo 1 > /sys/module/snd_timer/parameters/timer_limit
+#echo 1 > /sys/module/snd_timer/parameters/timer_tstamp_monotonic
+#echo Y > /sys/module/snd_usb_audio/parameters/async_unlink
+#echo 0 > /sys/module/snd_usb_audio/parameters/device_setup
+#echo Y > /sys/module/snd_usb_audio/parameters/enable
+#echo "(null)" > /sys/module/snd_usb_audio/parameters/id
+echo Y > /sys/module/snd_usb_audio/parameters/ignore_ctl_error
+#echo -1 > /sys/module/snd_usb_audio/parameters/index
+#echo 8 > /sys/module/snd_usb_audio/parameters/nrpacks
+#echo -1 > /sys/module/snd_usb_audio/parameters/pid
+#echo -1 > /sys/module/snd_usb_audio/parameters/vid
+echo 0 > /sys/module/spurious/parameters/irqfixup
+echo Y > /sys/module/spurious/parameters/noirqdebug
+#echo 717 > /sys/module/tcp_cubic/parameters/beta
+#echo 41 > /sys/module/tcp_cubic/parameters/bic_scale
+#echo 1 > /sys/module/tcp_cubic/parameters/fast_convergence
+#echo 1 > /sys/module/tcp_cubic/parameters/hystart
+#echo 2 > /sys/module/tcp_cubic/parameters/hystart_ack_delta
+#echo 3 > /sys/module/tcp_cubic/parameters/hystart_detect
+#echo 16 > /sys/module/tcp_cubic/parameters/hystart_low_window
+#echo 0 > /sys/module/tcp_cubic/parameters/initial_ssthresh
+#echo 1 > /sys/module/tcp_cubic/parameters/tcp_friendliness
+echo 0 > /sys/module/tiler/parameters/alloc_debug
+#echo 41943040 > /sys/module/tiler/parameters/cache
+#echo 128 > /sys/module/tiler/parameters/grain
+#echo Y > /sys/module/tiler/parameters/offset_lookup
+#echo Y > /sys/module/tiler/parameters/security
+#echo Y > /sys/module/tiler/parameters/ssptr_id
+#echo Y > /sys/module/tiler/parameters/ssptr_lookup
+#echo 1 > /sys/module/usb_storage/parameters/delay_use
+#echo 1 > /sys/module/usb_storage/parameters/option_zero_cd
+#echo 1 > /sys/module/usb_storage/parameters/swi_tru_install
+#echo 2 > /sys/module/usbcore/parameters/autosuspend
+echo N > /sys/module/usbcore/parameters/blinkenlights
+#echo 5000 > /sys/module/usbcore/parameters/initial_descriptor_timeout
+echo N > /sys/module/usbcore/parameters/old_scheme_first
+echo N > /sys/module/usbcore/parameters/usbfs_snoop
+#echo Y > /sys/module/usbcore/parameters/use_both_schemes
+echo 0 > /sys/module/usbhid/parameters/ignoreled
+echo 0 > /sys/module/usbhid/parameters/mousepoll
+#echo "(null)" > /sys/module/usbhid/parameters/quirks
+#echo -1 > /sys/module/usblp/parameters/proto_bias
+echo N > /sys/module/usbserial/parameters/debug
+echo 0 > /sys/module/userwakelock/parameters/debug_mask
+echo 0 > /sys/module/wakelock/parameters/debug_mask
+#echo N > /sys/module/xpad/parameters/dpad_to_buttons
+#echo N > /sys/module/xpad/parameters/sticks_to_null
+#echo N > /sys/module/xpad/parameters/triggers_to_buttons
+#echo 438 > /sys/module/xt_qtaguid/parameters/ctrl_perms
+#echo Y > /sys/module/xt_qtaguid/parameters/ctrl_write_limited
+echo 0 > /sys/module/xt_qtaguid/parameters/debug_mask
+#echo 292 > /sys/module/xt_qtaguid/parameters/iface_perms
+#echo 1024 > /sys/module/xt_qtaguid/parameters/max_sock_tags
+#echo N > /sys/module/xt_qtaguid/parameters/passive
+#echo 292 > /sys/module/xt_qtaguid/parameters/stats_perms
+#echo Y > /sys/module/xt_qtaguid/parameters/stats_readall_limited
+#echo N > /sys/module/xt_qtaguid/parameters/tag_tracking_passive
+#echo 112 > /sys/module/xt_quota2/parameters/event_num
+#echo 0 > /sys/module/xt_quota2/parameters/gid
+#echo 420 > /sys/module/xt_quota2/parameters/perms
+#echo 0 > /sys/module/xt_quota2/parameters/uid
+
+
+### kernel 6.x underneath
 # systunedump --all | sed 's/:/ /g' | awk '{print "echo "$2" > "$1}' > text
 # just dumped this still needs editing
-echo 60 > /sys/fs/f2fs/*/cp_interval
+echo 120 > /sys/fs/f2fs/*/cp_interval
 echo 0 > proc/sys/vm/block_dump
 echo 0 > /sys/module/ext4/parameters/mballoc_debug
 echo 0 > /proc/sys/abi/vsyscall32
@@ -1970,7 +2184,7 @@ echo 0 > /proc/sys/kernel/watchdog
 echo 0 > /proc/sys/kernel/watchdog_cpumask
 echo 60 > /proc/sys/kernel/watchdog_thresh
 echo 0 > /proc/sys/kernel/yama/ptrace_scope
-if ! grep -q wrt /etc/os-release ; then
+if $(! $wrt) ; then
 echo 1 > /proc/sys/net/core/bpf_jit_enable
 echo 0 > /proc/sys/net/core/bpf_jit_harden
 echo 0 > /proc/sys/net/core/bpf_jit_kallsyms
@@ -2956,7 +3170,7 @@ echo Y > /sys/module/zswap/parameters/same_filled_pages_enabled
 echo $zpool > /sys/module/zswap/parameters/zpool
 fi
 
-if [ $ipv6 = off ] && ! grep -q wrt /etc/os-release ; then
+if [ $ipv6 = off ] && ! $wrt ; then
 echo 0 > /sys/module/ipv6/parameters/autoconf
 echo 1 > /sys/module/ipv6/parameters/disable
 echo 1 > /sys/module/ipv6/parameters/disable_ipv6
@@ -3004,7 +3218,7 @@ echo false > /sys/kernel/mm/numa/demotion_enabled
 
 echo 1 > /sys/kernel/reboot/cpu
 echo 1 > /sys/kernel/reboot/force
-echo hard > /sys/kernel/reboot/mode
+echo warm > /sys/kernel/reboot/mode
 echo triple > /sys/kernel/reboot/type
 
 echo 0xffffff > /sys/kernel/security/apparmor/capability
@@ -3107,7 +3321,7 @@ echo "0" > /sys/kernel/logger_mode/logger_mode
 
 ### io scheduler, governor and more
 #scheduler
-
+if [ ! -f  $droidprop ] ; then
 # nvme
 for i in $(find /sys/block -type l); do
   echo "$sched" > $i/queue/scheduler;
@@ -3227,7 +3441,7 @@ for i in $(find /sys/block/sd*); do
 #echo "0" > $i/queue/zoned
 #echo "0" > $i/queue/zone_write_granularity
 done;
-
+fi
 # mtd
 for i in $(find /sys/block/mtd*); do
   echo "$mtdsched" > $i/queue/scheduler;
@@ -3312,7 +3526,6 @@ for i in $(find /sys/block/mmc*); do
   echo "0" > $i/queue/iosched/group_idle
   echo "1" > $i/queue/iosched/low_latency
   echo "150" > $i/queue/iosched/target_latency
-  echo "write through" | tee /sys/block/$i/queue/write_cache
   echo "5" > $i/queue/iosched/slice_idle_us
   echo "0" > $i/queue/iosched/strict_guarantees
   echo "10" > $i/queue/iosched/timeout_sync
@@ -3354,16 +3567,16 @@ echo 32 | tee /sys/block/$i/queue/iosched/fifo_batch ; done
 
 echo 1 > /sys/module/processor/parameters/ignore_ppc
 
-if ! grep -q "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf ; then
+if $(! grep -q "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf) ; then
 echo 'options processor ignore_ppc=1' | tee /etc/modprobe.d/ignore_ppc.conf ; fi
 
 #x86_energy_perf_policy --hwp-enable --force
 x86_energy_perf_policy --all 1 --force
 
-if ! grep -q acpi-cpufreq /etc/modules ; then
+if $(! grep -q acpi-cpufreq /etc/modules) ; then
 echo acpi-cpufreq >> /etc/modules ; fi
 
-if ! grep -q "options acpi-cpufreq force=1" /etc/modprobe.d/acpi-cpufreq.modprobe ; then
+if $(! grep -q "options acpi-cpufreq force=1" /etc/modprobe.d/acpi-cpufreq.modprobe) ; then
 echo options acpi-cpufreq force=1 >> /etc/modprobe.d/acpi-cpufreq.modprobe ; fi
 
 cpupower frequency-set -g $governor
@@ -3420,7 +3633,7 @@ echo 8 > /sys/kernel/debug/sched/nr_migrate
 # different path under 5.10
 sysctl -w kernel.sched_scaling_enable=1
 sysctl /proc/sys/kernel/sched_scaling_enable=1
-sysctl /proc/sys/kernel/sched_tunable_scaling=2
+sysctl /proc/sys/kernel/sched_tunable_scaling=0
 sysctl /proc/sys/kernel/sched_child_runs_first=1
 sysctl /proc/sys/kernel/sched_min_granularity_ns=500000
 sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=500000
@@ -3432,7 +3645,7 @@ sysctl /proc/sys/kernel/debug/sched/child_runs_first=1
 sysctl /proc/sys/kernel/debug/sched/min_granularity_ns=500000
 sysctl /proc/sys/kernel/debug/sched/wakeup_granularity_ns=500000
 sysctl /proc/sys/kernel/debug/sched/latency_ns=40000
-echo '2' > /sys/kernel/debug/tunable_scaling
+echo '0' > /sys/kernel/debug/tunable_scaling
 echo '500000' > /sys/kernel/debug/sched/min_granularity_ns
 echo '500000' > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo '40000' > /sys/kernel/debug/sched/latency_ns
@@ -3501,7 +3714,7 @@ echo 500000 > "$i"migration_cost_ns
 echo 500000 > "$i"min_granularity_ns
 echo 32 > "$i"nr_migrate
 echo full > "$i"preempt
-echo 2 > "$i"tunable_scaling
+echo 0 > "$i"tunable_scaling
 echo N > "$i"verbose
 echo 500000 > "$i"wakeup_granularity_ns
 #echo ? > "$i"cpu*
@@ -3512,7 +3725,7 @@ echo 500000 > "$i"wakeup_granularity_ns
 #echo ? > "$i"scan_size_mb
 done
 
-if [ -f /system/build.prop ] && ! grep -q tv /system/build.prop ; then
+if [ -f $droidprop ] && ! grep -q tv $droidprop ; then
 for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do
 echo ENERGY_AWARE >> "$i"features ; done ; fi
 
@@ -3754,7 +3967,7 @@ kernel.shmmax = '"$shmmax"'
 kernel.shmmni = '"$shmmni"'
 vm.nr_hugepages = '"$hugepages"'
 vm.nr_hugepages_mempolicy = '"$hugepages"'
-if ! grep -q wrt /etc/os-release ; then
+if $(! '"$wrt"') ; then
 abi.vsyscall32 = 0
 fi
 crypto.fips_enabled = 1
@@ -3925,7 +4138,7 @@ kernel.sched_rt_period_us = -1
 kernel.sched_rt_runtime_us = -1
 kernel.sched_scaling_enable = 1
 kernel.sched_schedstats = 0
-kernel.sched_tunable_scaling = 2
+kernel.sched_tunable_scaling = 0
 kernel.sched_wakeup_granularity_ns = 40000
 kernel.seccomp.actions_avail = NONE
 kernel.seccomp.actions_logged = NONE
@@ -4220,7 +4433,7 @@ vm.zone_reclaim_mode = 0
 #include = latency-performance
 stack_erasing = 0' | tee /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl
 
-if ! grep -q wrt /etc/os-release ; then
+if $(! $wrt) ; then
 echo 'net.ipv4.cipso_cache_bucket_size = 0
 net.ipv4.cipso_cache_enable = 0
 net.ipv4.cipso_rbm_optfmt = 0
@@ -4407,7 +4620,7 @@ echo 8 > /sys/block/md0/md/group_thread_cnt; fi
 
 
 
-if ! grep -q wrt /etc/os-release ; then
+if $(! $wrt) ; then
 sysctl -w net.ipv4.conf.all.accept_source_route=0
 sysctl -w net.ipv4.conf.all.forwarding=0
 sysctl -w net.ipv6.conf.all.forwarding=0
@@ -4424,7 +4637,7 @@ sysctl -w net.ipv4.conf.default.send_redirects=0 ; fi
 #################################################################################################
 
 # debian stuff
-if grep -q debian /etc/os-release ; then
+if $debian ; then
 
 
 
@@ -4437,7 +4650,7 @@ echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable 
 
 if dmesg | grep -q amdgpu && ! grep -q amdgpu /etc/modules ; then echo 'amdgpu' | tee -a /etc/modules ; fi
 
-if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf --random-wait --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/dxvk.conf ; fi
+if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf "$wg"--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/dxvk.conf ; fi
 
 
 
@@ -4476,7 +4689,7 @@ rm -f /etc/xdg/autostart/tracker-miner-fs-3.desktop /etc/xdg/autostart/snap-user
 
 
 # drirc
-if ! grep -q "<vblank_mode>" /etc/drirc ; then
+if $(! grep -q "<vblank_mode>" /etc/drirc) ; then
 echo '<driconf>
    <device driver="amdgpu">
       <application name="Default">
@@ -4548,7 +4761,7 @@ $s mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.conf
 
 
 # disable polling gpu
-if ! grep -q poll=0 /etc/modprobe.d/modprobe.conf ; then
+if $(! grep -q poll=0 /etc/modprobe.d/modprobe.conf) ; then
 echo 'options drm_kms_helper poll=0' | tee -a /etc/modprobe.d/modprobe.conf ; fi
 
 
@@ -4582,7 +4795,7 @@ $s sed -i 's/StartServer.*/StartServer=false/' /home/"$(getent passwd | grep 100
 # enable dri 3 for amdgpu
 # https://manpages.ubuntu.com/manpages/kinetic/en/man4/intel.4.html
 # https://manpages.ubuntu.com/manpages/kinetic/en/man5/xorg.conf.5.html
-if ! grep -q 'DDC' /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) ; then
+if $(! grep -q 'DDC' /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu)) ; then
 echo 'Section "OutputClass"
   Identifier "AMDgpu"
   MatchDriver "amdgpu"
@@ -4629,7 +4842,7 @@ for output in $(xrandr --prop | grep -E -o -i "^[A-Z\-]+-[0-9]+"); do xrandr --o
 
 
 # set true for disabling tty
-if ! grep -q 'Option "DontVTSwitch" "False"' /etc/X11/xorg.conf.d/1-notty.conf ; then
+if $(! grep -q 'Option "DontVTSwitch" "False"' /etc/X11/xorg.conf.d/1-notty.conf) ; then
 echo 'Section "ServerFlags"
     Option "DontVTSwitch" "False"
 EndSection' | tee /etc/X11/xorg.conf.d/1-notty.conf ; fi
@@ -4639,7 +4852,7 @@ EndSection' | tee /etc/X11/xorg.conf.d/1-notty.conf ; fi
 
 
 # disable x11 running on root
-if ! grep -q 'needs_root_rights = no' /etc/X11/Xwrapper.config ; then echo 'needs_root_rights = no' | tee -a /etc/X11/Xwrapper.config ; fi
+if $(! grep -q 'needs_root_rights = no' /etc/X11/Xwrapper.config) ; then echo 'needs_root_rights = no' | tee -a /etc/X11/Xwrapper.config ; fi
 
 
 
@@ -4877,8 +5090,8 @@ sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6
 fi
 #########  DEBIAN ONLY SECTION STOPPED HERE ###############
 
-if ! grep -q wrt /etc/os-release ; then
-    if grep -q debian /etc/os-release ; then cclm="-16" ; fi
+if $(! $wrt) ; then
+    if $debian ; then cclm="-16" ; fi
 # /etc/environment variables
 # test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
 # for more info: https://docs.mesa3d.org/envvars.html
@@ -5020,7 +5233,7 @@ export LD_DEBUG_OUTPUT=0
 #export LD_AUDIT=0
 #export LD_PRELOAD=
 #export LD_TRACE_LOADED_OBJECTS=0
-if ! grep -q debian /etc/os-release ; then cclm=$(echo "") ; fi
+if $(! '"$debian"') ; then cclm=$(echo "") ; fi
 export LD="LD=ld.lld'"$cclm"'"
 export LD_LIBRARY_PATH=""$PATH"/../lib:"$PATH"/../lib64:$LD_LIBRARY_PATH"
 export CC=clang'"$cclm"'
@@ -5092,90 +5305,18 @@ for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i
 ### IF ANDROID
 # android props etc
 # since script aims for broad range of devices legacy props included
-# wont get applied on newer devices anyway. no harm
-if [ -f /system/build.prop ] ; then
+# wont get applied on newer devices anyway. no harm. these are bullshit though. only the dalvik vm shit probably works. most i will be disabled by default. check what is used for your device
+if [ -f $droidprop ] ; then
 prop='#####################################
- 
-###
-#BOARD_EGL_NEEDS_LEGACY_FB=false
-#POWER_SAVE_PRE_CLEAN_MEMORY_TIME=1800
-#adaptive_battery_management_enabled=1
-#boot.fps=20
-#dalvik.vm.heapmaxfree=2m
-#dalvik.vm.heapminfree=512k
-#dalvik.vm.heaptargetutilization=0.99
-#debug.egl.buffcount=2
-#debug.egl.hw=1
-#debug.egl.profiler=1
-#debug.hwui.swap_with_damage=true
-#debug.sf.nobootanimation=1
-#font_scale=1.25
-#hwui.text_gamma.black_threshold=64
-#hwui.text_gamma.white_threshold=192
-#hwui.text_gamma=1.4
-#hwui.text_gamma_correction=lookup
-#hwui.use_gpu_pixel_buffers=true
-#k2hd_effect=1
-#lmk.autocalc=false
-#persist.sys.force_highendgfx=true
-#ro.board_ram_size=low
-#ro.bq.gpu_to_cpu_unsupported=1
-#ro.build.selinux=1
-#ro.config.low_ram=true
-#ro.config.zram.support=false
-#ro.config.zram=false
-#ro.hwui.disable_scissor_opt=false
-#ro.hwui.drop_shadow_cache_size=2
-#ro.hwui.gradient_cache_size=64k
-#ro.hwui.layer_cache_size=16
-#ro.hwui.patch_cache_size=128
-#ro.hwui.path_cache_size=4
-#ro.hwui.r_buffer_cache_size=2
-#ro.hwui.shape_cache_size=1
-#ro.hwui.text_large_cache_height=512
-#ro.hwui.text_large_cache_width=2048
-#ro.hwui.text_small_cache_height=256
-#ro.hwui.text_small_cache_width=1024
-#ro.hwui.texture_cache_flush_rate=0.6
-#ro.hwui.texture_cache_size=24
-#ro.qualcomm.perf.cores_online=2
-#ro.sys.fw.bg_apps_limit=78
-#ro.vendor.qti.am.reschedule_service=true
-#ro.vendor.qti.sys.fw.bservice_age=5000
-#ro.vendor.qti.sys.fw.bservice_enable true
-#ro.vendor.qti.sys.fw.bservice_limit=5
-#ro.zygote.disable_gl_preload=false
-#ro.zygote.preload.disable=2
-#sys.config.samp_enable=false
-#sys.config.samp_spcm_enable=false
-#vnswap.enabled=false
-#zram.disksize=0
-#persist.sys.shutdown.mode=hibernate
-#thermal_limit_refresh_rate=0
-#tube_amp_effect=1
-ACTIVITY_INACTIVE_RESET_TIME=false
-ACTIVITY_INACTIVITY_RESET_TIME=false
-activity_starts_logging_enabled=0
-af.fast_track_multiplier=1
-animator_duration_scale=0.0
-app_auto_restriction_enabled=1
-app_restriction_enabled=true
-app_standby_enabled=1
-APP_SWITCH_DELAY_TIME=false
-audio.deep_buffer.media=true
-audio.offload.buffer.size.kb=32
-audio.offload.gapless.enabled=true
-audio.offload.pcm.16bit.enable=true
-audio.offload.pcm.24bit.enable=true
-audio.offload.track.enable=true
-audio.offload.video=true
-ble_scan_always_enabled=0
-bluetooth_discoverability=1
-cached_apps_freezer=enabled
-config.disable_consumerir=true
-CONTENT_APP_IDLE_OFFSET=false
-cpu.fps=auto
-CPU_MIN_CHECK_DURATION=false
+# these are added
+#####################################
+
+####
+# dalvik
+
+dalvik.vm.heapmaxfree=2m
+dalvik.vm.heapminfree=512k
+dalvik.vm.heaptargetutilization=0.75
 dalvik.gc.type=precise
 dalvik.vm.check-dex-sum=false
 dalvik.vm.checkjni=false
@@ -5193,59 +5334,329 @@ dalvik.vm.execution-mode=int:jit
 dalvik.vm.heapgrowthlimit=512m
 dalvik.vm.heapsize=1024m
 dalvik.vm.heapstartsize=8m
-dalvik.vm.heaptargetutilization=0.55
-dalvik.vm.heaputilization=0.55
+dalvik.vm.heaptargetutilization=0.75
+dalvik.vm.heaputilization=0.75
 dalvik.vm.image-dex2oat-filter=--no-watch-dog
 dalvik.vm.jniopts=forcecopy
 dalvik.vm.lockprof.threshold=500
 dalvik.vm.usejit=true
 dalvik.vm.verify-bytecode=false
+pm.dexopt.bg-dexopt=speed
+pm.dexopt.shared=speed
+persist.sys.dalvik.hyperthreading=true
+persist.sys.dalvik.multithread=true
+pm.dexopt.first-boot=interpret-only
+pm.dexopt.boot=verify-profile
+pm.dexopt.install=interpret-only
+pm.dexopt.bg-dexopt=speed-profile
+pm.dexopt.ab-ota=speed-profile
+pm.dexopt.nsys-library=speed
+pm.dexopt.shared-apk=speed
+pm.dexopt.forced-dexopt=speed
+pm.dexopt.core-app=speed
+#dalvik.vm.image-dex2oat-Xms=64m
+#dalvik.vm.image-dex2oat-Xmx=64m
+#dalvik.vm.dex2oat-Xms=64m
+#dalvik.vm.dex2oat-Xmx=512m
+ro.dalvik.vm.native.bridge=0
+dalvik.vm.usejit=true
+dalvik.vm.usejitprofiles=true
+dalvik.vm.appimageformat=lz4
 debug.atrace.tags.enableflags=0
-debug.bt.lowspeed=true
-debug.composition.type=vulkan
-debug.cpurend.vsync=true
-debug.doze.component=1
-debug.egl.hw=1
-debug.egl.profiler=1
-debug.egl.swapinterval=0
-debug.enable.sglscale=1
-debug.enabletr=true
-debug.gr.numframebuffers=2
-debug.gr.swapinterval=1
-debug.gralloc.enable_fb_ubwc=1
-debug.hwc.otf=1
-debug.hwc.winupdate=1
-debug.hwui.force_dark=true
-debug.hwui.level=0
-debug.hwui.render_dirty_regions=false
-debug.hwui.renderer=vulkan
-debug.hwui.show_dirty_regions=false
-debug.hwui.use_buffer_age=true
-debug.hwui.use_gpu_pixel_buffers=true
-debug.kill_allocating_task=0
+
+####
+# vm
+
+vm.dirty_background_ratio=90
+vm.dirty_ratio=90
+ro.config.low_ram=true
+vm.min_free_kbytes=4096
+vm.vfs_cache_pressure=50
+ro.vold.umsdirtyratio=90
+
+####
+# debugging and stuff
+
+profiler.force_disable_err_rpt=true
+profiler.hung.dumpdobugreport=false
+profiler.launch=false
+vidc.debug.level=0
+foreground_service_starts_logging_enabled=0
+wifi_verbose_logging_enabled=1
+window_orientation_listener_log=0
+user_log_enabled=0
+upload_debug_log_pref=0
+upload_log_pref=0
+activity_starts_logging_enabled=0
+debug.atrace.tags.enableflags=0
 debug.mdpcomp.logs=0
-debug.overlayui.enable=1
+debugtool.anrhistory=0
+dk_log_level=0
+enable_diskstats_logging=0
+libc.debug.malloc=0
+logcat.live=disable
+logd.logpersistd.enable=false
+persist.service.lgospd.enable=0
+persist.service.pcsync.enable=0
+ro.debuggable=0
+profiler.debugmonitor=false
+persist.wpa_supplicant.debug=false
+ro.lmk.log_stats=0
+profiler.force_disable_ulog=true
+trustkernel.log.state=disable
+sys_traced=0
+send_action_app_error=0
+send_security_reports=0
+vendor.vidc.debug.level=0
+vendor.swvdec.log.level=0
+
+####
+
+ro.ril.set.mtu1492=1
+net.dns1='"$dns1"'
+net.dns2='"$dns2"'
+net.ppp0.dns1='"$dns1"'
+net.ppp0.dns2='"$dns2"'
+net.rmnet0.dns1='"$dns1"'
+net.rmnet0.dns2='"$dns2"'
+net.wlan0.dns1='"$dns1"'
+net.wlan0.dns2='"$dns2"'
+net.eth0.dns1='"$dns1"'
+net.eth0.dns2='"$dns2"'
+net.gprs.dns1='"$dns1"'
+net.gprs.dns2='"$dns2"'
+net.tcp.buffersize.default=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.edge=6144,87380,524288,6144,16384,262144
+net.tcp.buffersize.evdo_b=6144,87380,1048576,6144,87380,1048576
+net.tcp.buffersize.gprs=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.hsdpa=6144,87380,1048576,6144,87380,1048576
+net.tcp.buffersize.hspa=6144,87380,524288,6144,16384,262144
+net.tcp.buffersize.lte=524288,1048576,2097152,524288,1048576,2097152
+net.tcp.buffersize.umts=6144,87380,1048576,6144,87380,524288
+net.tcp.buffersize.wifi=524288,1048576,2097152,524288,1048576,2097152
+net.ipv4.ip_no_pmtu_disc=0
+net.ipv4.route.flush=1
+net.ipv4.tcp_ecn=0
+net.ipv4.tcp_fack=1
+net.ipv4.tcp_mem=187000 187000 187000
+net.ipv4.tcp_moderate_rcvbuf=1
+net.ipv4.tcp_no_metrics_save=1
+net.ipv4.tcp_rfc1337=1
+net.ipv4.tcp_rmem=4096 39000 187000
+net.ipv4.tcp_sack=1
+net.ipv4.tcp_timestamps=1
+net.ipv4.tcp_window_scaling=1
+net.ipv4.tcp_wmem=4096 39000 18700
+wifi.supplicant_scan_interval=180
+persist.telephony.support.ipv6=0
+persist.telephony.support.ipv4=1
+
+####
+# some of these do work but cause drainage
+
+#BOARD_EGL_NEEDS_LEGACY_FB=false
+#POWER_SAVE_PRE_CLEAN_MEMORY_TIME=1800
+#CPU_MIN_CHECK_DURATION=false
+#CONTENT_APP_IDLE_OFFSET=false
+#EMPTY_APP_IDLE_OFFSET=false
+#ENFORCE_PROCESS_LIMIT=false
+#MAX_SERVICE_INACTIVITY=false
+#MIN_CRASH_INTERVAL=false
+#MIN_HIDDEN_APPS=false
+#MIN_RECENT_TASKS=false
+#GC_TIMEOUT=false
+PROC_START_TIMEOUT=false
+#APP_SWITCH_DELAY_TIME=false
+#ACTIVITY_INACTIVE_RESET_TIME=false
+#ACTIVITY_INACTIVITY_RESET_TIME=false
+
+####
+# deprecated bs that slows down system mostly. part from some that still apply and test very good
+# left all in for you to decide depending on which android version youre in. most dont apply today in latest source and some are device related. left them in unused despite
+
+persist.sys.oem_smooth=1
+#cpu.fps=auto
+#debug.cpurend.vsync=true
+#debug.egl.buffcount=3
+#debug.egl.hw=1
+#debug.egl.profiler=1
+#debug.egl.swapinterval=1
+#debug.enable.sglscale=1
+#debug.gr.numframebuffers=3
+#debug.gr.swapinterval=1
+#debug.gralloc.enable_fb_ubwc=1
+#debug.hwui.render_dirty_regions=false
+#debug.hwui.show_dirty_regions=false
+#debug.hwui.swap_with_damage=true
+#debug.hwui.use_buffer_age=true
+#debug.hwui.use_gpu_pixel_buffers=true
+#debug.overlayui.enable=1
 debug.performance.tuning=1
-debug.qc.hardware=true
-debug.qctwa.preservebuf=1
-debug.qctwa.statusbar=1
-debug.sf.ddms=0
-debug.sf.disable_backpressure=1
-debug.sf.disable_client_composition_cache=0
-debug.sf.enable_gl_backpressure=1
-debug.sf.enable_hwc_vds=1
+#debug.qc.hardware=true
+#debug.qctwa.preservebuf=1
+#debug.qctwa.statusbar=1
+#debug.sf.disable_backpressure=0
+#debug.sf.disable_client_composition_cache=0
+#debug.sf.enable_gl_backpressure=1
+#debug.sf.enable_hwc_vds=1
 debug.sf.hw=1
 debug.sf.latch_unsignaled=1
-debug.sf.recomputecrop=0
-debug.sf.swaprect=1
-debug.sf.use_phase_offsets_as_durations=1
-debug.sqlite.syncmode=1
-debug.stagefright.ccodec=1
-debugtool.anrhistory=0
-dev.bootcomplete=0
+#debug.sf.recomputecrop=0
+force_hw_ui=true
+hw2d.force=1
+hw3d.force=1
+#hwui.text_gamma.black_threshold=64
+#hwui.text_gamma.white_threshold=192
+#hwui.text_gamma=1.4
+#hwui.text_gamma_correction=lookup
+#persist.sys.NV_FPSLIMIT=244
+#persist.sys.NV_POWERMODE=1
+persist.sys.ui.hw=1
+#ro.HOME_APP_ADJ=1
+#support_highfps=1
+#sys.display-size=3840x2160
+sys.sysctl.tcp_def_init_rwnd=60
+#sys_vdso=1
+#vendor.debug.egl.swapinterval=1
+#vendor.display.disable_metadata_dynamic_fps=1
+#vendor.display.enable_optimize_refresh=1
+#vendor.display.enhance_idle_time=1
+#vendor.display.idle_time=0
+#vendor.display.idle_time_inactive=0
+#vidc.debug.perf.mode=2
+#vidc.enc.dcvs.extra-buff-count=2
+#windowsmgr.max_events_per_sec=244
+#debug.composition.type=vulkan
+#debug.hwui.renderer=vulkan
+persist.sys.scrollingcache=3
+persist.sys.use_16bpp_alpha=1
+persist.sys.use_dithering=0
+sem_enhanced_cpu_responsiveness=1
+speed_mode=1
+speed_mode_enable=1
+speed_mode_on=1
+#sys.use_fifo_ui=1
+video.accelerate.hw=1
+#ro.fb.mode=1
+debug.sf.enable_hwc_vds=1
+debug.sf.latch_unsignaled=1
+debug.gralloc.enable_fb_ubwc=1
 dev.pm.dyn_samplingrate=1
-display_color_mode=0
-dk_log_level=0
+
+
+media.stagefright.enable-aac=true
+media.stagefright.enable-fma2dp=true
+media.stagefright.enable-http=true
+media.stagefright.enable-meta=true
+media.stagefright.enable-player=true
+media.stagefright.enable-qcp=true
+media.stagefright.enable-record=true
+media.stagefright.enable-scan=true
+media.stagefright.thumbnail.prefer_hw_codecs=true
+media.stagefright.use-awesome=true
+
+
+audio.deep_buffer.media=true
+audio.offload.buffer.size.kb=32
+audio.offload.gapless.enabled=true
+audio.offload.pcm.16bit.enable=true
+audio.offload.pcm.24bit.enable=true
+audio.offload.track.enable=true
+audio.offload.video=true
+
+
+debug.doze.component=0
+app_auto_restriction_enabled=1
+app_restriction_enabled=true
+app_standby_enabled=1
+cached_apps_freezer=enabled
+debug.kill_allocating_task=1
+usb_wakeup=enable
+ro.ksm.default='"$ksm"'
+
+#adaptive_battery_management_enabled=1
+#ro.board_ram_size=low
+#ro.config.low_ram=true
+
+window_animation_scale=0.0
+#view.scroll_friction=0
+#view.touch_slop=1
+animator_duration_scale=0.0
+debug.hwui.force_dark=true
+#debug.hwui.level=0
+transition_animation_scale=0.0
+slider_animation_duration=0
+tap_duration_threshold=0.0
+touch.distance.scale=0
+touch.pressure.scale=0.1
+touch.size.bias=0
+touch_blocking_period=0.0
+sys.disable_ext_animation=1
+#ro.sf.lcd_density=500
+ro.DontUseAnimate=true
+
+persist.sys.purgeable_assets=1
+persist.sys.root_access=1
+#boot.fps=20
+#debug.sf.nobootanimation=1
+#font_scale=1.25
+#k2hd_effect=1
+#lmk.autocalc=false
+#persist.sys.force_highendgfx=true
+#ro.bq.gpu_to_cpu_unsupported=1
+#ro.build.selinux=1
+#ro.config.zram.support=false
+#ro.config.zram=false
+#tunnel.decode=false
+#persist.sys.shutdown.mode=hibernate
+#thermal_limit_refresh_rate=0
+#tube_amp_effect=1
+#vnswap.enabled=false
+#zram.disksize=0
+#debug.hwc.otf=1
+#debug.hwc.winupdate=1
+#ro.qualcomm.perf.cores_online=2
+#ro.sys.fw.bg_apps_limit=78
+#ro.vendor.qti.am.reschedule_service=true
+#ro.vendor.qti.sys.fw.bservice_age=5000
+#ro.vendor.qti.sys.fw.bservice_enable true
+#ro.vendor.qti.sys.fw.bservice_limit=5
+#ro.zygote.disable_gl_preload=false
+#ro.zygote.preload.disable=false
+sys.config.samp_enable=false
+sys.config.samp_spcm_enable=false
+#ro.hwui.disable_scissor_opt=false
+#ro.hwui.drop_shadow_cache_size=2
+#ro.hwui.gradient_cache_size=64k
+#ro.hwui.layer_cache_size=16
+#ro.hwui.patch_cache_size=128
+#ro.hwui.path_cache_size=4
+#ro.hwui.r_buffer_cache_size=2
+#ro.hwui.shape_cache_size=1
+#ro.hwui.text_large_cache_height=512
+#ro.hwui.text_large_cache_width=2048
+#ro.hwui.text_small_cache_height=256
+#ro.hwui.text_small_cache_width=1024
+#ro.hwui.texture_cache_flush_rate=0.6
+#ro.hwui.texture_cache_size=24
+
+
+
+
+
+mmp.enable.3g2=true
+#af.fast_track_multiplier=1
+ble_scan_always_enabled=0
+config.disable_consumerir=true
+#debug.enabletr=true
+debug.sf.ddms=0
+#debug.sf.swaprect=1
+#debug.sf.use_phase_offsets_as_durations=1
+#debug.sqlite.syncmode=1
+debug.stagefright.ccodec=1
+#dev.bootcomplete=0 
+dev.pm.dyn_samplingrate=1
+#display_color_mode=0
 doze.pickup.vibration.threshold=2000
 doze.pulse.brightness=15
 doze.pulse.delay.in=200
@@ -5261,186 +5672,120 @@ doze.pulse.sigmotion=0
 doze.shake.acc.threshold=10
 doze.use.accelerometer=0
 doze.vibrate.sigmotion=0
-drm.service.enabled=true
-EMPTY_APP_IDLE_OFFSET=false
-enable_diskstats_logging=0
-ENFORCE_PROCESS_LIMIT=false
+#drm.service.enabled=true
 enhanced_processing=1
 fancy_ime_animations=0
-force_hw_ui=true
 forced_app_standby_enabled=1
-foreground_service_starts_logging_enabled=0
-fstrim_mandatory_interval=1
-game_driver_all_apps=1
-GC_TIMEOUT=false
-hw2d.force=1
-hw3d.force=1
+#fstrim_mandatory_interval=1
+#game_driver_all_apps=1
 hwui.disable_vsync=false
 hwui.render_dirty_regions=false
-intelligent_sleep_mode=0
+#intelligent_sleep_mode=0
 keep_profile_in_background=0
-libc.debug.malloc=0
-logcat.live=disable
-logd.logpersistd.enable=false
-long_press_timeout=250
+#long_press_timeout=250
 master_motion=0
-MAX_SERVICE_INACTIVITY=false
-media.stagefright.enable-aac=true
-media.stagefright.enable-fma2dp=true
-media.stagefright.enable-http=true
-media.stagefright.enable-meta=true
-media.stagefright.enable-player=true
-media.stagefright.enable-qcp=true
-media.stagefright.enable-record=true
-media.stagefright.enable-scan=true
-media.stagefright.thumbnail.prefer_hw_codecs=true
-media.stagefright.use-awesome=true
-media.xloud.enable=1
-media.xloud.supported=true
-MIN_CRASH_INTERVAL=false
-MIN_HIDDEN_APPS=false
-MIN_RECENT_TASKS=false
-min_refresh_rate=1.0
+#media.xloud.enable=1
+#media.xloud.supported=true
+#min_refresh_rate=1.0
 mm.enable.smoothstreaming=true
 mobile_data_always_on=0
 mot.proximity.delay=25
 mpq.audio.decode=true
-multi_press_timeout=250
+#multi_press_timeout=250
 multicore_packet_scheduler=1
-net.dns1='"$dns1"'
-net.dns2='"$dns2"'
-net.ppp0.dns1='"$dns1"'
-net.ppp0.dns2='"$dns2"'
-net.rmnet0.dns1='"$dns1"'
-net.rmnet0.dns2='"$dns2"'
-net.tcp.buffersize.default=6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.edge=6144,87380,524288,6144,16384,262144
-net.tcp.buffersize.evdo_b=6144,87380,1048576,6144,87380,1048576
-net.tcp.buffersize.gprs=6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.hsdpa=6144,87380,1048576,6144,87380,1048576
-net.tcp.buffersize.hspa=6144,87380,524288,6144,16384,262144
-net.tcp.buffersize.lte=524288,1048576,2097152,524288,1048576,2097152
-net.tcp.buffersize.umts=6144,87380,1048576,6144,87380,524288
-net.tcp.buffersize.wifi=524288,1048576,2097152,524288,1048576,2097152
 omap.enhancement=true
-persist.adb.notify=0
+#persist.adb.notify=0
 persist.android.strictmode=0
 #persist.audio.hifi=true
-persist.bootanim.preload=1
-persist.cust.tel.eons=1
-persist.device_config.runtime_native.usap_pool_enabled=true
-persist.device_config.runtime_native_boot.iorap_perfetto_enable=true
-persist.device_config.runtime_native_boot.iorap_readahead_enable=true
-persist.dpm.feature=1
-persist.mm.enable.prefetch=true
-persist.preload.common=1
+#persist.bootanim.preload=1
+#persist.cust.tel.eons=1
+#persist.device_config.runtime_native.usap_pool_enabled=true
+#persist.device_config.runtime_native_boot.iorap_perfetto_enable=true
+#persist.device_config.runtime_native_boot.iorap_readahead_enable=true
+#persist.dpm.feature=1
+#persist.mm.enable.prefetch=true
+#persist.preload.common=1
 persist.radio.add_power_save=1
-persist.radio.data_no_toggle=1
+#persist.radio.data_no_toggle=1
 persist.radio.ramdump=0
-persist.ril.uart.flowctrl=99
+#persist.ril.uart.flowctrl=
 persist.sampling_profiler=0
-persist.service.lgospd.enable=0
-persist.service.pcsync.enable=0
-persist.service.xloud.enable=1
+persist.service.xloud.enable=0
 persist.speaker.prot.enable=false
-persist.sys.binary_xml=false
-persist.sys.composition.type=vulkan
-persist.sys.dalvik.hyperthreading=true
-persist.sys.dalvik.multithread=true
-persist.sys.job_delay=false
-persist.sys.lowcost=1
-persist.sys.NV_FPSLIMIT=244
-persist.sys.NV_POWERMODE=1
+#persist.sys.binary_xml=false
+#persist.sys.composition.type=vulkan
+#persist.sys.job_delay=false
+#persist.sys.lowcost=1
 persist.sys.purgeable_assets=1
-persist.sys.scrollingcache=3
 persist.sys.sf.color_saturation=1.25
 persist.sys.ssr.enable_ramdumps=0
-persist.sys.storage_preload=1
-persist.sys.ui.hw=1
-persist.sys.use_16bpp_alpha=1
-persist.sys.use_dithering=0
+#persist.sys.storage_preload=1
 persist.traced.enable=0
 persist.vendor.sys.ssr.enable_ramdumps=0
-persist.wpa_supplicant.debug=false
-persyst.sys.usb.config=mtp,adb
-pm.dexopt.bg-dexopt=speed
-pm.dexopt.shared=speed
+#persyst.sys.usb.config=mtp,adb
 pm.sleep_mode=1
 power.saving.mode=1
 power_supply.wakeup=enable
-PROC_START_TIMEOUT=false
-profiler.debugmonitor=false
-profiler.force_disable_err_rpt=true
-profiler.force_disable_ulog=true
-profiler.hung.dumpdobugreport=false
-profiler.launch=false
-qcom.hw.aac.encoder=true
-rakuten_denwa=0
-ram_expand_size_list=1
-refresh_rate_mode=2
+#rakuten_denwa=0
+#ram_expand_size_list=1
+#refresh_rate_mode=2
 remote_control=0
-restricted_device_performance=1.0
+#restricted_device_performance=1.0
 ro.allow.mock.location=1
-ro.am.reschedule_service=true
-ro.audio.flinger_standbytime_ms=300
+#ro.am.reschedule_service=true
+#ro.audio.flinger_standbytime_ms=300
 ro.boot.warranty_bit=0
-ro.bq.gpu_to_cpu_unsupported=1
-ro.camcorder.videoModes=true
-ro.charger.disable_init_blank=true
+#ro.bq.gpu_to_cpu_unsupported=1
+#ro.camcorder.videoModes=true
+#ro.charger.disable_init_blank=true
 ro.com.google.locationfeatures=0
 ro.com.google.networklocation=0
-ro.compcache.default=1
-ro.config.combined_signal=true
-ro.config.dha_tunnable=1
+#ro.compcache.default=1
+#ro.config.combined_signal=true
+#ro.config.dha_tunnable=1
 ro.config.disable.hw_accel=false
-ro.config.ehrpd=true
+#ro.config.ehrpd=true
 ro.config.enable.hw_accel=true
-ro.config.fha_enable=true
-ro.config.htc.nocheckin=1
+#ro.config.fha_enable=true
+#ro.config.htc.nocheckin=1
 ro.config.hw_fast_dormancy=1
 ro.config.hw_power_saving=true
 ro.config.hw_quickpoweron=true
-ro.config.low_mem=true
-ro.config.low_ram.mod=true
-ro.config.low_ram=true
+#ro.config.low_mem=true
+#ro.config.low_ram.mod=true
+#ro.config.low_ram=true
 ro.config.nocheckin=1
-ro.config.rm_preload_enabled=1
-ro.dalvik.vm.native.bridge=0
-ro.debuggable=0
-ro.DontUseAnimate=true
+#ro.config.rm_preload_enabled=1
 ro.fast.dormancy=1
-ro.fb.mode=1
-ro.floatingtouch.available=1
-ro.HOME_APP_ADJ=1
-ro.hwui.disable_scissor_opt=false
-ro.hwui.drop_shadow_cache_size=6
-ro.hwui.gradient_cache_size=0.1
-ro.hwui.gradient_cache_size=1
-ro.hwui.layer_cache_size=48
-ro.hwui.path_cache_size=32
-ro.hwui.r_buffer_cache_size=8
-ro.hwui.text_large_cache_height=1024
-ro.hwui.text_large_cache_width=2048
-ro.hwui.text_small_cache_height=1024
-ro.hwui.text_small_cache_width=1024
-ro.hwui.texture_cache_flush_rate=0.5
-ro.hwui.texture_cache_flushrate=0.4
-ro.hwui.texture_cache_size=20
-ro.hwui.texture_cache_size=72
+#ro.floatingtouch.available=1
+#ro.hwui.disable_scissor_opt=false
+#ro.hwui.drop_shadow_cache_size=6
+#ro.hwui.gradient_cache_size=0.1
+#ro.hwui.gradient_cache_size=1
+#ro.hwui.layer_cache_size=48
+#ro.hwui.path_cache_size=32
+#ro.hwui.r_buffer_cache_size=8
+#ro.hwui.text_large_cache_height=1024
+#ro.hwui.text_large_cache_width=2048
+#ro.hwui.text_small_cache_height=1024
+#ro.hwui.text_small_cache_width=1024
+#ro.hwui.texture_cache_flush_rate=0.5
+#ro.hwui.texture_cache_flushrate=0.4
+#ro.hwui.texture_cache_size=20
+#ro.hwui.texture_cache_size=72
 ro.kernel.android.checkjni=0
 ro.kernel.checkjni=0
-ro.lge.proximity.delay=25
-ro.lmk.log_stats=0
+#ro.lge.proximity.delay=25
 ro.malloc.impl=jemalloc
-ro.max.fling_velocity=12000
-ro.media.cam.preview.fps=0
-ro.media.capture.fast.fps=4
-ro.media.capture.flash=led
-ro.media.capture.flashIntensity=70
-ro.media.capture.flashMinV=3300000
-ro.media.capture.maxres=8m
-ro.media.capture.slow.fps=244
-ro.media.capture.torchIntensity=40
+#ro.max.fling_velocity=12000
+#ro.media.cam.preview.fps=0
+#ro.media.capture.fast.fps=4
+#ro.media.capture.flash=led
+#ro.media.capture.flashIntensity=70
+#ro.media.capture.flashMinV=3300000
+#ro.media.capture.maxres=8m
+#ro.media.capture.slow.fps=244
+#ro.media.capture.torchIntensity=40
 ro.media.codec_priority_for_thumb=so
 ro.media.dec.aud.mp3.enabled=1
 ro.media.dec.aud.wma.enabled=1
@@ -5454,140 +5799,88 @@ ro.media.enc.hprof.vid.fps=244
 ro.media.enc.jpeg.quality=100
 ro.media.enc.vid.mp4.enabled=1
 ro.media.enc.vid.wmv.enabled=1
-ro.media.panorama.defres=3264x1840
-ro.media.panorama.frameres=1280x720
-ro.min.fling_velocity=900
-ro.min_pointer_dur=1
-ro.min_pointer_dur=8
-ro.mot.eri.losalert.delay=1000
+#ro.media.panorama.defres=3264x1840
+#ro.media.panorama.frameres=1280x720
+#ro.min.fling_velocity=900
+#ro.min_pointer_dur=1
+#ro.mot.eri.losalert.delay=1000
 ro.mtk_perfservice_support=0
 ro.product.gpu.driver=1
-ro.qcom.ad.calib.data=/system/etc/ad_calib.cfg
-ro.qcom.ad=1
 ro.recentMode=0
 ro.ril.disable.power.collapse=1
-ro.ril.enable.3g.prefix=1
-ro.ril.enable.a52=1
-ro.ril.enable.a53=1
-ro.ril.enable.amr.wideband
-ro.ril.enable.amr.wideband=1
-ro.ril.enable.dtm=1
-ro.ril.enable.fd.plmn.prefix=23402,23410,23411
-ro.ril.enable.gea3=1
-ro.ril.enable.sdr=0
-ro.ril.enable.sdr=1
+#ro.ril.enable.3g.prefix=1
+#ro.ril.enable.a52=1
+#ro.ril.enable.a53=1
+#ro.ril.enable.amr.wideband=1
+#ro.ril.enable.dtm=1
+#ro.ril.enable.fd.plmn.prefix=23402,23410,23411
+#ro.ril.enable.gea3=1
+#ro.ril.enable.sdr=0
 ro.ril.fast.dormancy.rule=1
-ro.ril.gprsclass=12
-ro.ril.hep=1
-ro.ril.hsdpa.category=28
-ro.ril.hsupa.category=7
-ro.ril.hsxpa=3
-ro.ril.htcmaskw1.bitmask=4294967295
-ro.ril.htcmaskw1=14449
+#ro.ril.gprsclass=12
+#ro.ril.hep=1
+#ro.ril.hsdpa.category=28
+#ro.ril.hsupa.category=7
+#ro.ril.hsxpa=3
+#ro.ril.htcmaskw1.bitmask=4294967295
+#ro.ril.htcmaskw1=14449
 ro.ril.power_collapse=0
-ro.ril.sensor.sleep.control=1
-ro.ril.set.mtu1492=1
+#ro.ril.sensor.sleep.control=1
 ro.secure=0
-ro.semc.sound_effects_enabled=true
-ro.semc.xloud.supported=true
+#ro.semc.sound_effects_enabled=true
+#ro.semc.xloud.supported=true
 ro.service.remove_unused=1
 ro.sf.compbypass.enable=0
-ro.sf.disable_triple_buffer=1
-ro.sf.lcd_density=500
-ro.storage_manager.enabled=true
-ro.support.signalsmooth=true
-ro.surface_flinger.has_wide_color_display=false
-ro.surface_flinger.use_content_detection_for_refresh_rate=true
-ro.sys.fw.bservice_enable=true
-ro.sys.fw.use_trim_settings=true
-ro.tb.mode=1
-ro.telephony.call_ring.delay=0
-ro.telephony.call_ring.multiple=0
-ro.tether.denied=false
-ro.trim.config=true
-ro.trim.memory.font_cache=1
-ro.trim.memory.launcher=1
-ro.vendor.perf.scroll_opt=true
-ro.vold.umsdirtyratio=20
-ro.vold.umsdirtyratio=50
-ro.warmboot.capability=1
+#ro.sf.disable_triple_buffer=0
+#ro.storage_manager.enabled=true
+#ro.support.signalsmooth=true
+#ro.surface_flinger.has_wide_color_display=false
+#ro.surface_flinger.use_content_detection_for_refresh_rate=true
+#ro.sys.fw.bservice_enable=true
+#ro.sys.fw.use_trim_settings=true
+#ro.tb.mode=1
+#ro.telephony.call_ring.delay=0
+#ro.telephony.call_ring.multiple=0
+#ro.tether.denied=false
+#ro.trim.config=true
+#ro.trim.memory.font_cache=1
+#ro.trim.memory.launcher=1
+#ro.vendor.perf.scroll_opt=true
+#ro.warmboot.capability=1
 ro.warranty_bit=0
 ro.wmt.blcr.enable=0
-screen_auto_brightness_adj=0
-sem_enhanced_cpu_responsiveness=1
-send_action_app_error=0
-send_security_reports=0
-slider_animation_duration=0
-speed_mode=1
-speed_mode_enable=1
-speed_mode_on=1
-support_highfps=1
-sys.config.activelaunch_enable=true
-sys.config.phone_start_early=true
-sys.disable_ext_animation=1
-sys.display-size=3840x2160
-sys.sysctl.tcp_def_init_rwnd=60
-sys.use_fifo_ui=1
-sys_traced=0
-sys_vdso=1
-tap_duration_threshold=0.0
-touch.distance.scale=0
-touch.pressure.scale=0.1
-touch.size.bias=0
-touch_blocking_period=0.0
-transition_animation_scale=0.0
-trustkernel.log.state=disable
-tunnel.decode=false
-unused_static_shared_lib_min_cache_period_ms=3600
-upload_debug_log_pref=0
-upload_log_pref=0
-usb_wakeup=enable
-user_log_enabled=0
-vendor.debug.egl.swapinterval=1
-vendor.display.disable_metadata_dynamic_fps=1
-vendor.display.enable_optimize_refresh=1
-vendor.display.enhance_idle_time=1
-vendor.display.idle_time=0
-vendor.display.idle_time_inactive=0
-vidc.debug.level=0
-#vidc.debug.perf.mode=2 
-vidc.enc.dcvs.extra-buff-count=2
-video.accelerate.hw=1
-view.scroll_friction=0
-view.touch_slop=1
-vm.dirty_background_ratio=90
-vm.dirty_ratio=90
-vm.min_free_kbytes=4096
-vm.vfs_cache_pressure=50
-wifi.supplicant_scan_interval=180
-wifi_scan_always_enabled=0
-wifi_verbose_logging_enabled=0
-window_animation_scale=0.0
-window_orientation_listener_log=0
-windowsmgr.max_events_per_sec=244
+#screen_auto_brightness_adj=0
+#sys.config.activelaunch_enable=true
+#sys.config.phone_start_early=true
+#unused_static_shared_lib_min_cache_period_ms=3600
+
+#persist.sys.usb.config=adb
 '
 
-if [ -f /system/build.prop ] && ! grep -q "net.dns1" /system/build.prop ; then
-echo "$prop" >> /system/build.prop ; fi
+if [ -f $droidprop ] && ! grep -q "net.dns1" $droidprop ; then
+echo "$prop" >> $droidprop ; fi
 
-#sed -i 's/dalvik.vm.heaptargetutilization=.*/dalvik.vm.heaptargetutilization=0.99/g' /system/build.prop
-sed -i 's/dalvik.vm.dexopt-flags=.*/dalvik.vm.dexopt-flags=m=y,v=n,o=v/g' /system/build.prop
-sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=8m/g' /system/build.prop
+sed -i 's/dalvik.vm.heaptargetutilization=.*/dalvik.vm.heaptargetutilization=0.75/g' $droidprop
+sed -i 's/dalvik.vm.dexopt-flags=.*/dalvik.vm.dexopt-flags=m=y,v=n,o=y,u=n/g' $droidprop
+sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=8m/g' $droidprop
 
-if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 10 ] ; then
-sed -i 's/debug.composition.type=.*/debug.composition.type=c2d/g' /system/build.prop
-sed -i 's/persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' /system/build.prop
-sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=skiagl/g' /system/build.prop
-sed -i 's/#debug.egl.hw=1/debug.egl.hw=1/g' /system/build.prop
-sed -i 's/#debug.egl.profiler=1/debug.egl.profiler=1/g' /system/build.prop
-sed -i 's/#debug.egl.buffcount=.*/debug.egl.buffcount=2/g' /system/build.prop
-sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' /system/build.prop
-sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' /system/build.prop ; fi
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 10 ] ; then
+sed -i 's/debug.composition.type=.*/debug.composition.type=c2d/g' $droidprop
+sed -i 's/persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' $droidprop
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=skiagl/g' $droidprop
+sed -i 's/#debug.egl.hw=1/debug.egl.hw=1/g' $droidprop
+sed -i 's/#debug.egl.profiler=1/debug.egl.profiler=1/g' $droidprop
+sed -i 's/#debug.egl.buffcount=.*/debug.egl.buffcount=3/g' $droidprop
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' $droidprop ; fi
 
-if [ "$(grep "ro.build.version.release=" /system/build.prop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
-sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' /system/build.prop
-#sed -i 's/#BOARD_EGL_NEEDS_LEGACY_FB=.*/BOARD_EGL_NEEDS_LEGACY_FB=false/g' /system/build.prop
-#sed -i 's/#ro.hwui.disable_scissor_opt=.*/ro.hwui.disable_scissor_opt=false/g' /system/build.prop
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7  ]; then
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' $droidprop
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=64m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=128m/g' $droidprop
+sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=5m/g' $droidprop
+#sed -i 's/#BOARD_EGL_NEEDS_LEGACY_FB=.*/BOARD_EGL_NEEDS_LEGACY_FB=false/g' $droidprop
+#sed -i 's/#ro.hwui.disable_scissor_opt=.*/ro.hwui.disable_scissor_opt=false/g' $droidprop
 #sed -i 's/#ro.hwui.drop_shadow_cache_size=.*/
 #sed -i 's/#ro.hwui.gradient_cache_size=.*/
 #sed -i 's/#ro.hwui.layer_cache_size=.*/
@@ -5601,25 +5894,44 @@ sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' /system/build.pro
 #sed -i 's/#ro.hwui.text_large_cache_width=.*/
 #sed -i 's/#ro.hwui.text_small_cache_height=.*/
 #sed -i 's/#ro.hwui.text_small_cache_width=.*/
-#sed -i 's/#ro.zygote.disable_gl_preload=.*/ro.zygote.disable_gl_preload=false/g' /system/build.prop
-sed -i 's/#debug.hwui.swap_with_damage=.*/#debug.hwui.swap_with_damage=true/g' /system/build.prop
+#sed -i 's/#ro.zygote.disable_gl_preload=.*/ro.zygote.disable_gl_preload=false/g' $droidprop
+#sed -i 's/#debug.hwui.swap_with_damage=.*/#debug.hwui.swap_with_damage=true/g' $droidprop
 #sed -i 's/#hwui.text_gamma.black_threshold=.*
 #sed -i 's/#hwui.text_gamma.white_threshold=.*
 #sed -i 's/#hwui.text_gamma=.*
 #sed -i 's/#hwui.text_gamma_correction=.*
-#sed -i 's/vidc.debug.perf.mode=.*/#vidc.debug.perf.mode=#/g' /system/build.prop # slows down playback on old devices, probably worth for newer if it saves energy consumption if these legacy props even apply at all on new devices
-sed -i 's/#hwui.use_gpu_pixel_buffers=.*/hwui.use_gpu_pixel_buffers=true/g' /system/build.prop
-if ! grep -q "persist.sys.dalvik.vm.lib.2=libart.so" /system/build.prop ; then if [ -f /system/apex/com.android.runtime.release/lib64/libart.so ] || [ -f /system/lib64/libart.so ] || [ -f /system/lib/libart.so ] ; then echo "persist.sys.dalvik.vm.lib.2=libart.so" | tee -a /system/build.prop ; fi ; fi
+#sed -i 's/vidc.debug.perf.mode=.*/#vidc.debug.perf.mode=#/g' $droidprop # slows down playback on old devices, probably worth for newer if it saves energy consumption if these legacy props even apply at all on new devices
+#sed -i 's/#hwui.use_gpu_pixel_buffers=.*/hwui.use_gpu_pixel_buffers=true/g' $droidprop
+
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 5 ] && "$(! grep -q "persist.sys.dalvik.vm.lib.2=libart.so" $droidprop)" ; then if [ -f /system/apex/com.android.runtime.release/lib64/libart.so ] || [ -f /system/lib64/libart.so ] || [ -f /system/lib/libart.so ] ; then echo "persist.sys.dalvik.vm.lib.2=libart.so" | tee -a $droidprop ; fi ; fi
 fi
 
+if [ $testing = yes ] ; then echo "skip..." ; else
 
 # setprop breaks system i remember from past as well with some flags so leave them in build.prop only. depending on rom ofcourse.
 sh -cx 'for i in $(cat /system/build.prop) ; do
-"$(setprop $(echo "$i" | sed '\''s/=/ /g'\'' | awk '\''{print $1, $2}'\''))"
+"$(setprop $(echo "$i" | sed '\''s/=/ /g'\'' | awk '\''{print $1, $2}'\'' | grep -v '\''#'\''))"
 done'
-setprop sys.use_fifo_ui 1
+#setprop sys.use_fifo_ui 1
 
+fi
 
+# stop ril services for wifi-only device
+on property:ro.carrier=wifi-only
+
+if $(getprop ro.carrier | $(! grep -q ril)) ; then
+on property:ro.carrier=wifi-only
+    stop ril-daemon
+    stop qmuxd
+    stop netmgrd
+    setprop ro.radio.noril 1
+    fi
+
+if [ $fstab = /vendor/fstab/qcom ] ; then 
+setprop qcom.hw.aac.encoder true
+setprop ro.qcom.ad.calib.data /system/etc/ad_calib.cfg
+setprop ro.qcom.ad 1
+fi
 
 # echo 10 > /sys/class/thermal/thermal_message/sconfig
 
@@ -5630,25 +5942,139 @@ killall -9 mediaserver
 
 #umount /vendor || true
 #mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-sed -i 's/noatime/lazytime/g' $droidfstab
-sed -i 's/nodiratime/lazytime/g' $droidfstab
-sed -i 's/relatime/lazytime/g' $droidfstab
+sed -i 's/noatime/lazytime/g' $fstab
+sed -i 's/nodiratime/lazytime/g' $fstab
+sed -i 's/relatime/lazytime/g' $fstab
 
 
 #for part in system data
 #do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
 #else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
 
-fstrim /data;
-fstrim /cache;
-fstrim /system;
+"$bb"fstrim /data;
+"$bb"fstrim /cache;
+"$bb"fstrim /system;
  fi
 
 ### ANDROID SECTION STOPPED HERE
 
 
 
+if grep -q f2fs $fstab ; then
 
+echo '# video
+avi
+divx
+flv
+m2ts
+m4p
+m4v
+mkv
+mov
+ts
+vob
+webm
+
+# audio
+aac
+ac3
+dts
+flac
+m4a
+mka
+wav
+
+# image
+bmp
+gif
+png
+svg
+webp
+
+# archive
+7z
+# a - 
+deb
+gz
+iso
+jar
+lzma
+rar
+tgz
+txz
+udf
+xz
+zip
+
+# other
+pdf
+# Python bytecode
+pyc
+ttf
+ttc
+
+# common prefix
+# Covers jpg, jpeg, jp2
+jp
+# Covers mp3, mp4, mpeg, mpg
+mp
+# Covers oga, ogg, ogm, ogv
+og
+# Covers wma, wmb, wmv
+wm
+
+# android
+apk
+# Image alias
+cnt
+# YouTube
+exo
+# Android RunTime
+odex
+vdex
+so' | tee /sbin/f2fs-cold.list
+
+echo 'db' | tee /sbin/f2fs-hot.list
+
+find /sys/fs/f2fs* -name extension_list | while read list; do
+  echo "Updating extensions list for $list"
+
+  echo "Removing previous extensions list"
+
+  HOT=$(cat $list | grep -n 'hot file extension' | cut -d : -f 1)
+  COLD=$(($(cat $list | wc -l) - $HOT))
+
+  COLDLIST=$(head -n$(($HOT - 1)) $list | grep -v ':')
+  HOTLIST=$(tail -n$COLD $list)
+
+  echo $COLDLIST | tr ' ' '\n' | while read cold; do
+    echo "[c]!$cold"
+    echo "[c]!$cold" > $list
+  done
+
+  echo $HOTLIST | tr ' ' '\n' | while read hot; do
+    echo "[h]!$hot"
+    echo "[h]!$hot" > $list
+  done
+
+  echo "Writing new extensions list"
+
+  cat /sbin/f2fs-cold.list | grep -v '#' | while read cold; do
+    if [ ! -z $cold ]; then
+      echo "[c]$cold"
+      echo "[c]$cold" > $list
+    fi
+  done
+
+  cat /sbin/f2fs-hot.list | while read hot; do
+    if [ ! -z $hot ]; then
+      echo "[h]$hot"
+      echo "[h]$hot" > $list
+    fi
+  done
+done
+
+fi
 
 chmod 666 /sys/module/sync/parameters/fsync_enabled
 chown root /sys/module/sync/parameters/fsync_enabled
@@ -5677,11 +6103,11 @@ modprobe deflate crypto_acompress zlib_deflate zlib_inflate configs nft_numgen n
 
 if ifconfig | grep -q "phy\|wlan\|radio" ; then modprobe lib80211_crypt_ccmp cfg80211 mac80211 lib80211 ; fi
 
-if grep -q wrt /etc/os-release && grep -q "ppp" $iface ; then modprobe pppox pppoe ppp_mppe ppp_generic ppp_async ralink-gdma ; fi
+if $wrt && grep -q "ppp" $iface ; then modprobe pppox pppoe ppp_mppe ppp_generic ppp_async ralink-gdma ; fi
 
 
 # blacklist
-if ! grep -q mac_hid /etc/modprobe.d/nomisc.conf ; then
+if $(! grep -q mac_hid /etc/modprobe.d/nomisc.conf) ; then
 echo 'blacklist pcspkr
 blacklist snd_pcsp
 blacklist lpc_ich
@@ -5701,7 +6127,7 @@ blacklist uvcvideo
 
 
 # if anacron no cron
-if ! grep -q debian /etc/os-release ; then
+if $(! $debian) ; then
 if systemctl list-unit-files | grep -q anacron ; then systemctl disable cron && systemctl mask cron ; else systemctl start cron && systemctl enable cron && /etc/init.d/cron start && /etc/initd.cron enable; fi ; fi
 
 
@@ -5713,13 +6139,13 @@ if systemctl list-unit-files | grep -q anacron ; then systemctl disable cron && 
 
 
 # stop some kmod for all but wrt again
-if ! grep -q wrt /etc/os-release && [ ! $ipv6 = on ] ; then echo "blacklist ipv6" | sudo tee /etc/modprobe.d/blacklist-ipv6.conf ; fi
+if $(! $wrt) && [ ! $ipv6 = on ] ; then echo "blacklist ipv6" | sudo tee /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
 if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
 
 # blacklist old radeon cards - if you cant boot remove this blacklist
-#if ! grep -q "blacklist radeon" /etc/modprobe.d/radeon.conf ; then echo "blacklist radeon" | sudo tee /etc/modprobe.d/radeon.conf ; fi
+#if $(! grep -q "blacklist radeon" /etc/modprobe.d/radeon.conf) ; then echo "blacklist radeon" | sudo tee /etc/modprobe.d/radeon.conf ; fi
 
 
 
@@ -5735,11 +6161,25 @@ if [ $ipv6 = on ] ; then rm -rf /etc/modprobe.d/blacklist-ipv6.conf ; fi
 
 
 # daily fstrim weekly xfs defragment
-if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron ; then if ! grep -q fstrim /etc/anacrontabs ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; if grep -q xfs /etc/fstab && ! grep -q xfs_fsr /etc/anacrontabs ; then echo '@weekly for i in $(blkid | grep xfs | awk -F : '\''{print $1}'\'') ; do xfs_fsr -f $i >/dev/null' | tee -a /etc/anacrontabs ; elif ! grep -q fstrim /etc/crontab /etc/crontabs/root ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi ; fi
+if $(! $wrt && systemctl list-unit-files | grep -q anacron) ; then if $(! grep -q fstrim /etc/anacrontabs) ; then echo "@daily fstrim /" | tee -a /etc/anacrontabs ; if grep -q xfs /etc/fstab && ! grep -q xfs_fsr /etc/anacrontabs ; then echo '@weekly for i in $(blkid | grep xfs | awk -F : '\''{print $1}'\'') ; do xfs_fsr -f $i >/dev/null' | tee -a /etc/anacrontabs ; elif $(! grep -q fstrim /etc/crontab /etc/crontabs/root) ; then echo "02 4 * * * root fstrim /" | tee /etc/crontab /etc/crontabs/root ;  fi ; fi ; fi
 
 
 
+# nougat is stubborn - leave all this and let user enable init.d themselves instead if needed whatsoever
+#if [ -f $droidprop ] && [ -f /system/xbin/sh ] ; then if [ -f /system/etc/init.d/*userinit* ] ; then sed -i 's/\/system\/bin\/sh/\'"$droidshell"'/g' /system/etc/init.d/*userinit* ; elif [ -f $droidprop ] ; then echo 'call userinit.sh and/or userinit.d/* scripts if present in /data/local
 
+#if [ -e /data/local/userinit.sh ];
+#then
+#   log -p i -t userinit "Executing /data/local/userinit.sh";
+#   logwrapper '"$bb"'sh /data/local/userinit.sh;
+#   setprop cm.userinit.active 1;
+#fi;
+#
+#if [ -d /data/local/userinit.d ];
+#then
+#   logwrapper toybox run-parts /data/local/userinit.d;
+#   setprop cm.userinit.active 1;
+#fi;' | tee /system/etc/init.d/userinit ; fi ; fi
 
 
 
@@ -5755,20 +6195,27 @@ if ! grep -q wrt /etc/os-release && systemctl list-unit-files | grep -q anacron 
 if [ $script_autoupdate = yes ] ; then
 # if online
 ping -c3 "$ping"
-if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
+  if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
 mkdir -p /etc/sysctl.d
 # if debian
-if grep -q "debian" /etc/os-release ; then wget --random-wait --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local ; fi
+    if $debian ; then wget "$wg"--connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local
+    fi
 # if wrt
-if grep -q "wrt" /etc/os-release ; then echo "*BLS*=OPENWRT found" &&
+      if $wrt ; then echo "*BLS*=OPENWRT found" &&
 grep -q "ping -c3 "$ping"" /etc/rc.local
-if [ $? -eq 1 ] ; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && sed -i 's/$ping/'"$ping"'/g' /etc/rc.local && chmod +x /etc/rc.local ; else echo "*BLS*=rc.local up to date" ; fi ; fi
+        if [ $? -eq 1 ] ; then echo "*BLS*=OPENWRT found but no rc.local. adding now!" && echo "$wrtsh" | tee /etc/rc.local && sed -i 's/$ping/'"$ping"'/g' /etc/rc.local && chmod +x /etc/rc.local ; else echo "*BLS*=rc.local up to date"
+        fi
+      fi
 # if android
-if [ -f /system/build.prop ] ; then rm -rf init.sh && wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && rm -rf /etc/rc.local ; rm -rf /data/adb/service.d/init.sh
-if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\/system\/xbin\/sh/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; chmod 755 init.sh ; chmod +x init.sh ; cp init.sh /etc/rc.local ; mkdir -p /data/adb/service.d ; cp init.sh /data/adb/service.d/init.sh ; fi
+          if [ -f $droidprop ] ; then rm -rf init.sh && "$bb"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; "$bb"chown root init.sh ; "$bb"chmod +x init.sh ; "$bb"cp init.sh /etc/rc.local && "$bb"chown root /etc/rc.local && "$bb"chmod +x /etc/rc.local ; mkdir -p /data/adb/post-fs-data.d/ ; "$bb"cp init.sh /data/adb/post-fs-data.d/init.sh && "$bb"chown root /data/adb/post-fs-data.d/init.sh && "$bb"chmod +x /data/adb/post-fs-data.d/init.sh ; if dmesg | "$(! grep -q mitigations)" ; then "$bb"cp init.sh /system/etc/init.d/init.sh && "$bb"chown root /system/etc/init.d/init.sh && "$bb"chmod +x /system/etc/init.d/init.sh ; fi
+### download browser stuff for android - leave this out for now the setup of flags for x86 doesnt work well on android
+#if $(! grep -q quic /data/data/com.android.chrome/app_chrome/Default/Preferences) ; then wget https://github.com/thanasxda/basic-linux-setup/blob/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; "$bb"cp -f Preferences /data/data/com.android.chrome/app_chrome/Default/Preferences ; wget https://github.com/thanasxda/basic-linux-setup/raw/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State ; "$bb"cp -f "Local State" "/data/data/com.android.chrome/app_chrome/Local State" ; fi
+          fi
 # general devices and other distros
-elif ping -c3 "$ping"
-[ $? -eq 0 ] && ! grep wrt /etc/os-release ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local ; fi ; fi
+            elif ping -c3 "$ping"
+[ $? -eq 0 ] && $(! $wrt) ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local 
+  fi 
+fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
 
@@ -5782,7 +6229,7 @@ service procps force-reload
 
 
 # disable bluetooth for all but android
-if [ ! -f /system/build.prop ] ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
+if [ ! -f $droidprop ] ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
 
 
 
@@ -5800,7 +6247,7 @@ maskdisable=$(systemctl list-unit-files | grep "$disable_services" | grep enable
 #maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
 
 # dunno if mdadm is needed for raid. checkout to be sure
-if ! grep -q wrt /etc/os-release ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
+if $(! $wrt) ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
 systemctl stop $disableserv
 systemctl disable $disableserv
 systemctl mask $maskdisable
@@ -5810,7 +6257,7 @@ systemctl mask $maskdisable
 #systemctl enable $startserv
 fi
 
-if ! grep -q "ipv6.conf.all.disable_ipv6" /etc/sysctl.conf || [ $ipv6 = on ] ; then
+if $(! grep -q "ipv6.conf.all.disable_ipv6" /etc/sysctl.conf) || [ $ipv6 = on ] ; then
 echo 'net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
 net.ipv6.conf.lo.disable_ipv6 = 0
@@ -5960,10 +6407,10 @@ fi
 
 if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE ; fi
 
-if [ $uninstall = yes ] ; then 
-rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/service.d/init.sh ; \cp -rf /etc/bak/* / 
-if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi 
-if grep -q "cmdline" /etc/fstab $droidfstab ; then sed -i '/cmdline/c\' /etc/fstab $droidfstab ; fi 
+if [ $uninstall = yes ] ; then
+rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /system/etc/root/cmdline /system/etc/init.d/init.sh /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/post-fs-data.d/init.sh /data/adb/service.d/init.sh ; \cp -rf /etc/bak/* /
+if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi
+if grep -q "cmdline" /etc/fstab $fstab ; then sed -i '/cmdline/c\' $fstab ; fi
 rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
 
 
@@ -5974,20 +6421,20 @@ rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
     # remount ro android
 
     if [ $firstrun = yes ] ; then
-    mount -o remount,rw /cache
+    "$bb"mount -o remount,rw /cache
     rm -rf /cache/*
     rm -rf /data/cache/*
     rm -rf /data/dalvik-cache/*
-    if [ -f /system/xbin/sh ] ; then /system/xbin/fstrim -v /cache ; else /system/bin/fstrim -v /cache ; fi ; fi
+    "$bb"fstrim /cache ; fi
 
-    if [ -f /system/build.prop ] ; then
-    mount -o remount,ro /system
-    mount -o remount,ro /vendor
-    mount -o remount,ro /data
-    mount -o remount,ro rootfs /
-    mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
-    mount -o ro /dev/block/bootdevice/by-name/system /system
-    mount -o ro /dev/block/bootdevice/by-name/data /data ; fi
+    if [ -f $droidprop ] ; then
+    "$bb"mount -o remount,ro /system
+    "$bb"mount -o remount,ro /vendor
+    "$bb"mount -o remount,ro /data
+    "$bb"mount -o remount,ro rootfs /
+    "$bb"mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
+    "$bb"mount -o ro /dev/block/bootdevice/by-name/system /system
+    "$bb"mount -o ro /dev/block/bootdevice/by-name/data /data ; fi
 
 
 

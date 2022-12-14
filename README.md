@@ -4,9 +4,11 @@ Won't maintain the full-setup as it is too much pointless effort.
 If I do any updates it will mostly be the general parameter configuration.
 Updating with experimental branches has been disabled by default since issues.
 You can still do so manually if desired.
-If apt breaks on you as it does lately (only when updating from experimental branches), use dpkg and manually install:
-https://packages.debian.org/sid/amd64/libunistring2/download
-Experimental branches are not used by default anymore in this setup since of their instability with dependencies. If you are an unexperienced user do not upgrade using experimental branches.
+Experimental branches are not used by default anymore in this setup since of their instability with dependencies. 
+If you are an inexperienced user do not upgrade using experimental branches.
+Normally never have issues but lately did. 
+Not related to this setup or Kali/Debian combination, but purely Debian experimental repositories.
+Setup should be stable as I've been using it for years as my daily driver and can confirm.
 ![image](bls.jpg)
 
 ## ₀. Table of contents
@@ -89,15 +91,18 @@ sudo apt update && sudo apt -f install -y git && git clone -j32 --depth=1 -4 --s
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && chmod +x /tmp/init.sh &&
 sh /tmp/init.sh
 ```
-**For Android, install [Busybox](https://themagisk.com/how-to-download-a-magisk-module/) and copy paste in [terminal](https://store.nethunter.com/packages/com.offsec.nhterm/):**
+**For Android, install [__Busybox__](https://forum.xda-developers.com/t/tools-zips-scripts-osm0sis-odds-and-ends-multiple-devices-platforms.2239421/) and copy paste in [__terminal__](https://store.nethunter.com/packages/com.offsec.nhterm/):**
 ```
 su
+# After copy & paste
 if [ -f /system/xbin/sh ] ; then export xbin="/system/xbin/" ; fi
 cd /sdcard && rm -f init.sh
 "$xbin"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
 "$xbin"chmod +x init.sh 
 "$xbin"sh -x init.sh
 ```
+Since script tries to aim for compatibility, if you have troubles booting the script enable [__init.d__](https://forum.xda-developers.com/attachments/update-kernel_init-d_injector-ak2-signed-zip.3761907/) support. This should only be necessary when not being able to run [__Magisk__](https://github.com/topjohnwu/Magisk/releases). Note that all links to the downloads are in this text.
+
 **For OpenWrt basic setup check out:**
 ```
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/wrt.sh -O /tmp/wrt.sh && chmod +x /tmp/wrt.sh &&
@@ -132,7 +137,35 @@ In this case, the parameter script can be used from the master repo. __Setup.sh_
 
 Main reason for using Kali as the base system for this setup is purely the fact that Kali/Debian outbeat almost every other mainstream distribution but Clear Linux, including Arch when it comes to __hackbench__. The difference in scores is as significant as almost half the latency in some cases, next to the fact that despite performance I personally run this distro. Keep in mind that such facts can and often do fluctuate from release to release of distributions and kernels. Overall the rules apply more or less at the time of making this. If I have missed crucial factors to performance which remain plausible feel free to leave a note. Keep in mind the goal of this whole repository is making minimal compromises for attaining relatively balanced performance. With plausibility I mean not disabling idle cores etc. In the past I have been more or less benchmarking and focusing on scores however nowadays I measure past factors and rely on responsiveness rather than scores. This is just a personal setup, nothing serious. I would be glad to hear of improvements however. Kali already brings down hackbench latency quite a bit, however this setup isolated of distribution almost halfens that latency once more relative to default settings. Its worth a try. The only compromise in security is mitigations=off which can be removed from the kernel parameters in init.sh if one wishes so, however does not go as far as pentesting distributions removing any proprietary software or drivers. With mitigations=off which mind you is mostly only valid for x86, it is no more different than a regular desktop distribution and might even be more secure relatively. Ofcourse there is no comparison whatsoever in between this and Windows and its telemetry. Otherwise go run [BSD](https://www.siliconrepublic.com/wp-content/uploads/2014/12/img/snowden-hiding-meme-100042225-medium.jpg) or something. Final note KDE desktop environment provides balance between features while relatively utilizing minimal system resources relative to desktop environments like Gnome. Ram memory for example can be allocated for performance related factors rather than desktop environment, which is what this setup tries to achieve. Do not forget switching from __X11__ to __plasma wayland__ on your sddm login screen prior to logging in to make use of the __wayland compositor__ for __KDE__ provided by this setup. Keep in mind __vulkan backend__ for compositing will also be most likely a release away as of the moment it is up to __OpenGLES3.2__. For more information on troubleshooting read the [__troubleshooting__](https://github.com/thanasxda/basic-linux-setup#-troubleshooting) section on this readme or just [google](https://www.google.com). This full setup including preconfiguration is ideal for gamers as well. Yes, with this configuration while on Kali specifically one could see significant improvement in frame rates when gaming. Especially when no full set of Kali packages has been selected during the setup and instead just the KDE desktop environment. Handpick the tools you want using __kali-tweaks__ from console. You do not want to have many unnecessary services running that are related to pentesting without using them. Setup is intended to be installed without Kali default packages and instead handpicked by preference.
 
-If you want to fully stay up to date be sure to check any potential diff changes in the full setup as opposed to just the configuration as in some parts they go hand in hand. Alternatively you could rerun the full setup occasionally to get all updates this way. The setup and script work optimal as is, if you want to improve it make sure to run quick tests along the way as some things can harm performance drastically. I would be curious to know what hackbench scores others have gotten before and after the full setup as is. Make sure the boot process is fully complete prior to testing and the boot script has finished successfully and minimize factors of influence by having no background processes for reliability of scores. For myself I get half the latency on my current hardware even after the full setup regardless of mitigations and all other changes this full setup applies when adding just the configuration script as opposed to it not being present. Even though this was made considering past factors for responsiveness, better scores is a byproduct. Be careful when installing any external optimizations or custom kernels as sometimes they include their own configuration and can interfere with this one resulting in alteration of scores. If so completely remove the packages and retry. Keep in mind the full setup contains lots of packages and __X11 tests faster than wayland in response, kde openbox even more so__. As an alternative you could disable the compositing. For people not wanting the full setup, the preconfiguration script is more than sufficient. The stock setup gave me a latency of 4 without preconfiguration or any adjustment whatsoever, the full setup gave me a latency of 10 without the preconfiguration script. Mitigations off only, brought that down to 7 and running the preconfig script on full setup brought latency down from 10 to 2. Have not tested the preconfiguration script on bare setup defaults but since the difference is as big as it is it might be worth. Different hardware might have different results.
+If you want to fully stay up to date be sure to check any potential diff changes in the full setup as opposed to just the configuration as in some parts they go hand in hand. Alternatively you could rerun the full setup occasionally to get all updates this way. The setup and script work optimal as is, if you want to improve it make sure to run quick tests along the way as some things can harm performance drastically. I would be curious to know what hackbench scores others have gotten before and after the full setup as is. Make sure the boot process is fully complete prior to testing and the boot script has finished successfully and minimize factors of influence by having no background processes for reliability of scores. For myself I get half the latency on my current hardware even after the full setup regardless of mitigations and all other changes this full setup applies when adding just the configuration script as opposed to it not being present. Even though this was made considering past factors for responsiveness, better scores is a byproduct. Be careful when installing any external optimizations or custom kernels as sometimes they include their own configuration and can interfere with this one resulting in alteration of scores. If so completely remove the packages and retry. Keep in mind the full setup contains lots of packages and __X11 tests faster than wayland in response, kde openbox even more so__. As an alternative you could disable the compositing. For people not wanting the full setup, the preconfiguration script is more than sufficient. The stock setup gave me a latency of 4 without preconfiguration or any adjustment whatsoever, the full setup gave me a latency of 10 without the preconfiguration script. Mitigations off only, brought that down to 7 and running the preconfig script on full setup brought latency down from 10 to 2. Have not tested the preconfiguration script on bare setup defaults but since the difference is as big as it is it might be worth. Different hardware might have different results. Note that hijacking the kernel command line parameters through userspace was a lazy effort as I am focused solely on userspace configuration through this setup. It is however very easy since its slim many devices will support this, to do this on other devices without recompilation. For example in Android the boot.img can be extracted, configured and repacked with kernel command line parameters and changes within the fstab if the fstab happens to be on the ramdisk instead of on a device partition. One of the many methods of achieving this explained underneath by example. Hackbench and other tools are also availabe on Android under Magisk module [benchkit](https://github.com/kdrag0n/benchkit/releases/tag/v2.0.0). It's also possible running Linux in chroot within Android if you need more or if you would like to keep it minimal [termux](https://termux.dev/en/).
+```
+git clone https://github.com/thanasxda/AIK
+cd AIK
+# Enter adb shell on device
+adb shell
+su
+cat $(grep /boot /path/to/fstab* | awk '{print $1}') > /sdcard/boot.img
+exit
+# Exit adb shell from device
+adb pull /sdcard/boot.img boot.img
+sudo su
+./cleanup.sh
+./unpackimg.sh
+# if your fstab is on ramdisk then...
+nano ramdisk/fstab*
+# Editing linux kernel command line parameters
+nano split_img/boot.img-cmdline
+# Flags that are worth for commandline might be: cgroup_disable=memory kpti=0 ,for fstab: lazytime
+# Now repack the image. Note modifying default.prop on ramdisk is also possible.
+./repackimg.sh
+adb push image-new.img /sdcard/moddedboot.img
+adb reboot recovery
+# Ready for flashing, can script all this in to be automed. Yet safer doing manually.
+# You can also flash directly from userspace with underneath method
+dd if=/sdcard/moddedboot.img of=$(grep /boot /path/to/fstab* | awk '{print $1}') 
+```
+
+
 
 __This readme won't be updated often but if you would prefer installing this script isolated without the full setup make sure to install: hdparm, macchanger, ethtool. Being on KDE and having the latest Firefox and Brave-browser-nightly would be a benefit as well.__
 
