@@ -110,7 +110,8 @@ $a q4wine \
  blktool \
  tuned-utils \
  npm \
- xattr attr 
+ xattr attr \
+ gedit
  
  $a libllvm-$llver-ocaml-dev \
  libllvm$llver \

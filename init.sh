@@ -13,17 +13,27 @@
 # setup meant as universal config for:
 # x86, android, openwrt & general
 ### if things dont get applied add delay prior to execution
+### WARNING: for compatibility reasons over a broader range of devices script is present in /etc/rc.local on all linu devices, on android if it doesnt apply only afterwards it moves to /etc/init.d/init.sh, by default in /data/adb/service.d/init.sh and /etc/rc.local, since not all roms behave the same and/or might not support magisk. selecting override will trigger the script to offline mode not allowing automatic updates and copy the script which you configure this in to the current device's dirs. maybe will symlink it in later stage. script is too much work for one person...
+### i can't know where the user is running the script from so if you make any changes enable the override toggle.
+# if you choose to make any changes you have to copy the script to the desired location. will automate all in future as script progresses probably
         droidprop="/system/build.prop"
         wrt="grep -q wrt /etc/os-release"
         debian="grep -q debian /etc/os-release"
         if [ $testing = yes ] ; then echo "skip delay, testing..." ; else
-if [ -f $droidprop ] && [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7 ] ; then
-echo " less or equal to android 7, sleep 60 seconds..." ; sleep 60 ; elif  [ -f $droidprop ] ; then echo " android 8 or above found, sleep 30 seconds..." ; sleep 30 ; fi
-if [ ! -f $droidprop ] && [ "$(grep bogomips /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " bogomips less or equal to 4000, sleep 30 seconds..." ; sleep 30 ; elif [ ! -f $droidprop ] ; then sleep 5 ; "script starting..." ; fi
+  if [ -f $droidprop ] ; then
+if [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 2000 ] ; then echo " slow device boot delay 200 seconds" ; sleep 200 ; elif [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 8 ] ; then echo " less or equal to android 8, sleep 60 seconds..." ; sleep 60 ; else
+echo " android 9 or above found, sleep 30 seconds..." ; sleep 30 ; fi
+  fi
+if [ ! -f $droidprop ] && [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " bogomips less or equal to 4000, sleep 30 seconds..." ; sleep 30 ; elif [ ! -f $droidprop ] ; then sleep 5 ; "script starting..." ; fi
         fi
 ### busybox... since script aims for compatibility without compromising too much... for legacy devices its a must to upgrade busybox. i dont feel like typing every command with a variable. will use this only on important parts.
 ### on legacy devices it can be an issue since after testing busybox uses default binaries instead of /xbin. many commands are not present in that case. find a way to update your device for best results.
-if [ -f $doidprop ] ; then if [ -f /sbin/sh ] ; then bb="/sbin/" ; elif [ -f /bin/sh ] ; then bb="/bin/" ; elif [ -f /system/bin/sh ] ; then bb="/system/bin/" ; elif [ -f /system/xbin/sh ] ; then bb="/system/xbin/" ; fi ; fi
+if [ -f $doidprop ] ; then 
+if [ -f /sbin/sh ] ; then export bb="/sbin/" ; fi 
+if [ -f /bin/sh ] ; then export bb="/bin/" ; fi 
+if [ -f /system/bin/sh ] ; then export bb="/system/bin/" ; fi 
+if [ -f /system/xbin/sh ] ; then export bb="/system/xbin/" ; fi 
+fi
 
 # script vars
 #s="sudo"
@@ -39,7 +49,8 @@ if [ -f $doidprop ] ; then if [ -f /sbin/sh ] ; then bb="/sbin/" ; elif [ -f /bi
       # to avoid much maintenance is partial
         restore_backup="no"
         uninstall="no"
-
+      # due to compatibility reasons script is present over many devices. if choosing to edit the script then enable override variable underneath
+        override="no"
 
 
 
@@ -136,16 +147,18 @@ if [ -f $doidprop ] ; then if [ -f /sbin/sh ] ; then bb="/sbin/" ; elif [ -f /bi
       # https://www.kernel.org/doc/Documentation/filesystems/ext4.txt
       # https://www.kernel.org/doc/Documentation/filesystems/f2fs.txt
       # https://www.kernel.org/doc/Documentation/filesystems/xfs.txt
-        xfs="defaults,rw,lazytime,attr2,inode64,logbufs=8,logbsize=128k,noquota,allocsize=64m,largeio,swalloc,nodiscard,filestreams"
-       ext4="defaults,rw,lazytime,commit=60,noquota,data=writeback,nobarrier,errors=remount-ro,noauto_da_alloc,user_xattr,lazy_itable_init=0,lazy_journal_init=0,
-max_batch_time=120,nodiscard"
-       f2fs="defaults,rw,lazytime,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,noquota,ram_thresh=20,cp_interval=120,nodiscard,background_gc=off,active_logs=0"
+        if $(! $droidprop) ; then export errorsmnt=",errors=remount-ro" ; fi
+        xfs="defaults,rw,lazytime,noquota,nodiscard,attr2,inode64,logbufs=8,logbsize=128k,allocsize=64m,largeio,swalloc,filestreams"
+       ext4="defaults,rw,lazytime,noquota,nodiscard,commit=60,data=writeback,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,nomblk_io_submit,init_itable=0'"$errorsrmnt"'"
+       f2fs="defaults,rw,lazytime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,ram_thresh=20,cp_interval=120,nodiscard"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
        swap="sw,lazytime"
 
-
-
+#f2fs
+#active_logs=
+#ext4 flags
+#lazy_itable_init=0,lazy_journal_init=0
 
       ### < EXTRAS >
         idle="poll"
@@ -175,9 +188,9 @@ max_batch_time=120,nodiscard"
         #scsi="off"
         # in case of using dracut
         #raid="no"
-        ls -f /etc/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(echo "$(ls /etc/fstab*)")
-        ls -f /vendor/fstab* | grep -q fstab ; elif [ $? = 0 ] ; then export fstab=$(echo "$(ls /vendor/fstab*)")
-        ls -f /fstab* | grep -q fstab ; elif [ $? = 0 ] ; then export fstab=$(echo "$(ls /fstab*)") ; fi
+        ls -f /fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /fstab*) ; fi
+        ls -f /etc/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /etc/fstab*) ; fi
+        ls -f /vendor/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /vendor/fstab*) ; fi
 
 
         # android dirs
@@ -187,8 +200,9 @@ droidresolv="/system/etc/resolv.conf"
 droidsysctl="/system/etc/sysctl.conf"
 droidhosts="/system/etc/hosts"
 droidcmdline="/system/etc/root/cmdline"
-#droidshell="/system\/bin\/sh"
-droidshell="/system\/xbin\/sh"
+droidshell="/system\/xbin\/sh" # only shebang
+#if $(! grep -q lazytime "$fstab") ; then export droidshell="/system\/bin\/sh" ; fi
+#if [ $testing = yes ] ; then export droidshell="/bin\/sh" ; fi
     "$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
     "$bb"mount -o rw /dev/block/bootdevice/by-name/system /system
     "$bb"mount -o rw /dev/block/bootdevice/by-name/data /data
@@ -247,7 +261,7 @@ shmall=35000000
 echo always > /sys/kernel/mm/transparent_hugepage/enabled
 echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-hpages=' kvm.nx_huge_pages=on transparent_hugepage=always'
+hpages=' transparent_hugepage=madvise'
 hugepages="8"
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
 sysctl -w vm.nr_hugepages=$hugepages
@@ -511,7 +525,7 @@ xx1=" nr_cpus=-1 rcu_nocb_poll smt=-1 maxcpus=-1 processor.ignore_ppc=1"
 #
 xx2=$(if $(lscpu | grep -q Pentium) ; then export hugepagesz="4MB" ; else echo " mem=nopentium" ; fi)
 #
-xx3=$( if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1 " ; fi)
+xx3=$( if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1" ; fi)
 #
 xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$sched hugepages=$hugepages cpufreq.default_governor=$governor hugepagesz=$hugepagesz vmalloc=$vmalloc$hpages$zsw"
 
@@ -545,7 +559,7 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
        echo manual > /sys/class/drm/card0/device/power_dpm_force_performance_level
        echo $perfamdgpu > /sys/class/drm/card0/device/power_dpm_force_performance_level
 
-if lscpu | grep -q x86 ; then wg="--random-wait " ; fi
+#if lscpu | grep -q x86 ; then wg="--random-wait " ; fi
 
 
 
@@ -577,16 +591,16 @@ mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
 '"$bb"'echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
 echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
-x1="$('"$bb"'wget $u1 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
-x2="$('"$bb"'wget $u2 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
-x3="$('"$bb"'wget $u3 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
-x4="$('"$bb"'wget $u4 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
-x5="$('"$bb"'wget $u5 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
-x6="$('"$bb"'wget $u6 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
-x7="$('"$bb"'wget $u7 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-x8="$('"$bb"'wget $u8 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-x9="$('"$bb"'wget $u9 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-x10="$('"$bb"'wget $u10 '"$wg"' --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+x1="$('"$bb"'wget $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
+x2="$('"$bb"'wget $u2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
+x3="$('"$bb"'wget $u3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
+x4="$('"$bb"'wget $u4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
+x5="$('"$bb"'wget $u5 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
+x6="$('"$bb"'wget $u6 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
+x7="$('"$bb"'wget $u7 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+x8="$('"$bb"'wget $u8 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+x9="$('"$bb"'wget $u9 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+x10="$('"$bb"'wget $u10  --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
 $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || echo fail
 
               ### yours
@@ -594,10 +608,10 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7
               l2='"$list2"'
               l3='"$list3"'
               l4='"$list4"'
-              c1="$('"$bb"'wget $l1 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-              c2="$('"$bb"'wget $l2 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-              c3="$('"$bb"'wget $l3 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-              c4="$('"$bb"'wget $l4 '"$wg"'--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+              c1="$('"$bb"'wget $l1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
+              c2="$('"$bb"'wget $l2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
+              c3="$('"$bb"'wget $l3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
+              c4="$('"$bb"'wget $l4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
             if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || echo fail ; fi
 
 cd /etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a /etc/hosts
@@ -649,6 +663,11 @@ done'
     ### make backups - fstab may vary and other dirs maybe depending on phone. qcom is /vendor/fstab.qcom
     # remount rw
      if [ -f $droidprop ] ; then
+     #if [ $testing = yes ] ; then 
+     #su
+     #setprop service.adb.tcp.port 5555
+     #stop adbd
+     #start adbd ; fi
     mkdir -p /etc/bak/system
     mkdir -p /etc/bak/vendor
     mkdir -p /etc/bak/data/adb/service.d
@@ -658,7 +677,7 @@ done'
 
 
 
-        if [ -f $droidprop ] && [ ! -f /data/adb/post-fs-data.d/init.sh ] ; then export firstrun=yes ; fi
+        if [ -f $droidprop ] && [ ! -f /data/adb/service.d/init.sh ] ; then export firstrun=yes ; fi
 
 
 
@@ -725,8 +744,9 @@ fi
 
 
   ### script binds dirs later on again
-    umount -f /root/cmdline # just to avoid binding it 20 times
-    umount -f /etc/sysctl.conf
+    "$bb"umount -f /root/cmdline # just to avoid binding it 20 times
+    "$bb"umount -f /system/etc/root/cmdline
+    "$bb"umount -f /etc/sysctl.conf
 
 
 
@@ -759,7 +779,7 @@ fi
     # cronjob kernel - daily seek for update mainline kernel only from experimental branch. since i dont trust debian experimental repositories no more and am in no mood to fight with the packages and dependencies...
     if $debian ; then
     if $(! grep -q "linux-image-amd64" /etc/anacrontabs) ; then
-    echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64'" | tee -a /etc/anacrontabs ; fi ; fi
+    echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64 && grub-mkconfig'" | tee -a /etc/anacrontabs ; fi ; fi
 
 
 
@@ -771,7 +791,7 @@ fi
           if grep -q kali /etc/os-release && [ $sourceslist_update = yes ] ; then
           ping -c3 "$ping"
           if [ $? -eq 0 ]; then
-          echo "*BLS*=Syncing sources.list." && "$(wget "$wg"--connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
+          echo "*BLS*=Syncing sources.list." && "$(wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
 
 
 
@@ -791,8 +811,9 @@ fi
       if [ -f $droidprop ] ; then mkdir -p /system/etc/root ; "$bb"echo "$(cat /etc/bak/system/root/cmdline) '"$par"'" | tee /system/etc/root/cmdline ; "$bb"mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; else
       mkdir -p /system/etc/root ; echo "$par" | tee /system/etc/root/cmdline &&
       mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; fi
-      if $(! grep -q "/proc/cmdline" $fstab) && [ ! $droidfstab ] ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; elif $(! grep -q "/proc/cmdline" $fstab) &&  [ -f $droidfstab ] ; then echo "/system/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; fi
-       
+      #if $(! $debian) ; then
+      #if $(! grep -q "/proc/cmdline" $fstab) && [ ! $droidfstab ] ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; elif $(! grep -q "/proc/cmdline" $fstab) &&  [ -f $droidfstab ] ; then echo "/system/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; fi
+      #fi
       # echo "doesnt work anyways" ; else echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
 
@@ -815,8 +836,7 @@ fi
     $s sed -i 's/GRUB_GFXPAYLOAD_LINUX=.*/GRUB_GFXPAYLOAD_LINUX="'"$resolution"'"/g' /etc/default/grub
     $s sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE="'"$resolution"'"/g' /etc/default/grub
 
-### reapply updated parameters
-$s update-grub
+
 
 
 
@@ -836,33 +856,32 @@ $s update-grub
 
 
        # i hope there are no bash fuckups running legacy stuff here. rip
-       if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
     if [ -f $droidprop ] ; then
-          # f2fs droid
-      dataf2fsdroid=$(echo $(grep data $fstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
-      cachef2fsdroid=$(echo $(grep cache $fstab | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw/,ro/g'))
-        dataf2fsreplace=$(echo $(grep data $fstab | grep f2fs))
-        cachef2fsreplace=$(echo $(grep data $fstab | grep f2fs))
+      # f2fs droid                                                                                                    # adjust if needed. left the last sed part here intentionally
+      dataf2fsdroid=$(grep data "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,ro/,rw/g')
+      cachef2fsdroid=$(grep cache "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,ro/,rw/g')
+        dataf2fsreplace=$(grep data "$fstab" | grep f2fs)
+        cachef2fsreplace=$(grep data "$fstab" | grep f2fs)
       # ext4 droid
-      dataext4droid=$(echo $(grep data $fstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext"',nosuid,nodev", $5 }'))
-      cacheext4droid=$(echo $(grep cache $fstab | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev", $5 }'))
-        dataext4replace=$(echo $(grep data $fstab | grep ext4))
-        cacheext4replace=$(echo $(grep data $fstab | grep ext4))
-              systemext4droid=$(echo $(grep system $fstab | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g'))
-              systemext4replace=$(echo $(grep system $fstab | grep ext4))
+      dataext4droid=$(grep data "$fstab" | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev,lazytime", $5 }' | sed 's/,ro/,rw/g')
+      cacheext4droid=$(grep cache "$fstab" | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev,lazytime", $5 }' | sed 's/,ro/,rw/g')
+        dataext4replace=$(grep data "$fstab" | grep ext4)
+        cacheext4replace=$(grep data "$fstab" | grep ext4)
+              systemext4droid=$(grep system "$fstab" | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g')
+              systemext4replace=$(grep system "$fstab" | grep ext4)
 
-        if $(! grep -q f2fs $fstab) ; then
-echo $dataf2fsdroid | tee -a $fstab
-echo $cachef2fsdroid | tee -a $fstab
+        if $(! grep -q f2fs "$fstab") ; then
+echo $dataf2fsdroid | tee -a "$fstab"
+echo $cachef2fsdroid | tee -a "$fstab"
         fi
 
-sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' $fstab
-sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' $fstab
-sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' $fstab
-sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' $fstab
-sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $fstab
+sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' "$fstab"
+sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' "$fstab"
+sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' "$fstab"
+sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' "$fstab"
+sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' "$fstab"
     fi
-      fi
+
 
 
 
@@ -870,14 +889,16 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $fstab
   ### temporarily enable zram for myself
   $s sh /etc/zram.sh
 
+  
+  if [ ! $droidprop ] ; then
   ### fstab tmpfs on ram
-    tmpfsadd=$(if grep -q "tmpfs" /etc/fstab ; then echo "*BLS*=TMPFS found not applying to /etc/fstab."; else echo "*BLS*=TMPFS added to /etc/fstab." &&
-    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
-    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
-    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
-    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a $fstab
-    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab
-    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a $fstab ; fi)
+    tmpfsadd=$(if grep -q "tmpfs" "$fstab" ; then echo "*BLS*=TMPFS found not applying to /etc/fstab."; else echo "*BLS*=TMPFS added to /etc/fstab." &&
+    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
+    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
+    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
+    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a "$fstab"
+    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
+    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab" ; fi)
     #$s echo 'tmpfs    /var/log    tmpfs    '"$tmpfs"',mode=1755,size=10m  0 0' | $s tee -a /etc/fstab
     #$s echo 'tmpfs    /var/spool  tmpfs    '"$tmpfs"',mode=1750,size=4m   0 0' | $s tee -a /etc/fstab
  ### check if zram to avoid tmpfs on ram
@@ -886,16 +907,23 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $fstab
  $tmpfsadd # and then there was tmpfs for all.
 
   ### update tmpfs values
-    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' $fstab
-    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' $fstab
-    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' $fstab
-    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' $fstab
-    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' $fstab
-    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' $fstab
-
-    sed -i 's/noatime/lazytime/g' $fstab
-    sed -i 's/nodiratime/lazytime/g' $fstab
-    sed -i 's/relatime/lazytime/g' $fstab
+    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
+    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
+    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
+    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' "$fstab"
+    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
+    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
+  fi
+  
+  if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
+    sed -i 's/noatime/lazytime/g' "$fstab"
+    sed -i 's/nodiratime/lazytime/g' "$fstab"
+    sed -i 's/relatime/lazytime/g' "$fstab" 
+    sed -i 's/,errors=remount-ro//g' "$fstab" ; else
+    sed -i 's/lazytime/noatime/g' "$fstab"
+    sed -i 's/relatime/noatime/g' "$fstab" 
+    sed -i 's/,lazy_itable_init=0,lazy_journal_init=0//g' "$fstab" 
+    sed -i 's/,errors=remount-ro//g' "$fstab" ; fi
 
 
 
@@ -927,7 +955,7 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' $fstab
       sed -i 's/#FastConnectable.*/FastConnectable = false/' /etc/bluetooth/main.conf
       sed -i 's/ReconnectAttempts.*/ReconnectAttempts = 1/' /etc/bluetooth/main.conf
       sed -i 's/ReconnectIntervals.*/ReconnectIntervals = 1/' /etc/bluetooth/main.conf
-      if [ ! -f $droidprop ] ; then rm -rfd /var/lib/bluetooth/* ; fi
+     # if [ ! -f $droidprop ] ; then rm -rfd /var/lib/bluetooth/* ; fi
 
 
   # journaling and more
@@ -1158,7 +1186,7 @@ fi
 #sd_mod' ; fi)
     #cecblack=$(if [ $cec = off ] ; then echo "cec" ; fi)
 
-    mount -t debugfs none /sys/kernel/debug
+
     sysctl -w vm.min_free_order_shift=4
     sysctl -w kernel.msgmni=32000
     sysctl -w kernel.msgmax=8192
@@ -1319,25 +1347,6 @@ echo "20" > /proc/sys/fs/lease-break-time
 
 echo "write through" | sudo tee /sys/block/*/queue/write_cache
 
-#setprop sys.use_fifo_ui 1
-setprop persist.radio.add_power_save 1
-#setprop debug.composition.type c2d
-setprop video.accelerate.hw 1
-#setprop persist.sys.ui.hw 1
-#setprop debug.egl.buffcount 4
-#setprop debug.egl.hw 1
-if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -ge 11 ] ; then
-setprop debug.hwui.renderer vulkan
-fi
-setprop net.tcp.buffersize.default 6144,87380,1048576,6144,87380,524288
-setprop net.tcp.buffersize.wifi 524288,1048576,2097152,524288,1048576,2097152
-setprop net.tcp.buffersize.umts 6144,87380,1048576,6144,87380,524288
-setprop net.tcp.buffersize.gprs 6144,87380,1048576,6144,87380,524288
-setprop net.tcp.buffersize.edge 6144,87380,524288,6144,16384,262144
-setprop net.tcp.buffersize.hspa 6144,87380,524288,6144,16384,262144
-setprop net.tcp.buffersize.lte 524288,1048576,2097152,524288,1048576,2097152
-setprop net.tcp.buffersize.hsdpa 6144,87380,1048576,6144,87380,1048576
-setprop net.tcp.buffersize.evdo_b 6144,87380,1048576,6144,87380,1048576
 #setprop MIN_HIDDEN_APPS false
 #setprop ACTIVITY_INACTIVE_RESET_TIME false
 #setprop MIN_RECENT_TASKS false
@@ -1822,7 +1831,7 @@ fi
   ### < START PARAMETER CONFIG >
 ##########################################################################################################
 # legacy dump from 3.x kernel for compatibility
-# command for you: grep -H '' $(ls /sys/module/*/parameters/*) | sed 's/:/ /g' | awk '{print "echo",  $2, ">", $1}'  
+# command for you: grep -H '' $(ls /sys/module/*/parameters/*) | sed 's/:/ /g' | awk '{print "echo",  $2, ">", $1}'
 echo 0 > /sys/module/alarm/parameters/debug_mask
 echo 0 > /sys/module/alarm_dev/parameters/debug_mask
 echo 0 > /sys/module/bcmdhd/parameters/clockoverride
@@ -3657,7 +3666,14 @@ echo off > /proc/sys/kernel/printk_devkmsg
 
 echo "15000" > /sys/power/pm_freeze_timeout
 
-
+echo 0 > /d/tracing/events/ext4/enable
+echo 0 > /d/tracing/events/xfs/enable
+echo 0 > /d/tracing/events/f2fs/enable
+echo 0 > /d/tracing/events/block/enable
+echo 0 > /sys/kernel/debug/tracing/events/ext4/enable
+echo 0 > /sys/kernel/debug/tracing/events/xfs/enable
+echo 0 > /sys/kernel/debug/tracing/events/f2fs/enable
+echo 0 > /sys/kernel/debug/tracing/events/block/enable
 
 
 
@@ -4650,7 +4666,7 @@ echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable 
 
 if dmesg | grep -q amdgpu && ! grep -q amdgpu /etc/modules ; then echo 'amdgpu' | tee -a /etc/modules ; fi
 
-if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf "$wg"--connect-timeout=10 --continue -4 --retry-connrefused -O /etc/dxvk.conf ; fi
+if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/dxvk.conf ; fi
 
 
 
@@ -5306,6 +5322,7 @@ for i in "$(cat /etc/profile.d/kwin.sh | awk '\''{print $2}'\'')" ; do export $i
 # android props etc
 # since script aims for broad range of devices legacy props included
 # wont get applied on newer devices anyway. no harm. these are bullshit though. only the dalvik vm shit probably works. most i will be disabled by default. check what is used for your device
+# leave gpu rendering disabled in developers options
 if [ -f $droidprop ] ; then
 prop='#####################################
 # these are added
@@ -5314,6 +5331,10 @@ prop='#####################################
 ####
 # dalvik
 
+
+dalvik.vm.dex2oat-backend=Quick
+dalvik.vm.dex2oat-thread_count=4
+pm.dexopt.shared quicken
 dalvik.vm.heapmaxfree=2m
 dalvik.vm.heapminfree=512k
 dalvik.vm.heaptargetutilization=0.75
@@ -5456,7 +5477,7 @@ persist.telephony.support.ipv4=1
 
 #BOARD_EGL_NEEDS_LEGACY_FB=false
 #POWER_SAVE_PRE_CLEAN_MEMORY_TIME=1800
-#CPU_MIN_CHECK_DURATION=false
+CPU_MIN_CHECK_DURATION=false
 #CONTENT_APP_IDLE_OFFSET=false
 #EMPTY_APP_IDLE_OFFSET=false
 #ENFORCE_PROCESS_LIMIT=false
@@ -5464,9 +5485,9 @@ persist.telephony.support.ipv4=1
 #MIN_CRASH_INTERVAL=false
 #MIN_HIDDEN_APPS=false
 #MIN_RECENT_TASKS=false
-#GC_TIMEOUT=false
+GC_TIMEOUT=false
 PROC_START_TIMEOUT=false
-#APP_SWITCH_DELAY_TIME=false
+APP_SWITCH_DELAY_TIME=false
 #ACTIVITY_INACTIVE_RESET_TIME=false
 #ACTIVITY_INACTIVITY_RESET_TIME=false
 
@@ -5474,7 +5495,7 @@ PROC_START_TIMEOUT=false
 # deprecated bs that slows down system mostly. part from some that still apply and test very good
 # left all in for you to decide depending on which android version youre in. most dont apply today in latest source and some are device related. left them in unused despite
 
-persist.sys.oem_smooth=1
+#persist.sys.oem_smooth=1
 #cpu.fps=auto
 #debug.cpurend.vsync=true
 #debug.egl.buffcount=3
@@ -5488,7 +5509,7 @@ persist.sys.oem_smooth=1
 #debug.hwui.render_dirty_regions=false
 #debug.hwui.show_dirty_regions=false
 #debug.hwui.swap_with_damage=true
-#debug.hwui.use_buffer_age=true
+debug.hwui.use_buffer_age=true
 #debug.hwui.use_gpu_pixel_buffers=true
 #debug.overlayui.enable=1
 debug.performance.tuning=1
@@ -5496,26 +5517,26 @@ debug.performance.tuning=1
 #debug.qctwa.preservebuf=1
 #debug.qctwa.statusbar=1
 #debug.sf.disable_backpressure=0
-#debug.sf.disable_client_composition_cache=0
+debug.sf.disable_client_composition_cache=0
 #debug.sf.enable_gl_backpressure=1
 #debug.sf.enable_hwc_vds=1
-debug.sf.hw=1
-debug.sf.latch_unsignaled=1
+#debug.sf.hw=1
+#debug.sf.latch_unsignaled=1
 #debug.sf.recomputecrop=0
-force_hw_ui=true
-hw2d.force=1
-hw3d.force=1
+#force_hw_ui=true
+#hw2d.force=1
+#hw3d.force=1
 #hwui.text_gamma.black_threshold=64
 #hwui.text_gamma.white_threshold=192
 #hwui.text_gamma=1.4
 #hwui.text_gamma_correction=lookup
 #persist.sys.NV_FPSLIMIT=244
 #persist.sys.NV_POWERMODE=1
-persist.sys.ui.hw=1
+#persist.sys.ui.hw=1
 #ro.HOME_APP_ADJ=1
 #support_highfps=1
 #sys.display-size=3840x2160
-sys.sysctl.tcp_def_init_rwnd=60
+#sys.sysctl.tcp_def_init_rwnd=60
 #sys_vdso=1
 #vendor.debug.egl.swapinterval=1
 #vendor.display.disable_metadata_dynamic_fps=1
@@ -5524,10 +5545,8 @@ sys.sysctl.tcp_def_init_rwnd=60
 #vendor.display.idle_time=0
 #vendor.display.idle_time_inactive=0
 #vidc.debug.perf.mode=2
-#vidc.enc.dcvs.extra-buff-count=2
+#vidc.enc.dcvs.extra-buff-count=3
 #windowsmgr.max_events_per_sec=244
-#debug.composition.type=vulkan
-#debug.hwui.renderer=vulkan
 persist.sys.scrollingcache=3
 persist.sys.use_16bpp_alpha=1
 persist.sys.use_dithering=0
@@ -5538,11 +5557,13 @@ speed_mode_on=1
 #sys.use_fifo_ui=1
 video.accelerate.hw=1
 #ro.fb.mode=1
-debug.sf.enable_hwc_vds=1
-debug.sf.latch_unsignaled=1
-debug.gralloc.enable_fb_ubwc=1
-dev.pm.dyn_samplingrate=1
-
+#debug.sf.enable_hwc_vds=1
+#debug.sf.latch_unsignaled=1
+#debug.gralloc.enable_fb_ubwc=1
+#dev.pm.dyn_samplingrate=1
+#persist.sys.composition.type=vulkan
+#debug.composition.type=vulkan
+#debug.hwui.renderer=vulkan
 
 media.stagefright.enable-aac=true
 media.stagefright.enable-fma2dp=true
@@ -5574,16 +5595,16 @@ debug.kill_allocating_task=1
 usb_wakeup=enable
 ro.ksm.default='"$ksm"'
 
-#adaptive_battery_management_enabled=1
-#ro.board_ram_size=low
-#ro.config.low_ram=true
+adaptive_battery_management_enabled=1
+ro.board_ram_size=low
+ro.config.low_ram=true
 
 window_animation_scale=0.0
 #view.scroll_friction=0
 #view.touch_slop=1
 animator_duration_scale=0.0
 debug.hwui.force_dark=true
-#debug.hwui.level=0
+debug.hwui.level=0
 transition_animation_scale=0.0
 slider_animation_duration=0
 tap_duration_threshold=0.0
@@ -5654,7 +5675,7 @@ debug.sf.ddms=0
 #debug.sf.use_phase_offsets_as_durations=1
 #debug.sqlite.syncmode=1
 debug.stagefright.ccodec=1
-#dev.bootcomplete=0 
+#dev.bootcomplete=0
 dev.pm.dyn_samplingrate=1
 #display_color_mode=0
 doze.pickup.vibration.threshold=2000
@@ -5672,19 +5693,19 @@ doze.pulse.sigmotion=0
 doze.shake.acc.threshold=10
 doze.use.accelerometer=0
 doze.vibrate.sigmotion=0
-#drm.service.enabled=true
+drm.service.enabled=true
 enhanced_processing=1
 fancy_ime_animations=0
 forced_app_standby_enabled=1
 #fstrim_mandatory_interval=1
 #game_driver_all_apps=1
-hwui.disable_vsync=false
-hwui.render_dirty_regions=false
+#hwui.disable_vsync=false
+#hwui.render_dirty_regions=false
 #intelligent_sleep_mode=0
 keep_profile_in_background=0
 #long_press_timeout=250
 master_motion=0
-#media.xloud.enable=1
+media.xloud.enable=0
 #media.xloud.supported=true
 #min_refresh_rate=1.0
 mm.enable.smoothstreaming=true
@@ -5699,12 +5720,12 @@ persist.android.strictmode=0
 #persist.audio.hifi=true
 #persist.bootanim.preload=1
 #persist.cust.tel.eons=1
-#persist.device_config.runtime_native.usap_pool_enabled=true
-#persist.device_config.runtime_native_boot.iorap_perfetto_enable=true
-#persist.device_config.runtime_native_boot.iorap_readahead_enable=true
-#persist.dpm.feature=1
-#persist.mm.enable.prefetch=true
-#persist.preload.common=1
+persist.device_config.runtime_native.usap_pool_enabled=true
+persist.device_config.runtime_native_boot.iorap_perfetto_enable=true
+persist.device_config.runtime_native_boot.iorap_readahead_enable=true
+persist.dpm.feature=1
+persist.mm.enable.prefetch=true
+persist.preload.common=1
 persist.radio.add_power_save=1
 #persist.radio.data_no_toggle=1
 persist.radio.ramdump=0
@@ -5712,35 +5733,34 @@ persist.radio.ramdump=0
 persist.sampling_profiler=0
 persist.service.xloud.enable=0
 persist.speaker.prot.enable=false
-#persist.sys.binary_xml=false
-#persist.sys.composition.type=vulkan
-#persist.sys.job_delay=false
-#persist.sys.lowcost=1
+persist.sys.binary_xml=false
+persist.sys.job_delay=false
+persist.sys.lowcost=1
 persist.sys.purgeable_assets=1
 persist.sys.sf.color_saturation=1.25
 persist.sys.ssr.enable_ramdumps=0
-#persist.sys.storage_preload=1
+persist.sys.storage_preload=1
 persist.traced.enable=0
 persist.vendor.sys.ssr.enable_ramdumps=0
 #persyst.sys.usb.config=mtp,adb
 pm.sleep_mode=1
 power.saving.mode=1
 power_supply.wakeup=enable
-#rakuten_denwa=0
-#ram_expand_size_list=1
+rakuten_denwa=0
+ram_expand_size_list=1
 #refresh_rate_mode=2
 remote_control=0
-#restricted_device_performance=1.0
+restricted_device_performance=1.0
 ro.allow.mock.location=1
-#ro.am.reschedule_service=true
+ro.am.reschedule_service=true
 #ro.audio.flinger_standbytime_ms=300
 ro.boot.warranty_bit=0
 #ro.bq.gpu_to_cpu_unsupported=1
-#ro.camcorder.videoModes=true
+ro.camcorder.videoModes=true
 #ro.charger.disable_init_blank=true
 ro.com.google.locationfeatures=0
 ro.com.google.networklocation=0
-#ro.compcache.default=1
+ro.compcache.default=1
 #ro.config.combined_signal=true
 #ro.config.dha_tunnable=1
 ro.config.disable.hw_accel=false
@@ -5751,11 +5771,11 @@ ro.config.enable.hw_accel=true
 ro.config.hw_fast_dormancy=1
 ro.config.hw_power_saving=true
 ro.config.hw_quickpoweron=true
-#ro.config.low_mem=true
-#ro.config.low_ram.mod=true
-#ro.config.low_ram=true
+ro.config.low_mem=true
+ro.config.low_ram.mod=true
+ro.config.low_ram=true
 ro.config.nocheckin=1
-#ro.config.rm_preload_enabled=1
+ro.config.rm_preload_enabled=1
 ro.fast.dormancy=1
 #ro.floatingtouch.available=1
 #ro.hwui.disable_scissor_opt=false
@@ -5831,54 +5851,120 @@ ro.secure=0
 #ro.semc.xloud.supported=true
 ro.service.remove_unused=1
 ro.sf.compbypass.enable=0
-#ro.sf.disable_triple_buffer=0
-#ro.storage_manager.enabled=true
-#ro.support.signalsmooth=true
+ro.sf.disable_triple_buffer=0
+ro.storage_manager.enabled=true
+ro.support.signalsmooth=true
 #ro.surface_flinger.has_wide_color_display=false
 #ro.surface_flinger.use_content_detection_for_refresh_rate=true
 #ro.sys.fw.bservice_enable=true
-#ro.sys.fw.use_trim_settings=true
-#ro.tb.mode=1
+ro.sys.fw.use_trim_settings=true
+ro.tb.mode=1
 #ro.telephony.call_ring.delay=0
 #ro.telephony.call_ring.multiple=0
-#ro.tether.denied=false
-#ro.trim.config=true
-#ro.trim.memory.font_cache=1
-#ro.trim.memory.launcher=1
-#ro.vendor.perf.scroll_opt=true
-#ro.warmboot.capability=1
+ro.tether.denied=false
+ro.trim.config=true
+ro.trim.memory.font_cache=1
+ro.trim.memory.launcher=1
+ro.vendor.perf.scroll_opt=true
+ro.warmboot.capability=1
 ro.warranty_bit=0
 ro.wmt.blcr.enable=0
 #screen_auto_brightness_adj=0
 #sys.config.activelaunch_enable=true
 #sys.config.phone_start_early=true
-#unused_static_shared_lib_min_cache_period_ms=3600
+unused_static_shared_lib_min_cache_period_ms=3600
 
 #persist.sys.usb.config=adb
 '
 
-if [ -f $droidprop ] && ! grep -q "net.dns1" $droidprop ; then
+#if [ -f $droidprop ] && ! grep -q "net.dns1" $droidprop ; then
+#echo "$prop" >> $droidprop ; fi
+if [ -e /system/etc/bak/system/build.prop ] ; then 
+cat /system/etc/bak/system/build.prop | tee $droidprop
 echo "$prop" >> $droidprop ; fi
+
 
 sed -i 's/dalvik.vm.heaptargetutilization=.*/dalvik.vm.heaptargetutilization=0.75/g' $droidprop
 sed -i 's/dalvik.vm.dexopt-flags=.*/dalvik.vm.dexopt-flags=m=y,v=n,o=y,u=n/g' $droidprop
 sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=8m/g' $droidprop
 
-if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 10 ] ; then
-sed -i 's/debug.composition.type=.*/debug.composition.type=c2d/g' $droidprop
-sed -i 's/persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' $droidprop
-sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=skiagl/g' $droidprop
-sed -i 's/#debug.egl.hw=1/debug.egl.hw=1/g' $droidprop
-sed -i 's/#debug.egl.profiler=1/debug.egl.profiler=1/g' $droidprop
-sed -i 's/#debug.egl.buffcount=.*/debug.egl.buffcount=3/g' $droidprop
-sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' $droidprop
-sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' $droidprop ; fi
 
-if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7  ]; then
-sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' $droidprop
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -ge 8 ] ; then
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=768m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=1566m/g' $droidprop
+fi
+
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-2)" -ge 12 ] ; then
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=1024m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=2048m/g' $droidprop
+fi
+
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-2)" -ge 32 ] ; then
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=2048m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=4096m/g' $droidprop
+fi
+
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' $droidprop
+fi
+
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 2200000 ] ; then
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=128m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' $droidprop
+
+fi
+
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 1100000 ] ; then
+sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=64m/g' $droidprop
+sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=256m/g' $droidprop
+sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=5m/g' $droidprop
+fi
+
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 550000 ] ; then
 sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=64m/g' $droidprop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=128m/g' $droidprop
 sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=5m/g' $droidprop
+fi
+
+setprop net.tcp.buffersize.default 6144,87380,1048576,6144,87380,524288
+setprop net.tcp.buffersize.wifi 524288,1048576,2097152,524288,1048576,2097152
+setprop net.tcp.buffersize.umts 6144,87380,1048576,6144,87380,524288
+setprop net.tcp.buffersize.gprs 6144,87380,1048576,6144,87380,524288
+setprop net.tcp.buffersize.edge 6144,87380,524288,6144,16384,262144
+setprop net.tcp.buffersize.hspa 6144,87380,524288,6144,16384,262144
+setprop net.tcp.buffersize.lte 524288,1048576,2097152,524288,1048576,2097152
+setprop net.tcp.buffersize.hsdpa 6144,87380,1048576,6144,87380,1048576
+setprop net.tcp.buffersize.evdo_b 6144,87380,1048576,6144,87380,1048576
+setprop persist.radio.add_power_save 1
+setprop video.accelerate.hw 1
+
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -ge 11 ] ; then
+setprop debug.hwui.renderer vulkan
+fi
+
+
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -ge 10 ] ; then
+sed -i 's/#sys.use_fifo_ui=.*/sys.use_fifo_ui=1/g' $droidprop
+setprop sys.use_fifo_ui 1
+fi
+
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 9 ] ; then 
+setprop debug.hwui.renderer skiagl
+sed -i 's/vulkan/skiagl/g' $droidprop
+fi
+
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 7  ]; then
+setprop debug.hwui.renderer opengl
+sed -i 's/#debug.hwui.renderer=.*/debug.hwui.renderer=opengl/g' $droidprop
+sed -i 's/#debug.egl.hw=.*/debug.egl.hw=1/g' $droidprop
+sed -i 's/#debug.egl.profiler=.*/debug.egl.profiler=1/g' $droidprop
+sed -i 's/#debug.egl.buffcount=.*/debug.egl.buffcount=3/g' $droidprop
+sed -i 's/#debug.composition.type=.*/debug.composition.type=c2d/g' $droidprop
+sed -i 's/#persist.sys.composition.type=.*/persist.sys.composition.type=c2d/g' $droidprop
+sed -i 's/#debug.sf.enable_gl_backpressure=.*/debug.sf.enable_gl_backpressure=1/g' $droidprop
+sed -i 's/#debug.gr.numframebuffers=.*/debug.gr.numframebuffers=3/g' $droidprop
+sed -i 's/#debug.enable.sglscale=.*/debug.enable.sglscale=1/g' $droidprop 
 #sed -i 's/#BOARD_EGL_NEEDS_LEGACY_FB=.*/BOARD_EGL_NEEDS_LEGACY_FB=false/g' $droidprop
 #sed -i 's/#ro.hwui.disable_scissor_opt=.*/ro.hwui.disable_scissor_opt=false/g' $droidprop
 #sed -i 's/#ro.hwui.drop_shadow_cache_size=.*/
@@ -5906,20 +5992,26 @@ sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=5m/g' $droidprop
 if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 5 ] && "$(! grep -q "persist.sys.dalvik.vm.lib.2=libart.so" $droidprop)" ; then if [ -f /system/apex/com.android.runtime.release/lib64/libart.so ] || [ -f /system/lib64/libart.so ] || [ -f /system/lib/libart.so ] ; then echo "persist.sys.dalvik.vm.lib.2=libart.so" | tee -a $droidprop ; fi ; fi
 fi
 
+if [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 6  ]; then
+setprop debug.hwui.renderer gpu
+sed -i 's/debug.hwui.renderer=.*/debug.hwui.renderer=gpu/g' $droidprop
+fi
+
 if [ $testing = yes ] ; then echo "skip..." ; else
 
 # setprop breaks system i remember from past as well with some flags so leave them in build.prop only. depending on rom ofcourse.
-sh -cx 'for i in $(cat /system/build.prop) ; do
-"$(setprop $(echo "$i" | sed '\''s/=/ /g'\'' | awk '\''{print $1, $2}'\'' | grep -v '\''#'\''))"
+"$bb"sh -cx 'for i in $(cat /system/build.prop) ; do
+"$(setprop $(echo "$i" | sed '\''s/=/ /g'\'' | grep -v "#" | awk '\''{print $1, $2}'\'' ))"
 done'
+# afai remember works good on high end device only
 #setprop sys.use_fifo_ui 1
 
 fi
 
 # stop ril services for wifi-only device
-on property:ro.carrier=wifi-only
 
-if $(getprop ro.carrier | $(! grep -q ril)) ; then
+
+if $(getprop ro.carrier | $(grep -q wifi-only)) ; then
 on property:ro.carrier=wifi-only
     stop ril-daemon
     stop qmuxd
@@ -5927,10 +6019,13 @@ on property:ro.carrier=wifi-only
     setprop ro.radio.noril 1
     fi
 
-if [ $fstab = /vendor/fstab/qcom ] ; then 
+if [ $fstab = /vendor/fstab.qcom ] ; then
 setprop qcom.hw.aac.encoder true
 setprop ro.qcom.ad.calib.data /system/etc/ad_calib.cfg
 setprop ro.qcom.ad 1
+setprop debug.qc.hardware true
+setprop debug.qctwa.preservebuf 1
+setprop debug.qctwa.statusbar 1
 fi
 
 # echo 10 > /sys/class/thermal/thermal_message/sconfig
@@ -5942,26 +6037,592 @@ killall -9 mediaserver
 
 #umount /vendor || true
 #mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-sed -i 's/noatime/lazytime/g' $fstab
-sed -i 's/nodiratime/lazytime/g' $fstab
-sed -i 's/relatime/lazytime/g' $fstab
+sed -i 's/noatime/lazytime/g' "$fstab"
+sed -i 's/nodiratime/lazytime/g' "$fstab"
+sed -i 's/relatime/lazytime/g' "$fstab"
 
 
 #for part in system data
 #do if mount | grep -q "/$part" ; then mount -o rw,remount "/$part" "/$part" && ui_print "/$part remounted rw"
 #else mount -o rw "/$part" && ui_print "/$part mounted rw" || ex "/$part cannot mounted" ; fi ; done
 
-"$bb"fstrim /data;
-"$bb"fstrim /cache;
-"$bb"fstrim /system;
+"$bb"fstrim /data
+"$bb"fstrim /cache
+"$bb"fstrim /system
+
+if [ $firstrun = yes ] ; then
+
+     pm disable-user --user 0 com.android.apps.tag
+     pm disable-user --user 0 com.android.bbklog
+     pm disable-user --user 0 com.android.bbkmusic
+     pm disable-user --user 0 com.android.bbksoundrecorder
+     pm disable-user --user 0 com.android.bips
+     pm disable-user --user 0 com.android.bookmarkprovider
+     pm disable-user --user 0 com.android.browser
+     pm disable-user --user 0 com.android.calllogbackup
+     pm disable-user --user 0 com.android.documentsui
+     pm disable-user --user 0 com.android.egg
+     pm disable-user --user 0 com.android.email
+     pm disable-user --user 0 com.android.exchange
+     pm disable-user --user 0 com.android.hotwordenrollment.okgoogle
+     pm disable-user --user 0 com.android.hotwordenrollment.xgoogle
+     pm disable-user --user 0 com.android.localtransport
+     pm disable-user --user 0 com.android.location.fused
+     pm disable-user --user 0 com.android.mms
+     pm disable-user --user 0 com.android.mms.service
+     pm disable-user --user 0 com.android.partnerbrowsercustomizations
+     pm disable-user --user 0 com.android.providers.downloads.ui
+     pm disable-user --user 0 com.android.providers.partnerbookmarks
+     pm disable-user --user 0 com.android.providers.userdictionary
+     pm disable-user --user 0 com.android.sharedstoragebackup
+     pm disable-user --user 0 com.android.soundrecorder
+     pm disable-user --user 0 com.android.thememanager
+     pm disable-user --user 0 com.android.thememanager.module
+     pm disable-user --user 0 android.autoinstalls.config.Xiaomi.pine
+     pm disable-user --user 0 com.alibaba.aliexpresshd
+     pm disable-user --user 0 com.allgoritm.youla
+     pm disable-user --user 0 com.app.market
+     pm disable-user --user 0 com.asurion.android.protech.att
+     pm disable-user --user 0 com.asurion.android.verizon.vms
+     pm disable-user --user 0 com.att.android.attsmartwifi
+     pm disable-user --user 0 com.att.dh
+     pm disable-user --user 0 com.att.dtv.shaderemote
+     pm disable-user --user 0 com.att.myWireless
+     pm disable-user --user 0 com.att.tv
+     pm disable-user --user 0 com.audible.application
+     pm disable-user --user 0 com.aura.oobe.samsung
+     pm disable-user --user 0 com.baidu.duersdk.opensdk
+     pm disable-user --user 0 com.bbk.account
+     pm disable-user --user 0 com.bbk.cloud
+     pm disable-user --user 0 com.bbk.iqoo.logsystem
+     pm disable-user --user 0 com.bbk.photoframewidget
+     pm disable-user --user 0 com.bbk.scene.indoor
+     pm disable-user --user 0 com.bbk.SuperPowerSave
+     pm disable-user --user 0 com.bbk.theme
+     pm disable-user --user 0 com.bbk.theme.resources
+     pm disable-user --user 0 com.bleacherreport.android.teamstream
+     pm disable-user --user 0 com.booking
+     pm disable-user --user 0 coloros.gamespaceui
+     pm disable-user --user 0 com.coloros.activation
+     pm disable-user --user 0 com.coloros.activation.overlay.common
+     pm disable-user --user 0 com.coloros.aftersalesservice
+     pm disable-user --user 0 com.coloros.appmanager
+     pm disable-user --user 0 com.coloros.assistantscreen
+     pm disable-user --user 0 com.coloros.athena
+     pm disable-user --user 0 com.coloros.avastofferwall
+     pm disable-user --user 0 com.coloros.backuprestore
+     pm disable-user --user 0 com.coloros.backuprestore.remoteservice
+     pm disable-user --user 0 com.coloros.bootreg
+     pm disable-user --user 0 com.coloros.childrenspace
+     pm disable-user --user 0 com.coloros.cloud
+     pm disable-user --user 0 com.coloros.compass2
+     pm disable-user --user 0 com.coloros.encryption
+     pm disable-user --user 0 com.coloros.floatassistant
+     pm disable-user --user 0 com.coloros.focusmode
+     pm disable-user --user 0 com.coloros.gallery3d
+     pm disable-user --user 0 com.coloros.gamespace
+     pm disable-user --user 0 com.hunge.app
+     pm disable-user --user 0 com.coloros.healthcheck
+     pm disable-user --user 0 com.coloros.healthservice
+     pm disable-user --user 0 com.coloros.music
+     pm disable-user --user 0 com.coloros.musiclink
+     pm disable-user --user 0 com.coloros.oppomultiapp
+     pm disable-user --user 0 com.coloros.oshare
+     pm disable-user --user 0 com.coloros.phonenoareainquire
+     pm disable-user --user 0 com.coloros.pictorial
+     pm disable-user --user 0 com.coloros.resmonitor
+     pm disable-user --user 0 com.coloros.safesdkproxy
+     pm disable-user --user 0 com.coloros.sauhelper
+     pm disable-user --user 0 com.coloros.sceneservice
+     pm disable-user --user 0 com.coloros.securepay
+     pm disable-user --user 0 com.coloros.smartdrive
+     pm disable-user --user 0 com.coloros.smartsidebar
+     pm disable-user --user 0 com.coloros.soundrecorder
+     pm disable-user --user 0 com.coloros.speechassist
+     pm disable-user --user 0 com.coloros.translate.engine
+     pm disable-user --user 0 com.coloros.video
+     pm disable-user --user 0 com.coloros.wallet
+     pm disable-user --user 0 com.coloros.weather.service
+     pm disable-user --user 0 com.coloros.weather2
+     pm disable-user --user 0 com.coloros.widget.smallweather
+     pm disable-user --user 0 com.coloros.wifibackuprestore
+     pm disable-user --user 0 com.diotek.sec.lookup.dictionary
+     pm disable-user --user 0 com.drivemode
+     pm disable-user --user 0 com.dropboxchmod
+     pm disable-user --user 0 com.dsi.ant.plugins.antplus
+     pm disable-user --user 0 com.dsi.ant.sample.acquirechannels
+     pm disable-user --user 0 com.dsi.ant.server
+     pm disable-user --user 0 com.dsi.ant.service.socket
+     pm disable-user --user 0 com.duokan.phone.remotecontroller
+     pm disable-user --user 0 com.enhance.gameservice
+     pm disable-user --user 0 com.facemoji.lite.xiaomi
+     pm disable-user --user 0 com.foxnextgames.m3
+     pm disable-user --user 0 com.gameloft.android.GloftANPH
+     pm disable-user --user 0 com.gameloft.android.GloftDBMF
+     pm disable-user --user 0 com.gameloft.android.GloftDMKF
+     pm disable-user --user 0 com.gameloft.android.GloftPDMF
+     pm disable-user --user 0 com.gameloft.android.GloftSMIF
+     pm disable-user --user 0 com.google.android.apps.docs
+     pm disable-user --user 0 com.google.android.apps.docs.editors.docs
+     pm disable-user --user 0 com.google.android.apps.docs.editors.sheets
+     pm disable-user --user 0 com.google.android.apps.docs.editors.slides
+     pm disable-user --user 0 com.google.android.apps.genie.geniewidget
+     pm disable-user --user 0 com.google.android.apps.maps
+     pm disable-user --user 0 com.google.android.apps.restore
+     pm disable-user --user 0 com.google.android.apps.tachyon
+     pm disable-user --user 0 com.google.android.apps.work.oobconfig
+     pm disable-user --user 0 com.google.android.feedback
+     pm disable-user --user 0 com.google.android.gm
+     pm disable-user --user 0 com.google.android.gms.location.history
+     pm disable-user --user 0 com.google.android.googlequicksearchbox
+     pm disable-user --user 0 com.google.android.keep
+     pm disable-user --user 0 com.google.android.marvin.talkback
+     pm disable-user --user 0 com.google.android.music
+     pm disable-user --user 0 com.google.android.partnersetup
+     pm disable-user --user 0 com.google.android.printservice.recommendation
+     pm disable-user --user 0 com.google.android.setupwizard
+     pm disable-user --user 0 com.google.android.syncadapters.calendar
+     pm disable-user --user 0 com.google.android.syncadapters.contacts
+     pm disable-user --user 0 com.google.android.talk
+     pm disable-user --user 0 com.google.android.tts
+     pm disable-user --user 0 com.google.android.videos
+     pm disable-user --user 0 com.google.ar.core
+     pm disable-user --user 0 com.google.audio.hearing.visualization.accessibility.scribe
+     pm disable-user --user 0 com.google.vr.vrcorr
+     pm disable-user --user 0 com.greatbigstory.greatbigstory
+     pm disable-user --user 0 com.gsn.android.tripeaks
+     pm disable-user --user 0 com.heytap.browser
+     pm disable-user --user 0 com.heytap.cloud
+     pm disable-user --user 0 com.heytap.colorfulengine
+     pm disable-user --user 0 com.heytap.datamigration
+     pm disable-user --user 0 com.heytap.habit.analysis
+     pm disable-user --user 0 com.heytap.market
+     pm disable-user --user 0 com.heytap.mcs
+     pm disable-user --user 0 com.heytap.openid
+     pm disable-user --user 0 com.heytap.pictorial
+     pm disable-user --user 0 com.heytap.themestore
+     pm disable-user --user 0 com.heytap.usercenter
+     pm disable-user --user 0 com.heytap.usercenter.overlay
+     pm disable-user --user 0 com.hiya.star
+     pm disable-user --user 0 com.honor.global
+     pm disable-user --user 0 com.huaqin.diaglogger
+     pm disable-user --user 0 com.huawei.android.thememanager
+     pm disable-user --user 0 com.huawei.android.tips
+     pm disable-user --user 0 com.huawei.android.wfdft
+     pm disable-user --user 0 com.huawei.himovie
+     pm disable-user --user 0 com.huawei.KoBackup
+     pm disable-user --user 0 com.ibimuyu.lockscreen
+     pm disable-user --user 0 com.innogames.foeandroid
+     pm disable-user --user 0 com.iqoo.engineermode
+     pm disable-user --user 0 com.iqoo.secure
+     pm disable-user --user 0 com.linkedin.android
+     pm disable-user --user 0 com.mediatek.gnssdebugreport
+     pm disable-user --user 0 com.mediatek.mdmlsample
+     pm disable-user --user 0 com.mediatek.mtklogger
+     pm disable-user --user 0 com.mediatek.omacp
+     pm disable-user --user 0 com.mi.android.globalminusscreen
+     pm disable-user --user 0 com.mi.globalbrowser
+     pm disable-user --user 0 com.mi.globallayout
+     pm disable-user --user 0 com.mi.globalTrendNews
+     pm disable-user --user 0 com.mi.webkit.core
+     pm disable-user --user 0 com.microsoft.appmanager
+     pm disable-user --user 0 com.microsoft.office.excel
+     pm disable-user --user 0 com.microsoft.office.officehubrow
+     pm disable-user --user 0 com.microsoft.office.outlook
+     pm disable-user --user 0 com.microsoft.office.powerpoint
+     pm disable-user --user 0 com.microsoft.office.word
+     pm disable-user --user 0 com.microsoft.skydrive
+     pm disable-user --user 0 com.milink.service
+     pm disable-user --user 0 com.mipay.wallet.id
+     pm disable-user --user 0 com.miui.analytics
+     pm disable-user --user 0 com.miui.android.fashiongallery
+     pm disable-user --user 0 com.miui.aod
+     pm disable-user --user 0 com.miui.audiomonitor
+     pm disable-user --user 0 com.miui.backup
+     pm disable-user --user 0 com.miui.bugreport
+     pm disable-user --user 0 com.miui.cloudbackup
+     pm disable-user --user 0 com.miui.contentcatcher
+     pm disable-user --user 0 com.miui.daemon
+     pm disable-user --user 0 com.miui.enbbs
+     pm disable-user --user 0 com.miui.extraphoto
+     pm disable-user --user 0 com.miui.face
+     pm disable-user --user 0 com.miui.freeform
+     pm disable-user --user 0 com.miui.global.packageinstaller
+     pm disable-user --user 0 com.miui.miservice
+     pm disable-user --user 0 com.miui.mishare.connectivity
+     pm disable-user --user 0 com.miui.misound
+     pm disable-user --user 0 com.miui.msa.global
+     pm disable-user --user 0 com.miui.phrase
+     pm disable-user --user 0 com.miui.player
+     pm disable-user --user 0 com.miui.powerkeeper
+     pm disable-user --user 0 com.miui.providers.weather
+     pm disable-user --user 0 com.miui.smsextra
+     pm disable-user --user 0 com.miui.sysopt
+     pm disable-user --user 0 com.miui.touchassistant
+     pm disable-user --user 0 com.miui.userguide
+     pm disable-user --user 0 com.miui.videoplayer
+     pm disable-user --user 0 com.miui.virtualsim
+     pm disable-user --user 0 com.miui.vsimcore
+     pm disable-user --user 0 com.miui.whetstone
+     pm disable-user --user 0 com.miui.wmsvc
+     pm disable-user --user 0 com.miui.securityadd 
+     pm disable-user --user 0 com.mobeam.barcodeService
+     pm disable-user --user 0 com.mobiletools.systemhelper
+     pm disable-user --user 0 com.motricity.verizon.ssodownloadable
+     pm disable-user --user 0 com.mygalaxy
+     pm disable-user --user 0 com.nearme.atlas
+     pm disable-user --user 0 com.nearme.browser
+     pm disable-user --user 0 com.nearme.gamecenter
+     pm disable-user --user 0 com.nearme.statistics.rom
+     pm disable-user --user 0 com.nearme.themestore
+     pm disable-user --user 0 com.netflix.mediaclient
+     pm disable-user --user 0 com.netflix.partner.activation
+     pm disable-user --user 0 com.opera.browser
+     pm disable-user --user 0 com.opera.preinstall
+     pm disable-user --user 0 com.oppo.aod
+     pm disable-user --user 0 com.oppo.atlas
+     pm disable-user --user 0 com.oppo.bttestmode
+     pm disable-user --user 0 com.oppo.criticallog
+     pm disable-user --user 0 com.oppo.gestureservice
+     pm disable-user --user 0 com.oppo.gmail.overlay
+     pm disable-user --user 0 com.oppo.lfeh
+     pm disable-user --user 0 com.oppo.logkit
+     pm disable-user --user 0 com.oppo.logkitservice
+     pm disable-user --user 0 com.oppo.market
+     pm disable-user --user 0 com.oppo.mimosiso
+     pm disable-user --user 0 com.oppo.music
+     pm disable-user --user 0 com.oppo.nw
+     pm disable-user --user 0 com.oppo.operationmanual
+     pm disable-user --user 0 com.oppo.ovoicemanager
+     pm disable-user --user 0 com.oppo.partnerbrowsercustomizations
+     pm disable-user --user 0 com.oppo.qualityprotect
+     pm disable-user --user 0 com.oppo.quicksearchbox
+     pm disable-user --user 0 com.oppo.rftoolkit
+     pm disable-user --user 0 com.oppo.ScoreAppMonitor
+     pm disable-user --user 0 com.oppo.sos
+     pm disable-user --user 0 com.oppo.startlogkit
+     pm disable-user --user 0 com.oppo.tzupdate
+     pm disable-user --user 0 com.oppo.usageDump
+     pm disable-user --user 0 com.oppo.usercenter
+     pm disable-user --user 0 com.oppo.webview
+     pm disable-user --user 0 com.oppo.wifirf
+     pm disable-user --user 0 com.oppoex.afterservice
+     pm disable-user --user 0 com.osp.app.signin
+     pm disable-user --user 0 com.pandora.android
+     pm disable-user --user 0 com.playstudios.popslots
+     pm disable-user --user 0 com.playwing.acu.huawei
+     pm disable-user --user 0 com.qti.dpmserviceapp
+     pm disable-user --user 0 com.qti.qualcomm.datastatusnotification
+     pm disable-user --user 0 com.qti.qualcomm.deviceinfo
+     pm disable-user --user 0 com.qti.xdivert
+     pm disable-user --user 0 com.qualcomm.embms
+     pm disable-user --user 0 com.qualcomm.location
+     pm disable-user --user 0 com.qualcomm.qti.autoregistration
+     pm disable-user --user 0 com.qualcomm.qti.callfeaturessetting
+     pm disable-user --user 0 com.qualcomm.qti.cne
+     pm disable-user --user 0 com.qualcomm.qti.dynamicddsservice
+     pm disable-user --user 0 com.qualcomm.qti.ims
+     pm disable-user --user 0 com.qualcomm.qti.lpa
+     pm disable-user --user 0 com.qualcomm.qti.modemtestmode
+     pm disable-user --user 0 com.qualcomm.qti.performancemode
+     pm disable-user --user 0 com.qualcomm.qti.poweroffalarm
+     pm disable-user --user 0 com.qualcomm.qti.qdma
+     pm disable-user --user 0 com.qualcomm.qti.qmmi
+     pm disable-user --user 0 com.qualcomm.qti.seccamservice
+     pm disable-user --user 0 com.qualcomm.qti.uceShimService
+     pm disable-user --user 0 com.qualcomm.qti.uim
+     pm disable-user --user 0 com.qualcomm.qti.uimGbaApp
+     pm disable-user --user 0 com.qualcomm.uimremoteclient
+     pm disable-user --user 0 com.qualcomm.uimremoteserver
+     pm disable-user --user 0 com.realme.logtool
+     pm disable-user --user 0 com.redteamobile.roaming
+     pm disable-user --user 0 com.redteamobile.roaming.deamon
+     pm disable-user --user 0 com.samsung.android.allshare.service.mediashare
+     pm disable-user --user 0 com.samsung.android.app.aodservice
+     pm disable-user --user 0 com.samsung.android.app.appsedge
+     pm disable-user --user 0 com.samsung.android.app.camera.sticker.facearavatar.preload
+     pm disable-user --user 0 com.samsung.android.app.dressroom
+     pm disable-user --user 0 com.samsung.android.app.galaxyfinder
+     pm disable-user --user 0 com.samsung.android.app.ledbackcover
+     pm disable-user --user 0 com.samsung.android.app.omcagent
+     pm disable-user --user 0 com.samsung.android.app.reminder
+     pm disable-user --user 0 com.samsung.android.app.routines
+     pm disable-user --user 0 com.samsung.android.app.sbrowseredge
+     pm disable-user --user 0 com.samsung.android.app.settings.bixby
+     pm disable-user --user 0 com.samsung.android.app.simplesharing
+     pm disable-user --user 0 com.samsung.android.app.social
+     pm disable-user --user 0 com.samsung.android.app.spage
+     pm disable-user --user 0 com.samsung.android.app.tips
+     pm disable-user --user 0 com.samsung.android.app.vrsetupwizardstub
+     pm disable-user --user 0 com.samsung.android.app.watchmanager
+     pm disable-user --user 0 com.samsung.android.app.watchmanagerstub
+     pm disable-user --user 0 com.samsung.android.ardrawing
+     pm disable-user --user 0 com.samsung.android.aremoji
+     pm disable-user --user 0 com.samsung.android.aremojieditor
+     pm disable-user --user 0 com.samsung.android.arzone
+     pm disable-user --user 0 com.samsung.android.authfw
+     pm disable-user --user 0 com.samsung.android.beaconmanager
+     pm disable-user --user 0 com.samsung.android.bixby.agent
+     pm disable-user --user 0 com.samsung.android.bixby.agent.dummy
+     pm disable-user --user 0 com.samsung.android.bixby.service
+     pm disable-user --user 0 com.samsung.android.bixby.wakeup
+     pm disable-user --user 0 com.samsung.android.bixbyvision.framework
+     pm disable-user --user 0 com.samsung.android.cameraxservice
+     pm disable-user --user 0 com.samsung.android.da.daagent
+     pm disable-user --user 0 com.samsung.android.drivelink.stub
+     pm disable-user --user 0 com.samsung.android.dsms
+     pm disable-user --user 0 com.samsung.android.easysetup
+     pm disable-user --user 0 com.samsung.android.email.provider
+     pm disable-user --user 0 com.samsung.android.emojiupdater
+     pm disable-user --user 0 com.samsung.android.forest
+     pm disable-user --user 0 com.samsung.android.game.gamehome
+     pm disable-user --user 0 com.samsung.android.game.gametools
+     pm disable-user --user 0 com.samsung.android.game.gos
+     pm disable-user --user 0 com.samsung.android.gametuner.thin
+     pm disable-user --user 0 com.samsung.android.hmt.vrshell
+     pm disable-user --user 0 com.samsung.android.hmt.vrsvc
+     pm disable-user --user 0 com.samsung.android.honeyboard
+     pm disable-user --user 0 com.samsung.android.keyguardmgsupdator
+     pm disable-user --user 0 com.samsung.android.kidsinstaller
+     pm disable-user --user 0 com.samsung.android.knox.analytics.uploader
+     pm disable-user --user 0 com.samsung.android.livestickers
+     pm disable-user --user 0 com.samsung.android.mateagent
+     pm disable-user --user 0 com.samsung.android.mfi
+     pm disable-user --user 0 com.samsung.android.mobileservice
+     pm disable-user --user 0 com.samsung.android.networkdiagnostic
+     pm disable-user --user 0 com.samsung.android.oneconnect
+     pm disable-user --user 0 com.samsung.android.rubin.app
+     pm disable-user --user 0 com.samsung.android.samsungpass
+     pm disable-user --user 0 com.samsung.android.samsungpassautofill
+     pm disable-user --user 0 com.samsung.android.scloud
+     pm disable-user --user 0 com.samsung.android.sdk.handwriting
+     pm disable-user --user 0 com.samsung.android.sdk.professionalaudio.utility.jammonitor
+     pm disable-user --user 0 com.samsung.android.sdm.config
+     pm disable-user --user 0 com.samsung.android.service.aircommand
+     pm disable-user --user 0 com.samsung.android.service.livedrawing
+     pm disable-user --user 0 com.samsung.android.service.peoplestripe
+     pm disable-user --user 0 com.samsung.android.setupindiaservicestnc
+     pm disable-user --user 0 com.samsung.android.spay
+     pm disable-user --user 0 com.samsung.android.spayfw
+     pm disable-user --user 0 com.samsung.android.spaymini
+     pm disable-user --user 0 com.samsung.android.spdf
+     pm disable-user --user 0 com.samsung.android.svcagent
+     pm disable-user --user 0 com.samsung.android.svoiceime
+     pm disable-user --user 0 com.samsung.android.themestore
+     pm disable-user --user 0 com.samsung.android.universalswitch
+     pm disable-user --user 0 com.samsung.android.visionarapps
+     pm disable-user --user 0 com.samsung.android.visioncloudagent
+     pm disable-user --user 0 com.samsung.android.visionintelligence
+     pm disable-user --user 0 com.samsung.android.voc
+     pm disable-user --user 0 com.samsung.android.widgetapp.yahooedge.finance
+     pm disable-user --user 0 com.samsung.android.widgetapp.yahooedge.sport
+     pm disable-user --user 0 com.samsung.app.highlightplayer
+     pm disable-user --user 0 com.samsung.attvvm
+     pm disable-user --user 0 com.samsung.desktopsystemui
+     pm disable-user --user 0 com.samsung.ecomm.global
+     pm disable-user --user 0 com.samsung.hiddennetworksetting
+     pm disable-user --user 0 com.samsung.knox.securefolder
+     pm disable-user --user 0 com.samsung.safetyinformation
+     pm disable-user --user 0 com.samsung.sree
+     pm disable-user --user 0 com.samsung.storyservice
+     pm disable-user --user 0 com.samsung.systemui.bixby2
+     pm disable-user --user 0 com.samsung.vmmhux
+     pm disable-user --user 0 com.samsung.vvm
+     pm disable-user --user 0 com.sec.android.app.billing
+     pm disable-user --user 0 com.sec.android.app.camera
+     pm disable-user --user 0 com.sec.android.app.clockpackage
+     pm disable-user --user 0 com.sec.android.app.desktoplauncher
+     pm disable-user --user 0 com.sec.android.app.dexonpc
+     pm disable-user --user 0 com.sec.android.app.kidshome
+     pm disable-user --user 0 com.sec.android.app.popupcalculator
+     pm disable-user --user 0 com.sec.android.app.samsungapps
+     pm disable-user --user 0 com.sec.android.app.sbrowser
+     pm disable-user --user 0 com.sec.android.app.setupwizardlegalprovider
+     pm disable-user --user 0 com.sec.android.app.shealth
+     pm disable-user --user 0 com.sec.android.app.voicenote
+     pm disable-user --user 0 com.sec.android.cover.ledcover
+     pm disable-user --user 0 com.sec.android.daemonapp
+     pm disable-user --user 0 com.sec.android.desktopmode.uiservice
+     pm disable-user --user 0 com.sec.android.easyMover.Agent
+     pm disable-user --user 0 com.sec.android.easyonehand
+     pm disable-user --user 0 com.sec.android.gallery3d
+     pm disable-user --user 0 com.sec.android.mimage.avatarstickers
+     pm disable-user --user 0 com.sec.android.service.health
+     pm disable-user --user 0 com.sec.android.splitsound
+     pm disable-user --user 0 com.sec.android.widgetapp.samsungapps
+     pm disable-user --user 0 com.sec.android.widgetapp.webmanual
+     pm disable-user --user 0 com.sec.location.nsflp2
+     pm disable-user --user 0 com.sec.penup
+     pm disable-user --user 0 com.sec.spp.push
+     pm disable-user --user 0 com.synchronoss.dcs.att.r2g
+     pm disable-user --user 0 com.ted.number
+     pm disable-user --user 0 com.tencent.soter.soterserver
+     pm disable-user --user 0 com.trustonic.teeservice
+     pm disable-user --user 0 com.vcast.mediamanager
+     pm disable-user --user 0 com.vivo.appfilter
+     pm disable-user --user 0 com.vivo.appstore
+     pm disable-user --user 0 com.vivo.assistant
+     pm disable-user --user 0 com.vivo.browser
+     pm disable-user --user 0 com.vivo.carmode
+     pm disable-user --user 0 com.vivo.collage
+     pm disable-user --user 0 com.vivo.compass
+     pm disable-user --user 0 com.vivo.doubleinstance
+     pm disable-user --user 0 com.vivo.doubletimezoneclock
+     pm disable-user --user 0 com.vivo.dream.music
+     pm disable-user --user 0 com.vivo.dream.weather
+     pm disable-user --user 0 com.vivo.easyshar
+     pm disable-user --user 0 com.vivo.email
+     pm disable-user --user 0 com.vivo.ewarranty
+     pm disable-user --user 0 com.vivo.favorite
+     pm disable-user --user 0 com.vivo.floatingball
+     pm disable-user --user 0 com.vivo.fuelsummary
+     pm disable-user --user 0 com.vivo.gamewatch
+     pm disable-user --user 0 com.vivo.globalsearch
+     pm disable-user --user 0 com.vivo.hiboard
+     pm disable-user --user 0 com.vivo.magazine
+     pm disable-user --user 0 com.vivo.mediatune
+     pm disable-user --user 0 com.vivo.minscreen
+     pm disable-user --user 0 com.vivo.motormode
+     pm disable-user --user 0 com.vivo.numbermark
+     pm disable-user --user 0 com.vivo.pushservice
+     pm disable-user --user 0 com.vivo.setupwizard
+     pm disable-user --user 0 com.vivo.smartmultiwindow
+     pm disable-user --user 0 com.vivo.smartshot
+     pm disable-user --user 0 com.vivo.translator
+     pm disable-user --user 0 com.vivo.unionpay
+     pm disable-user --user 0 com.vivo.video.floating
+     pm disable-user --user 0 com.vivo.videoeditor
+     pm disable-user --user 0 com.vivo.vivokaraoke
+     pm disable-user --user 0 com.vivo.weather
+     pm disable-user --user 0 com.vivo.weather.provider
+     pm disable-user --user 0 com.vivo.website
+     pm disable-user --user 0 com.vivo.widget.calendar
+     pm disable-user --user 0 com.vzw.hs.android.modlite
+     pm disable-user --user 0 com.vzw.hss.myverizon
+     pm disable-user --user 0 com.wavemarket.waplauncher
+     pm disable-user --user 0 com.wb.goog.dcuniverse
+     pm disable-user --user 0 com.wb.goog.got.conquest
+     pm disable-user --user 0 com.wsomacp
+     pm disable-user --user 0 com.xiaomi.ab
+     pm disable-user --user 0 com.xiaomi.account
+     pm disable-user --user 0 com.xiaomi.bsp.gps.nps
+     pm disable-user --user 0 com.xiaomi.discover
+     pm disable-user --user 0 com.xiaomi.finddevice
+     pm disable-user --user 0 com.xiaomi.location.fused
+     pm disable-user --user 0 com.xiaomi.micloud.sdk
+     pm disable-user --user 0 com.xiaomi.midrop
+     pm disable-user --user 0 com.xiaomi.miplay_client
+     pm disable-user --user 0 com.xiaomi.powerchecker
+     pm disable-user --user 0 com.xiaomi.providers.appindex
+     pm disable-user --user 0 com.xiaomi.simactivate.service
+     pm disable-user --user 0 com.xiaomi.upnp
+     pm disable-user --user 0 com.xiaomi.xmsf
+     pm disable-user --user 0 com.xiaomi.xmsfkeeper
+     pm disable-user --user 0 flipboard.boxer.app
+     pm disable-user --user 0 jp.gocro.smartnews.android
+     pm disable-user --user 0 net.aetherpal.device
+     pm disable-user --user 0 om.oppo.aod
+     pm disable-user --user 0 org.kman.AquaMail
+     pm disable-user --user 0 Samsung AR Emoji
+     pm disable-user --user 0 se.dirac.acs
+     pm disable-user --user 0 vendor.qti.hardware.cacert.server
+     pm uninstall -k --user 0 com.alibaba.aliexpresshd
+     pm uninstall -k --user 0 com.android.galaxy4
+     pm uninstall -k --user 0 com.android.stk
+     pm uninstall -k --user 0 com.android.stk2
+     pm uninstall -k --user 0 com.android.thememanager
+     pm uninstall -k --user 0 com.android.thememanager.module
+     pm uninstall -k --user 0 com.android.traceur
+     pm uninstall -k --user 0 com.autonavi.minimap
+     pm uninstall -k --user 0 com.ebay.carrier
+     pm uninstall -k --user 0 com.ebay.mobile
+     pm uninstall -k --user 0 com.facebook.appmanager
+     pm uninstall -k --user 0 com.facebook.katana
+     pm uninstall -k --user 0 com.facebook.services
+     pm uninstall -k --user 0 com.facebook.system
+     pm uninstall -k --user 0 com.google.android.apps.docs
+     pm uninstall -k --user 0 com.google.android.apps.googleassistant
+     pm uninstall -k --user 0 com.google.android.apps.magazines
+     pm uninstall -k --user 0 com.google.android.apps.maps
+     pm uninstall -k --user 0 com.google.android.apps.podcasts
+     pm uninstall -k --user 0 com.google.android.apps.subscriptions.red
+     pm uninstall -k --user 0 com.google.android.apps.tachyon
+     pm uninstall -k --user 0 com.google.android.apps.wellbeing
+     pm uninstall -k --user 0 com.google.android.apps.youtube.music
+     pm uninstall -k --user 0 com.google.android.googlequicksearchbox
+     pm uninstall -k --user 0 com.google.android.marvin.talkback
+     pm uninstall -k --user 0 com.google.android.music
+     pm uninstall -k --user 0 com.google.android.onetimeinitializer
+     pm uninstall -k --user 0 com.google.android.play.games
+     pm uninstall -k --user 0 com.google.android.projection.gearhead
+     pm uninstall -k --user 0 com.google.android.tts
+     pm uninstall -k --user 0 com.google.android.videos
+     pm uninstall -k --user 0 com.huaqin.wifibtrxtx
+     pm uninstall -k --user 0 com.mfashiongallery.emag
+     pm uninstall -k --user 0 com.mi.android.globalminusscreen
+     pm uninstall -k --user 0 com.mi.android.globalpersonalassistant
+     pm uninstall -k --user 0 com.mi.AutoTest
+     pm uninstall -k --user 0 com.mi.global.bbs
+     pm uninstall -k --user 0 com.mi.global.shop
+     pm uninstall -k --user 0 com.mi.globalbrowser
+     pm uninstall -k --user 0 com.micredit.in
+     pm uninstall -k --user 0 com.mipay.wallet.id
+     pm uninstall -k --user 0 com.mipay.wallet.in
+     pm uninstall -k --user 0 com.miui.cloudservice
+     pm uninstall -k --user 0 com.miui.cloudservice.sysbase
+     pm uninstall -k --user 0 com.miui.compass
+     pm uninstall -k --user 0 com.miui.gallery
+     pm uninstall -k --user 0 com.miui.huanji
+     pm uninstall -k --user 0 com.miui.hybrid
+     pm uninstall -k --user 0 com.miui.hybrid.accessory
+     pm uninstall -k --user 0 com.miui.klo.bugreport
+     pm uninstall -k --user 0 com.miui.micloudsync
+     pm uninstall -k --user 0 com.miui.newmidrive
+     pm uninstall -k --user 0 com.miui.player
+     pm uninstall -k --user 0 com.miui.translation.kingsoft
+     pm uninstall -k --user 0 com.miui.translation.youdao
+     pm uninstall -k --user 0 com.miui.translationservice
+     pm uninstall -k --user 0 com.miui.videoplayer
+     pm uninstall -k --user 0 com.miui.weather2
+     pm uninstall -k --user 0 com.miui.yellowpage
+     pm uninstall -k --user 0 com.monotype.android.font.foundation
+     pm uninstall -k --user 0 com.monotype.android.font.samsungone
+     pm uninstall -k --user 0 com.netflix.mediaclient
+     pm uninstall -k --user 0 com.netflix.partner.activation
+     pm uninstall -k --user 0 com.opera.browser
+     pm uninstall -k --user 0 com.opera.preinstall
+     pm uninstall -k --user 0 com.samsung.android.wellbeing
+     pm uninstall -k --user 0 com.spotify.music
+     pm uninstall -k --user 0 com.swiftkey.swiftkeyconfigurator
+     pm uninstall -k --user 0 com.touchtype.swiftkey
+     pm uninstall -k --user 0 com.xiaomi.glgm
+     pm uninstall -k --user 0 com.xiaomi.joyose
+     pm uninstall -k --user 0 com.xiaomi.mbnloader
+     pm uninstall -k --user 0 com.xiaomi.mi_connect_service
+     pm uninstall -k --user 0 com.xiaomi.midrop
+     pm uninstall -k --user 0 com.xiaomi.mipicks
+     pm uninstall -k --user 0 com.xiaomi.mirecycle
+     pm uninstall -k --user 0 com.xiaomi.oversea.ecom
+     pm uninstall -k --user 0 com.xiaomi.payment
+     pm uninstall -k --user 0 com.yandex.zen
+     pm uninstall -k --user 0 com.yandex.zenkitpartnerconfig
+     pm uninstall -k --user 0 com.zhiliaoapp.musically
+     pm uninstall -k --user 0 in.amazon.mShop.android.shopping
+     pm uninstall -k --user 0 ru.yandex.money
+     pm uninstall -k --user 0 ru.yandex.money.service
+     pm uninstall -k --user 0 ru.yandex.searchplugin
+     pm uninstall -k --user 0 uninstall.voice.activation
+     cmd shortcut reset-all-throttling
+     pm bg-dexopt-job
+     pm compile -a -f --check-prof false --compile-layouts
+     pm compile -a -f --check-prof false -m speed; fi 
  fi
 
 ### ANDROID SECTION STOPPED HERE
 
-
-
-if grep -q f2fs $fstab ; then
-
+if [ ! -f /sbin/f2fs-hot.list ] ; then
+if grep -q f2fs "$fstab" ; then
+if [ $firstrun = yes ] ; then
 echo '# video
 avi
 divx
@@ -5993,7 +6654,7 @@ webp
 
 # archive
 7z
-# a - 
+# a -
 deb
 gz
 iso
@@ -6073,7 +6734,8 @@ find /sys/fs/f2fs* -name extension_list | while read list; do
     fi
   done
 done
-
+fi
+fi
 fi
 
 chmod 666 /sys/module/sync/parameters/fsync_enabled
@@ -6182,24 +6844,34 @@ if $(! $wrt && systemctl list-unit-files | grep -q anacron) ; then if $(! grep -
 #fi;' | tee /system/etc/init.d/userinit ; fi ; fi
 
 
+# compare par to cmdline, if not equal update. fkn bugs everywhere
+grubpar=$(awk '/GRUB_CMDLINE_LINUX_DEFAULT/ { print }' /etc/default/grub | sed 's/GRUB_CMDLINE_LINUX_DEFAULT="//g' | sed 's/"//g')
+cmdlinepar=$(cat /proc/cmdline)
+if [ "$grubpar" = "$cmdlinepar" ] ; then echo "no parameter bugs" ; else grub-mkconfig ; fi
+
+### reapply updated parameters
+$s update-grub
 
 
 
+scriptdir=$(echo "$( pwd; )/$( basename -- "$0"; )")
 
-
-
-
+if [ $override = yes ] ; then
+sed 's/script_autoupdate="yes/script_autoupdate=no/g' "$scriptdir"
+if $droidprop ; then \cp -f "$scriptdir" /etc/bak/data/adb/service.d
+\cp -f "$scriptdir" /etc/init.d/init.sh ; fi
+\cp -f "$scriptdir" /etc/rc.local ; fi
 
 
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
-if [ $script_autoupdate = yes ] ; then
+if [ $script_autoupdate = yes ] && [ ! $override = yes ] ; then
 # if online
 ping -c3 "$ping"
   if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
 mkdir -p /etc/sysctl.d
 # if debian
-    if $debian ; then wget "$wg"--connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /etc/rc.local && chmod +x /etc/rc.local
-    fi
+    if $debian ; then rm -rf tmp/init.sh ; wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O tmp/init.sh ; if [ -f tmp/init.sh ] ; then rm -rf /etc/rc.local && cp tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local && rm -rf tmp
+    fi ; fi
 # if wrt
       if $wrt ; then echo "*BLS*=OPENWRT found" &&
 grep -q "ping -c3 "$ping"" /etc/rc.local
@@ -6207,14 +6879,14 @@ grep -q "ping -c3 "$ping"" /etc/rc.local
         fi
       fi
 # if android
-          if [ -f $droidprop ] ; then rm -rf init.sh && "$bb"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; "$bb"chown root init.sh ; "$bb"chmod +x init.sh ; "$bb"cp init.sh /etc/rc.local && "$bb"chown root /etc/rc.local && "$bb"chmod +x /etc/rc.local ; mkdir -p /data/adb/post-fs-data.d/ ; "$bb"cp init.sh /data/adb/post-fs-data.d/init.sh && "$bb"chown root /data/adb/post-fs-data.d/init.sh && "$bb"chmod +x /data/adb/post-fs-data.d/init.sh ; if dmesg | "$(! grep -q mitigations)" ; then "$bb"cp init.sh /system/etc/init.d/init.sh && "$bb"chown root /system/etc/init.d/init.sh && "$bb"chmod +x /system/etc/init.d/init.sh ; fi
+          if [ -f $droidprop ] ; then rm -rf init.sh && "$bb"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; "$bb"chmod 755 init.sh ; "$bb"chmod +x init.sh ; "$bb"cp init.sh /etc/rc.local ; "$bb"cp init.sh /data/adb/service.d/init.sh ; if dmesg | "$(! grep -q mitigations)" ; then "$bb"cp init.sh /system/etc/init.d/init.sh ; fi
 ### download browser stuff for android - leave this out for now the setup of flags for x86 doesnt work well on android
 #if $(! grep -q quic /data/data/com.android.chrome/app_chrome/Default/Preferences) ; then wget https://github.com/thanasxda/basic-linux-setup/blob/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; "$bb"cp -f Preferences /data/data/com.android.chrome/app_chrome/Default/Preferences ; wget https://github.com/thanasxda/basic-linux-setup/raw/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State ; "$bb"cp -f "Local State" "/data/data/com.android.chrome/app_chrome/Local State" ; fi
           fi
 # general devices and other distros
             elif ping -c3 "$ping"
-[ $? -eq 0 ] && $(! $wrt) ; then wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local 
-  fi 
+[ $? -eq 0 ] && $(! $wrt) ; then -rm -rf /tmp/init.sh ; wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local
+  fi
 fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
@@ -6405,18 +7077,28 @@ fi
 
 
 
+
 if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE ; fi
 
 if [ $uninstall = yes ] ; then
 rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /system/etc/root/cmdline /system/etc/init.d/init.sh /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/post-fs-data.d/init.sh /data/adb/service.d/init.sh ; \cp -rf /etc/bak/* /
 if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi
-if grep -q "cmdline" /etc/fstab $fstab ; then sed -i '/cmdline/c\' $fstab ; fi
+if grep -q "cmdline" /etc/fstab "$fstab" ; then sed -i '/cmdline/c\' "$fstab" ; fi
 rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
 
-
-
-
-
+    "$bb"mount -t pstore none /sys/fs/pstore 
+    "$bb"mount -t tracefs none /sys/kernel/tracing
+    "$bb"mount -t tracefs none /sys/kernel/debug/tracing
+    "$bb"mount -t cgroup2 none /sys/fs/cgroup
+    "$bb"mount -t cgroup none /dev/memcg
+    "$bb"mount -t cgroup none /dev/cpuctl
+    "$bb"mount -t cgroup none /acct
+    "$bb"mount -t debugfs none /sys/kernel/debug
+    "$bb"umount pstore
+    "$bb"umount tracefs
+    "$bb"umount cgroup2
+    "$bb"umount cgroup
+    "$bb"umount debugfs
 
     # remount ro android
 
@@ -6436,15 +7118,17 @@ rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
     "$bb"mount -o ro /dev/block/bootdevice/by-name/system /system
     "$bb"mount -o ro /dev/block/bootdevice/by-name/data /data ; fi
 
-
+if [ $firstrun = yes ] ; then rm -rf ~/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect ; fi
 
 # drop all caches upon finalizing
     sysctl -w vm.drop_caches=3
     echo 3 > /proc/sys/vm/drop_caches
 
+setenforce 1
 
 #tuned -p network-throughput
 
+echo "script ran from $scriptdir"
 
 ######
 ### still configuring this script, tips are welcome

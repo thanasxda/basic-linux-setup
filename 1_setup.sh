@@ -220,6 +220,7 @@ cd $tmp
     ###     <<<< BASIC PKGS >>>> - we just added and updated sources, latest pkgs can be updated >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         $a deb-multimedia-keyring \
             brave-browser-nightly \
+            chromium \
             google-earth-pro-stable \
             kali-tweaks \
             firefox \
@@ -298,6 +299,8 @@ cd $basicsetup
                     $s rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
                     $s rsync -v -K -a --force --include=".*" .kodi ~/
                     $s rsync -v -K -a --force --include=".*" MalakasUniverse /usr/share/wallpapers/
+                    $s rsync -v -K -a --force --include=".*" .config/BraveSoftware/Brave-Browser-Nightly/* ~/.config/chromium/
+
                     
                     
                     
