@@ -12,34 +12,29 @@
 #############################################################
 # setup meant as universal config for:
 # x86, android, openwrt & general
-### if things dont get applied add delay prior to execution
-### WARNING: for compatibility reasons over a broader range of devices script is present in /etc/rc.local on all linu devices, on android if it doesnt apply only afterwards it moves to /etc/init.d/init.sh, by default in /data/adb/service.d/init.sh and /etc/rc.local, since not all roms behave the same and/or might not support magisk. selecting override will trigger the script to offline mode not allowing automatic updates and copy the script which you configure this in to the current device's dirs. maybe will symlink it in later stage. script is too much work for one person...
-### i can't know where the user is running the script from so if you make any changes enable the override toggle.
-# if you choose to make any changes you have to copy the script to the desired location. will automate all in future as script progresses probably
-        droidprop="/system/build.prop"
-        wrt="grep -q wrt /etc/os-release"
-        debian="grep -q debian /etc/os-release"
-        if [ $testing = yes ] ; then echo "skip delay, testing..." ; else
+droidprop="/system/build.prop"
+wrt="grep -q wrt /etc/os-release"
+debian="grep -q debian /etc/os-release"
+     ### script execution delay
+                if [ $testing = yes ] ; then echo " skip delay, testing..." ; else
   if [ -f $droidprop ] ; then
-if [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 2000 ] ; then echo " slow device boot delay 200 seconds" ; sleep 200 ; elif [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 8 ] ; then echo " less or equal to android 8, sleep 60 seconds..." ; sleep 60 ; else
-echo " android 9 or above found, sleep 30 seconds..." ; sleep 30 ; fi
+if [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " slow device boot delay 200 seconds..." ; sleep 200
+elif [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 8 ] ; then echo " less or equal to android 8, sleep 60 seconds..." ; sleep 60
+else echo " android 9 or above found, sleep 30 seconds..." ; sleep 30 ; fi
   fi
-if [ ! -f $droidprop ] && [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " bogomips less or equal to 4000, sleep 30 seconds..." ; sleep 30 ; elif [ ! -f $droidprop ] ; then sleep 5 ; "script starting..." ; fi
-        fi
-### busybox... since script aims for compatibility without compromising too much... for legacy devices its a must to upgrade busybox. i dont feel like typing every command with a variable. will use this only on important parts.
-### on legacy devices it can be an issue since after testing busybox uses default binaries instead of /xbin. many commands are not present in that case. find a way to update your device for best results.
+if [ ! -f $droidprop ] && [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " bogomips less or equal to 4000, sleep 30 seconds..." ; sleep 30 
+elif [ ! -f $droidprop ] ; then echo " script starting..." ; sleep 5 ; fi
+                fi
+### busybox for android
 if [ -f $doidprop ] ; then 
 if [ -f /sbin/sh ] ; then export bb="/sbin/" ; fi 
 if [ -f /bin/sh ] ; then export bb="/bin/" ; fi 
 if [ -f /system/bin/sh ] ; then export bb="/system/bin/" ; fi 
 if [ -f /system/xbin/sh ] ; then export bb="/system/xbin/" ; fi 
 fi
-
-# script vars
 #s="sudo"
 
- ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> note that most of the underneath options only apply to kernel boot parameters, the rest of this file applies similar options within userspace on kernel. these options are preconfigured to my own preferences for balanced performance. if changing this setup is your goal be sure to check hackbench for latency. didnt try this on android as of yet but i think binaries are #!/system/bin/sh , depends on where busybox is installed. dont have android rn so edit dirs yourself depending on device. or contribute by giving dirs for android by leaving note at commits or something for me to fix it for you.
-
+ ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>> 
 
       ### < SCRIPT AUTO-UPDATE >
         script_autoupdate="yes"
@@ -676,8 +671,9 @@ done'
     mkdir /etc/bak/etc/sysctl.d ; mkdir -p /etc/bak/etc/environment.d
 
 
-
-        if [ -f $droidprop ] && [ ! -f /data/adb/service.d/init.sh ] ; then export firstrun=yes ; fi
+    ### first run of script does more
+        if [ -f $droidprop ] && [ ! -f /data/adb/service.d/init.sh ] || [ ! -f $doidprop ] && $(! grep thanas /etc/rc.local) ; then 
+        export firstrun=yes ; fi
 
 
 
@@ -686,15 +682,10 @@ if [ -f $droidprop ] ; then
   if [ ! -f /etc/bak$fstab ] && [ -f $fstab ] ; then
   for i in $("$bb"echo "$("$bb"echo "$fstab" | sed 's/fstab*/ /g' | awk '{print $1}')") ; do mkdir -p /etc/bak$i ; done
   for i in "$bb"echo "$fstab" ; do "$bb"cp -n $i /etc/bak$i ; done ; fi
-
   if [ ! -f /etc/bak$droidhosts ] && [ -f $droidhosts ] ; then "$bb"cp -rf $droidhosts /etc/bak$droidhosts ; fi
-
   if [ ! -f /etc/bak$droidresolv ] && [ -f $droidresolv ] ; then "$bb"cp -rf $droidresolv /etc/bak$droidresolv ; fi
-
   if [ ! -f /etc/bak$droidsysctl ] && [ -f $droidsysctl ] ; then "$bb"cp -rf $droidresolv /etc/bak$droidresolv ; fi
-
   if [ ! -f /etc/bak/$droidcmdline ] ; then mkdir -p /etc/bak/system/etc/root ; cat /proc/cmdline | tee /etc/bak$droidcmdline ; fi
-
   if [ ! -f /etc/bak$droidprop ] ; then "$bb"cp -rf $droidprop /etc/bak$droidprop ; fi
     # don't know if this is the way to go about it...
   #if [ -f $droidprop ] && [ -f /system/xbin/sh ] && [ ! -f /etc/bak/DO_NOT_DELETE ] ; then /system/xbin/cp -rf /system/xbin/* /system/bin/ ; /system/xbin/echo "DON'T DELETE THESE FILES, SCRIPT USES PARTS OF THIS BACKUP. ONLY EASY WAY OF RESTORING IF BRICKED" | tee /etc/bak/DO_NOT_DELETE ; fi
@@ -710,7 +701,6 @@ fi
   # all but droid
 if [ ! -f $droidprop ] ; then
   if [ ! -f /etc/bak/etc/fstab ] ; then \cp -rf /etc/fstab /etc/bak/etc/fstab ; fi
-  if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
   if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
 fi
 
@@ -771,7 +761,6 @@ fi
 
 
   ### < CRONJOB INIT.SH >
-
     if systemctl list-unit-files | grep -q anacron ; then
     if $(! grep rc.local /etc/anacrontabs) ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
   elif $(! grep rc.local /etc/crontabs/root /etc/crontab) ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a /etc/crontabs/root /etc/crontab ; fi
@@ -1296,8 +1285,8 @@ echo N > /sys/kernel/debug/kgsl/kgsl-3d0/log_level_pwr
  echo "1" > /sys/kernel/dyn_fsync/Dyn_fsync_active
  echo "0" > /sys/module/lowmemorykiller/parameters/debug_level
  echo "1" > /sys/kernel/fast_charge/force_fast_charge
- echo "1" > /sys/module/tpd_setting/parameters/tpd_mode
- echo "63" > /sys/module/hid_magicmouse/parameters/scroll_speed
+#echo "1" > /sys/module/tpd_setting/parameters/tpd_mode
+#echo "63" > /sys/module/hid_magicmouse/parameters/scroll_speed
 
 
 echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
@@ -1476,7 +1465,7 @@ echo "75" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_load
 echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/pl
 echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
 
-#echo 1 > /proc/sys/kernel/sched_walt_rotate_big_tasks
+echo 0 > /proc/sys/kernel/sched_walt_rotate_big_tasks
 
 ##echo "0:300000" > /sys/module/msm_performance/parameters/cpu_min_freq
 ##echo "1:300000" > /sys/module/msm_performance/parameters/cpu_min_freq
@@ -1496,26 +1485,12 @@ echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
 ##echo "300000" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq
 ##echo "300000" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
 
-#echo "Y" > /sys/module/lpm_levels/L3/cpu0/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu1/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu2/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu3/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu4/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu5/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu6/rail-pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu7/rail-pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu*/rail-pc/idle_enabled
 
 #echo "Y" > /sys/module/lpm_levels/L3/l3-wfi/idle_enabled
 #echo "Y" > /sys/module/lpm_levels/L3/llcc-off/idle_enabled
 
-#echo "Y" > /sys/module/lpm_levels/L3/cpu0/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu1/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu2/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu3/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu4/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu5/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu6/pc/idle_enabled
-#echo "Y" > /sys/module/lpm_levels/L3/cpu7/pc/idle_enabled
+#echo "Y" > /sys/module/lpm_levels/L3/cpu*/pc/idle_enabled
 
 echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
 echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
@@ -1525,25 +1500,9 @@ echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
 
 echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
 
-#echo "5000" > /sys/power/pm_freeze_timeout
-#echo "CACHE_HOT_BUDDY" >> /sys/kernel/debug/sched_features
-#echo "ENERGY_AWARE" >> /sys/kernel/debug/sched_features
-#echo "FBT_STRICT_ORDER" >> /sys/kernel/debug/sched_features
-#echo "LAST_BUDDY" >> /sys/kernel/debug/sched_features
-#echo "NEXT_BUDDY" >> /sys/kernel/debug/sched_features
-#echo "NO_GENTLE_FAIR_SLEEPERS" >> /sys/kernel/debug/sched_features
-#echo "NO_RT_RUNTIME_SHARE" >> /sys/kernel/debug/sched_features
-#echo "NO_TTWU_QUEUE" >> /sys/kernel/debug/sched_features
-#echo "NO_LB_BIAS" >> /sys/kernel/debug/sched_features
-#echo "WAKEUP_PREEMPTION" >> /sys/kernel/debug/sched_features
-#echo "AFFINE_WAKEUPS" >> /sys/kernel/debug/sched_features
 
 sysctl -e -w kernel.panic_on_oops=0
 sysctl -e -w kernel.panic=0
-
-#echo "0" > /sys/kernel/mm/ksm/run
-#echo "0" > /sys/kernel/rcu_expedited
-#echo "1" > /sys/kernel/rcu_normal
 
 chmod 0664 /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
 #echo "710000000" > /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
@@ -6859,7 +6818,7 @@ scriptdir=$(echo "$( pwd; )/$( basename -- "$0"; )")
 if [ $override = yes ] ; then
 sed 's/script_autoupdate="yes/script_autoupdate=no/g' "$scriptdir"
 if $droidprop ; then \cp -f "$scriptdir" /etc/bak/data/adb/service.d
-\cp -f "$scriptdir" /etc/init.d/init.sh ; fi
+if $(! grep -q mitigations /proc/cmdline) ; then ln -s "$scriptdir" /etc/init.d/init.sh ; fi ; fi
 \cp -f "$scriptdir" /etc/rc.local ; fi
 
 
@@ -6868,7 +6827,6 @@ if [ $script_autoupdate = yes ] && [ ! $override = yes ] ; then
 # if online
 ping -c3 "$ping"
   if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
-mkdir -p /etc/sysctl.d
 # if debian
     if $debian ; then rm -rf tmp/init.sh ; wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O tmp/init.sh ; if [ -f tmp/init.sh ] ; then rm -rf /etc/rc.local && cp tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local && rm -rf tmp
     fi ; fi
@@ -6879,7 +6837,7 @@ grep -q "ping -c3 "$ping"" /etc/rc.local
         fi
       fi
 # if android
-          if [ -f $droidprop ] ; then rm -rf init.sh && "$bb"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; "$bb"chmod 755 init.sh ; "$bb"chmod +x init.sh ; "$bb"cp init.sh /etc/rc.local ; "$bb"cp init.sh /data/adb/service.d/init.sh ; if dmesg | "$(! grep -q mitigations)" ; then "$bb"cp init.sh /system/etc/init.d/init.sh ; fi
+          if [ -f $droidprop ] ; then rm -rf init.sh && "$bb"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; "$bb"chmod 755 init.sh ; "$bb"chmod +x init.sh ; "$bb"cp init.sh /data/adb/service.d/init.sh ; if "$(cat /proc/cmdline )" | "$(! grep -q mitigations)" ; then ln -s /data/adb/service.d/init.sh /system/etc/init.d/init.sh ; ln -s /data/adb/service.d/init.sh /system/etc/rc.local ; fi
 ### download browser stuff for android - leave this out for now the setup of flags for x86 doesnt work well on android
 #if $(! grep -q quic /data/data/com.android.chrome/app_chrome/Default/Preferences) ; then wget https://github.com/thanasxda/basic-linux-setup/blob/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; "$bb"cp -f Preferences /data/data/com.android.chrome/app_chrome/Default/Preferences ; wget https://github.com/thanasxda/basic-linux-setup/raw/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State ; "$bb"cp -f "Local State" "/data/data/com.android.chrome/app_chrome/Local State" ; fi
           fi
@@ -6975,7 +6933,7 @@ else export KBUILD_CFLAGS+= -fuse-ld=lld ; fi
 #polly=/usr/lib/llvm*/lib/LLVMPolly.so
 #ldgold=/usr/lib/llvm*/lib/LLVMgold.so
 
-export LDFLAGS_MODULE = --strip-debug
+export LDFLAGS_MODULE= --strip-debug
 
 export LDFLAGS+= -O3 -plugin-opt=-function-sections \
                   -plugin-opt=-data-sections \
@@ -6988,7 +6946,7 @@ export KBUILD_USERCFLAGS:= -Wall -Wmissing-prototypes \
                            -O3 -fomit-frame-pointer -std=gnu89
 
 if [ $CC = llvm ] ; then
-export KBUILD_CFLAGS+=-mllvm -polly \
+export KBUILD_CFLAGS+=  -mllvm -polly \
                         -mllvm -polly-run-inliner \
                         -mllvm -polly-opt-fusion=max \
                         -mllvm -polly-omp-backend=LLVM \
@@ -7112,17 +7070,17 @@ rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
     if [ -f $droidprop ] ; then
     "$bb"mount -o remount,ro /system
     "$bb"mount -o remount,ro /vendor
-    "$bb"mount -o remount,ro /data
+    #"$bb"mount -o remount,ro /data
     "$bb"mount -o remount,ro rootfs /
+    #"$bb"mount -o ro /dev/block/bootdevice/by-name/data /data
     "$bb"mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
-    "$bb"mount -o ro /dev/block/bootdevice/by-name/system /system
-    "$bb"mount -o ro /dev/block/bootdevice/by-name/data /data ; fi
+    "$bb"mount -o ro /dev/block/bootdevice/by-name/system /system ; fi
 
 if [ $firstrun = yes ] ; then rm -rf ~/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect ; fi
 
 # drop all caches upon finalizing
     sysctl -w vm.drop_caches=3
-    echo 3 > /proc/sys/vm/drop_caches
+    if [ $? = 1 ] ; then echo 3 > /proc/sys/vm/drop_caches ; fi
 
 setenforce 1
 
