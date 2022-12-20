@@ -21,7 +21,7 @@ tmp=$source/tmp
 s="sudo"
 ins="$s aptitude -f install -y"
 up="$s apt update"
-a="$s apt -f -y install"
+a="$s apt -y install --fix-missing --fix-broken"
 fl="$s flatpak install  -y"
 rem="$s apt -f -y purge"
 ### llvm version
@@ -40,8 +40,20 @@ echo "DO NOT INSTALL ALL PACKAGES ITS COMPLETELY UNNECESSARY AND WILL DOUBLE YOU
 
 
 # thanas
+
+ $a kde-config-systemd \
+ kdeconnect \
+ openbox-kde-session \
+ kde-config-plymouth \
+ kde-config-updates \
+ plasma-browser-integration \
+ partitionmanager \
+ plasma-discover-backend-flatpak plasma-discover-backend-fwupd 
+
+
+
 if dmesg | grep -q nvidia ; then $a nvidia-driver-495 libnvidia-gl-495 libnvidia-gl-495:i386 libvulkan1 libvulkan1:i386 ; fi
-$a libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+$a -t unstable libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 cd $tmp
 $a pip
 pip install requests
@@ -59,7 +71,7 @@ $a linux-image-amd64 -t experimental
 $a linux-image-6.*-kali3-amd64 -t kali-experimental
 
 
-
+$a flatpak -t unstable
 
 #flatpak --noninteractive
 $s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -80,18 +92,19 @@ $rem akonadi-server \
 
 
 
-$a libdvdcss2 \
+$a -t unstable libdvdcss2 \
 mencoder \
-libvorbisidec1 \
-libavcodec59 
+libvorbisidec1 
 
-$a q4wine \
+$a -t unstable libavcodec59 
+
+$a -t unstable q4wine \
  wine \
  wine32 \
  wine64 \
  winetricks 
  
- $a flatpak \
+ $a -t unstable flatpak \
  fwupd \
  git \
  links \
@@ -111,9 +124,10 @@ $a q4wine \
  tuned-utils \
  npm \
  xattr attr \
- gedit
+ gedit \
+ gufw
  
- $a libllvm-$llver-ocaml-dev \
+ $a -t experimental libllvm-$llver-ocaml-dev \
  libllvm$llver \
  llvm-$llver \
  llvm-$llver-dev \
@@ -139,7 +153,7 @@ $a q4wine \
  libmlir-$llver-dev \
  mlir-$llver-tools 
  
- $a binwalk \
+ $a -t unstable binwalk \
  firmware-mod-kit \
  atom-beta \
  nmap \
@@ -168,7 +182,7 @@ $a q4wine \
  htop \
  qapt-deb-installer 
 
- $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
+ $a -t unstable libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
  libosmesa6 \
  libd3dadapter9-mesa \
  libegl-mesa0 \
@@ -188,15 +202,17 @@ $a q4wine \
  libglapi-mesa \
  libwayland-egl1-mesa \
  mesa-utils \
- mesa-utils-bin \
- ffmpeg \
- mesa-vdpau-drivers \
+ mesa-utils-bin 
+ 
+ $a -t unstable x265
+ $a -t unstable w64codecs
+ $a -t unstable ffmpeg
+ $a -t unstable x264
+  
+ $a -t unstable mesa-vdpau-drivers \
  libvdpau-va-gl1 \
  va-driver-all \
  vdpau-driver-all \
- w64codecs \
- x264 \
- x265 \
  libgl1-mesa-dri \
  mesa-vulkan-drivers \
  mesa-va-drivers \
@@ -214,7 +230,7 @@ $a q4wine \
  bluez \
  firefox-esr
  
- $a ethtool \
+ $a -t unstable ethtool \
  wireless-tools \
  rcconf \
  mc \
@@ -224,9 +240,6 @@ $a q4wine \
  anacron \
  lz4 \
  arch-install-scripts \
- kde-config-systemd \
- kdeconnect \
- openbox-kde-session \
  anacron \
  qt5-style-kvantum-themes qt5-style-kvantum-l10n qt5-style-kvantum \
  dolphin-plugins \
@@ -241,21 +254,29 @@ $a q4wine \
  dbus-broker \
  linux-cpupower \
  efibootmgr systemd-boot systemd-boot-efi \
+ irqbalance \
+ adb fastboot
+ 
+ 
+ $a kde-config-systemd \
+ kdeconnect \
+ openbox-kde-session \
  kde-config-plymouth \
  kde-config-updates \
  plasma-browser-integration \
  partitionmanager \
- irqbalance \
- plasma-discover-backend-flatpak plasma-discover-backend-fwupd \
- adb fastboot
+ plasma-discover-backend-flatpak plasma-discover-backend-fwupd 
+
+ 
+ 
  
  #plasma-discover-backend-snap
  #$a qdbus-qt6
  
  #$a libpoppler-qt6-3 qt6-base-dev 
  
-$a llvm-$llver 
-$a gcc-$gccver 
+$a llvm-$llver -t experimental
+$a gcc-$gccver -t experimental
  
  #qt6ct 
  

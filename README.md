@@ -1,32 +1,32 @@
 # BASIC-LINUX-SETUP
+Most important stuff that might contradict the rest of the readme will be put here on top....
 Setup has been slimmed down to avoid bloating and serious degradation of performance.
-Won't maintain the full-setup as it is too much pointless effort.
-If I do any updates it will mostly be the general parameter configuration.
-Updating with experimental branches has been disabled by default since issues.
-You can still do so manually if desired.
-Experimental branches are not used by default anymore in this setup since of their instability with dependencies. 
-If you are an inexperienced user do not upgrade using experimental branches.
-Normally never have issues but lately did. 
-Not related to this setup or Kali/Debian combination, but purely Debian experimental repositories.
-Setup should be stable as I've been using it for years as my daily driver and can confirm.
+The full-setup of Kali will not actively be maintained anymore as it's pointless effort.
+Rather than that the general parameter configuration might be updated.
+The repositories have changed in an effort to mitigate dependency problems happening only lately more and more.
+Do not use upgrade -t experimental, the repo is just in for a cronjob fetching mainline kernel.
+Packages aren't installed individually anymore btw to speed up the setup.
+So from now on be wary when using the full setup.
+Rather be safe than sorry.
+So from now on repositories all external repositories including Debian are pinned with less pioririty, yet they remain in the setup.
 ![image](bls.jpg)
 
 ## ₀. Table of contents
-   -   **₀**.   [_TOC_](https://github.com/thanasxda/basic-linux-setup#-table-of-contents)
-   -   **₁**.   [_DISCLAIMER_](https://github.com/thanasxda/basic-linux-setup#-disclaimer)
-   -   **₂**.   [_WARNING_](https://github.com/thanasxda/basic-linux-setup#-warning)
-   -   **₃**.   [_FOREWORD_](https://www.youtube.com/watch?v=xvFZjo5PgG0)
-   -   **₄**.   [_ABOUT_](https://github.com/thanasxda/basic-linux-setup#-about)
-   -   **₅**.   [_MAIN CONTENTS_](https://github.com/thanasxda/basic-linux-setup#-main-contents)
-   -   **₆**.   [_INSTRUCTIONS_](https://github.com/thanasxda/basic-linux-setup#-instructions)
-   -   **₇**.   [_RECOMMENDATIONS_](https://github.com/thanasxda/basic-linux-setup#-recommendations)
-   -   **₈**.   [_NOTES_](https://github.com/thanasxda/basic-linux-setup#-notes)
-   -   **₉**.   [_COMMAND LINE PARAMETERS ON ANDROID_](https://github.com/thanasxda/basic-linux-setup#-command-line-parameters-on-android)
-   -   **₁₀**.  [_TROUBLESHOOTING_](https://github.com/thanasxda/basic-linux-setup#-troubleshooting)
+   -   **₀**.    [_TOC_](https://github.com/thanasxda/basic-linux-setup#-table-of-contents)
+   -   **₁**.    [_DISCLAIMER_](https://github.com/thanasxda/basic-linux-setup#-disclaimer)
+   -   **₂**.    [_WARNING_](https://github.com/thanasxda/basic-linux-setup#-warning)
+   -   **₃**.    [_FOREWORD_](https://www.youtube.com/watch?v=xvFZjo5PgG0)
+   -   **₄**.    [_ABOUT_](https://github.com/thanasxda/basic-linux-setup#-about)
+   -   **₅**.    [_MAIN CONTENTS_](https://github.com/thanasxda/basic-linux-setup#-main-contents)
+   -   **₆**.    [_INSTRUCTIONS_](https://github.com/thanasxda/basic-linux-setup#-instructions)
+   -   **₇**.    [_RECOMMENDATIONS_](https://github.com/thanasxda/basic-linux-setup#-recommendations)
+   -   **₈**.    [_NOTES_](https://github.com/thanasxda/basic-linux-setup#-notes)
+   -   **₉**.    [_COMMAND LINE PARAMETERS ON ANDROID_](https://github.com/thanasxda/basic-linux-setup#-command-line-parameters-on-android)
+   -   **₁₀**.   [_TROUBLESHOOTING_](https://github.com/thanasxda/basic-linux-setup#-troubleshooting)
    -   **₁₁**.   [_ALTERNATIVE FILE SYSTEMS_](https://github.com/thanasxda/basic-linux-setup#-alternative-file-systems)
-   -   **₁₂**.    [_CHROOT_](https://github.com/thanasxda/basic-linux-setup#-chroot)
-   -   **₁₃**.  [_HELP_](https://github.com/thanasxda/basic-linux-setup#-help)
-   -   **₁₃**. [_LINKS_](https://github.com/thanasxda/basic-linux-setup#-links)
+   -   **₁₂**.   [_CHROOT_](https://github.com/thanasxda/basic-linux-setup#-chroot)
+   -   **₁₃**.   [_HELP_](https://github.com/thanasxda/basic-linux-setup#-help)
+   -   **₁₄**.   [_LINKS_](https://github.com/thanasxda/basic-linux-setup#-links)
 ## ₁. DISCLAIMER:
 
 <sup>**!!!SCRIPTS ARE INTENDED FOR PERSONAL USE ONLY. USE AT OWN RISK!!!**</sup>
@@ -118,6 +118,7 @@ Note: Only been tested by myself personally on x86 and OpenWrt. Not compatible w
 
    - Disabling __HPET__ or any timers used in bios.
    - Formatting disk to __blocksize 4096__ on __XFS__ on __GPT__ partitioning table while disabling __MBR__ in bios and choosing __UEFI__ mode only.
+     This can be done prior or during expert installation not sure if with the regular setup, you drop down in shell: _"Execute a shell"_ and for example: _fdisk -l ; mkfs.xfs /dev/sda2 -b size=4096 -f_
    - In case of Intel using [__me_cleaner__](https://github.com/corna/me_cleaner) don't know if AMD has a counterpart fix.
    - Modifying the setup to __your own needs__.
    - If your hardware supports gpu rebar enable it in bios, the setup is configured to enable it.
@@ -144,7 +145,7 @@ Main reason for using Kali as the base system for this setup is purely the fact 
 
 If you want to fully stay up to date be sure to check any potential diff changes in the full setup as opposed to just the configuration as in some parts they go hand in hand. Alternatively you could rerun the full setup occasionally to get all updates this way. The setup and script work optimal as is, if you want to improve it make sure to run quick tests along the way as some things can harm performance drastically. I would be curious to know what hackbench scores others have gotten before and after the full setup as is. Make sure the boot process is fully complete prior to testing and the boot script has finished successfully and minimize factors of influence by having no background processes for reliability of scores. For myself I get half the latency on my current hardware even after the full setup regardless of mitigations and all other changes this full setup applies when adding just the configuration script as opposed to it not being present. Even though this was made considering past factors for responsiveness, better scores is a byproduct. Be careful when installing any external optimizations or custom kernels as sometimes they include their own configuration and can interfere with this one resulting in alteration of scores. If so completely remove the packages and retry. Keep in mind the full setup contains lots of packages and __X11 tests faster than wayland in response, kde openbox even more so__. As an alternative you could disable the compositing. For people not wanting the full setup, the preconfiguration script is more than sufficient. The stock setup gave me a latency of 4 without preconfiguration or any adjustment whatsoever, the full setup gave me a latency of 10 without the preconfiguration script. Mitigations off only, brought that down to 7 and running the preconfig script on full setup brought latency down from 10 to 2. Have not tested the preconfiguration script on bare setup defaults but since the difference is as big as it is it might be worth. Different hardware might have different results. 
 
-__This readme won't be updated often but if you would prefer installing this script isolated without the full setup make sure to install: hdparm, macchanger, ethtool. Being on KDE and having the latest Firefox and Brave-browser-nightly would be a benefit as well.__
+__This readme won't be updated often but if you would prefer installing this script isolated without the full setup make sure to install: lz4, hdparm, macchanger, ethtool, preload, blktool, iw, wireless-tools, net-tools. Being on KDE and having the latest Firefox and Brave-browser-nightly would be a benefit as well.__
 
 For removal of preconfiguration:
 ```

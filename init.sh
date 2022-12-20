@@ -18,7 +18,7 @@ debian="grep -q debian /etc/os-release"
      ### script execution delay
                 if [ $testing = yes ] ; then echo " skip delay, testing..." ; else
   if [ -f $droidprop ] ; then
-if [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 4000 ] ; then echo " slow device boot delay 200 seconds..." ; sleep 200
+if [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 6000 ] ; then echo " slow device boot delay 200 seconds..." ; sleep 200
 elif [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 8 ] ; then echo " less or equal to android 8, sleep 60 seconds..." ; sleep 60
 else echo " android 9 or above found, sleep 30 seconds..." ; sleep 30 ; fi
   fi
@@ -142,9 +142,9 @@ fi
       # https://www.kernel.org/doc/Documentation/filesystems/ext4.txt
       # https://www.kernel.org/doc/Documentation/filesystems/f2fs.txt
       # https://www.kernel.org/doc/Documentation/filesystems/xfs.txt
-        if $(! $droidprop) ; then export errorsmnt=",errors=remount-ro" ; fi
+        if [ ! -e $droidprop ] ; then export errorsmnt=",errors=remount-ro" ; fi
         xfs="defaults,rw,lazytime,noquota,nodiscard,attr2,inode64,logbufs=8,logbsize=128k,allocsize=64m,largeio,swalloc,filestreams"
-       ext4="defaults,rw,lazytime,noquota,nodiscard,commit=60,data=writeback,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,nomblk_io_submit,init_itable=0'"$errorsrmnt"'"
+       ext4="defaults,rw,lazytime,noquota,nodiscard,commit=60,data=writeback,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,nomblk_io_submit,init_itable=0$errorsrmnt"
        f2fs="defaults,rw,lazytime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,ram_thresh=20,cp_interval=120,nodiscard"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
@@ -186,7 +186,7 @@ fi
         ls -f /fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /fstab*) ; fi
         ls -f /etc/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /etc/fstab*) ; fi
         ls -f /vendor/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /vendor/fstab*) ; fi
-
+        if $debian ; then export fstab=/etc/fstab ; fi
 
         # android dirs
     if [ -f $droidprop ] ; then
@@ -408,8 +408,8 @@ shmall=350000000
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4"
-if $droidprop ; then export droidzram="/system" ; fi
-echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; if $droidprop ; then echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
+if [ -e $droidprop ] ; then export droidzram="/system" ; fi
+echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; if [ -e $droidprop ] ; then echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
 overcommit=1
 oratio=140
 sysctl -w vm.nr_overcommit_hugepages=$overcommit
@@ -554,7 +554,8 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
        echo manual > /sys/class/drm/card0/device/power_dpm_force_performance_level
        echo $perfamdgpu > /sys/class/drm/card0/device/power_dpm_force_performance_level
 
-#if lscpu | grep -q x86 ; then wg="--random-wait " ; fi
+
+       if [ ! -e $droidprop ] && $(lscpu | grep -q x86) ; then wg=" --connect-timeout=10 --continue -4 --retry-connrefused" ; elif [ -e $droidprop ] ; then export ifdr="/system" ; fi
 
 
 
@@ -568,7 +569,7 @@ xx4=" isolcpus=1-$(nproc --all) nohz_full=1-$(nproc --all) idle=$idle elevator=$
   ### < BLOCKLISTS >
     # - /etc/hosts & /etc/update_hosts.sh - not on openwrt
 blocklist='#!/bin/sh
-### pihole default blocklists & more, /etc/hosts weekly updated
+### pihole default blocklists & more, "$ifdr"/etc/hosts weekly updated. at least on systems having cronjobs
 u1="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
 u2="https://mirror1.malwaredomains.com/files/justdomains"
 u3="http://sysctl.org/cameleon/hosts"
@@ -581,21 +582,22 @@ u9="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/mas
 u10="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts3"
 ping -c3 '"$ping"'
 if [ $? -eq 0 ]; then
-rm -rf /etc/hosts /etc/hosts_temp &&
-mkdir -p /etc/hosts_temp && cd /etc/hosts_temp
+if [ -e /system/build.prop ] ; then '"$bb"'mount -o remount,rw /system ; export ifdr="/system" ; fi
+rm -rf "$ifdr"/etc/hosts "$ifdr"/etc/hosts_temp &&
+mkdir -p "$ifdr"/etc/hosts_temp && cd "$ifdr"/etc/hosts_temp
 '"$bb"'echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
-127.0.0.1 localhost'\'' | tee /etc/hosts '"$droidhosts"'
-echo "127.0.1.1 $(cat /etc/hostname)" | tee -a /etc/hosts '"$droidhosts"'
-x1="$('"$bb"'wget $u1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u1)"
-x2="$('"$bb"'wget $u2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u2)"
-x3="$('"$bb"'wget $u3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u3)"
-x4="$('"$bb"'wget $u4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u4)"
-x5="$('"$bb"'wget $u5 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u5)"
-x6="$('"$bb"'wget $u6 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u6)"
-x7="$('"$bb"'wget $u7 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-x8="$('"$bb"'wget $u8 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-x9="$('"$bb"'wget $u9 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-x10="$('"$bb"'wget $u10  --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+127.0.0.1 localhost'\'' | tee "$ifdr"/etc/hosts
+echo "127.0.1.1 $(cat "$ifdr"/etc/hostname)" | tee -a "$ifdr"/etc/hosts
+x1="$('"$bb"'wget $u1 -O "$ifdr"/etc/hosts_temp/u1'"$wg"')"
+x2="$('"$bb"'wget $u2 -O "$ifdr"/etc/hosts_temp/u2'"$wg"')"
+x3="$('"$bb"'wget $u3 -O "$ifdr"/etc/hosts_temp/u3'"$wg"')"
+x4="$('"$bb"'wget $u4 -O "$ifdr"/etc/hosts_temp/u4'"$wg"')"
+x5="$('"$bb"'wget $u5 -O "$ifdr"/etc/hosts_temp/u5'"$wg"')"
+x6="$('"$bb"'wget $u6 -O "$ifdr"/etc/hosts_temp/u6'"$wg"')"
+x7="$('"$bb"'wget $u7 -O "$ifdr"/etc/hosts_temp/u7'"$wg"')"
+x8="$('"$bb"'wget $u8 -O "$ifdr"/etc/hosts_temp/u8'"$wg"')"
+x9="$('"$bb"'wget $u9 -O "$ifdr"/etc/hosts_temp/u9'"$wg"')"
+x10="$('"$bb"'wget $u10 -O "$ifdr"/etc/hosts_temp/u10'"$wg"')"
 $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || echo fail
 
               ### yours
@@ -603,14 +605,15 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7
               l2='"$list2"'
               l3='"$list3"'
               l4='"$list4"'
-              c1="$('"$bb"'wget $l1 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u7)"
-              c2="$('"$bb"'wget $l2 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u8)"
-              c3="$('"$bb"'wget $l3 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u9)"
-              c4="$('"$bb"'wget $l4 --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/hosts_temp/u10)"
+              c1="$('"$bb"'wget $l1 -O "$ifdr"/etc/hosts_temp/u7'"$wg"')"
+              c2="$('"$bb"'wget $l2 -O "$ifdr"/etc/hosts_temp/u8'"$wg"')"
+              c3="$('"$bb"'wget $l3 -O "$ifdr"/etc/hosts_temp/u9'"$wg"')"
+              c4="$('"$bb"'wget $l4 -O "$ifdr"/etc/hosts_temp/u10'"$wg"')"
             if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || echo fail ; fi
 
-cd /etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a /etc/hosts
-cd "$(pwd)" && rm -rf /etc/hosts_temp
+cd "$ifdr"/etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a "$ifdr"/etc/hosts
+cd "$(pwd)" && rm -rf "$ifdr"/etc/hosts_temp
+if [ -e /system/build.prop ] ; then '"$bb"'mount -o remount,ro /system ; fi
 else echo "Offline"; fi'
 
 
@@ -674,19 +677,20 @@ done'
     ### first run of script does more
         if [ -f $droidprop ] && [ ! -f /data/adb/service.d/init.sh ] || [ ! -f $doidprop ] && $(! grep thanas /etc/rc.local) ; then 
         export firstrun=yes ; fi
+        if [ $firstrun = yes ] ; then export DEBIAN_FRONTEND=noninteractive ; fi
 
 
 
         # droid
 if [ -f $droidprop ] ; then
-  if [ ! -f /etc/bak$fstab ] && [ -f $fstab ] ; then
-  for i in $("$bb"echo "$("$bb"echo "$fstab" | sed 's/fstab*/ /g' | awk '{print $1}')") ; do mkdir -p /etc/bak$i ; done
+  if [ ! -f "$ifdr"/etc/bak$fstab ] && [ -f $fstab ] ; then
+  for i in $("$bb"echo "$("$bb"echo "$fstab" | sed 's/fstab*/ /g' | awk '{print $1}')") ; do mkdir -p "$ifdr"/etc/bak$i ; done
   for i in "$bb"echo "$fstab" ; do "$bb"cp -n $i /etc/bak$i ; done ; fi
-  if [ ! -f /etc/bak$droidhosts ] && [ -f $droidhosts ] ; then "$bb"cp -rf $droidhosts /etc/bak$droidhosts ; fi
-  if [ ! -f /etc/bak$droidresolv ] && [ -f $droidresolv ] ; then "$bb"cp -rf $droidresolv /etc/bak$droidresolv ; fi
-  if [ ! -f /etc/bak$droidsysctl ] && [ -f $droidsysctl ] ; then "$bb"cp -rf $droidresolv /etc/bak$droidresolv ; fi
-  if [ ! -f /etc/bak/$droidcmdline ] ; then mkdir -p /etc/bak/system/etc/root ; cat /proc/cmdline | tee /etc/bak$droidcmdline ; fi
-  if [ ! -f /etc/bak$droidprop ] ; then "$bb"cp -rf $droidprop /etc/bak$droidprop ; fi
+  if [ ! -f "$ifdr"/etc/bak$droidhosts ] && [ -f $droidhosts ] ; then "$bb"cp -rf $droidhosts "$ifdr"/etc/bak$droidhosts ; fi
+  if [ ! -f "$ifdr"/etc/bak$droidresolv ] && [ -f $droidresolv ] ; then "$bb"cp -rf $droidresolv "$ifdr"/etc/bak$droidresolv ; fi
+  if [ ! -f "$ifdr"/etc/bak$droidsysctl ] && [ -f $droidsysctl ] ; then "$bb"cp -rf $droidresolv "$ifdr"/etc/bak$droidresolv ; fi
+  if [ ! -f "$ifdr"/etc/bak/$droidcmdline ] ; then mkdir -p "$ifdr"/etc/bak/system/etc/root ; cat "$ifdr"/proc/cmdline | tee "$ifdr"/etc/bak$droidcmdline ; fi
+  if [ ! -f "$ifdr"/etc/bak$droidprop ] ; then "$bb"cp -rf $droidprop "$ifdr"/etc/bak$droidprop ; fi
     # don't know if this is the way to go about it...
   #if [ -f $droidprop ] && [ -f /system/xbin/sh ] && [ ! -f /etc/bak/DO_NOT_DELETE ] ; then /system/xbin/cp -rf /system/xbin/* /system/bin/ ; /system/xbin/echo "DON'T DELETE THESE FILES, SCRIPT USES PARTS OF THIS BACKUP. ONLY EASY WAY OF RESTORING IF BRICKED" | tee /etc/bak/DO_NOT_DELETE ; fi
 fi
@@ -694,7 +698,7 @@ fi
 
 
   # all ( but exceptions, like openwrt not)
-  if [ ! -f /etc/bak/etc/environment ] ; then \cp -rf /etc/environment /etc/bak/etc/environment ; fi
+  if [ ! -f "$ifdr"/etc/bak/etc/environment ] ; then \cp -rf "$ifdr"/etc/environment "$ifdr"/etc/bak/etc/environment ; fi
 
 
 
@@ -714,12 +718,7 @@ fi
 
 
 
-      ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
-    disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower\|pstore"
 
-    #enable_services="firewalld\|apparmor\|run-shm.mount"
-    # for accidental protection
-    exclude_from_disabling="sudo\|alsa\|anacron\|apparmor\|firewalld\|ufw\|run-shm.mount\|rtkit"
 
 
 
@@ -734,9 +733,9 @@ fi
 
 
   ### script binds dirs later on again
-    "$bb"umount -f /root/cmdline # just to avoid binding it 20 times
-    "$bb"umount -f /system/etc/root/cmdline
-    "$bb"umount -f /etc/sysctl.conf
+    "$bb"umount -f "$ifdr"/root/cmdline # just to avoid binding it 20 times
+    "$bb"umount -f "$ifdr"/system/etc/root/cmdline
+    "$bb"umount -f "$ifdr"/etc/sysctl.conf
 
 
 
@@ -748,10 +747,10 @@ fi
   ### if NOT wrt, update /etc/hosts weekly - script in /etc/update_hosts.sh & cronjob
     # add script /etc/update_hosts.sh
     if $(! $wrt) ; then
-    blsync="$(echo "$blocklist" | tee /etc/update_hosts.sh)"
+    blsync="$(echo "$blocklist" | tee "$ifdr"/etc/update_hosts.sh)"
     if systemctl list-unit-files | grep -q anacron ; then
-    if $(! grep update_hosts.sh /etc/anacrontabs) ; then echo "@weekly sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
-  elif $(! grep update_hosts.sh /etc/crontab /etc/crontab/root) ; then echo "0 0 * * 0 root sh /etc/update_hosts.sh >/dev/null" | tee -a /etc/crontab /etc/crontabs/root && "$blsync" ; fi ; fi
+    if $(! grep update_hosts.sh "$ifdr"/etc/anacrontabs) ; then echo "@weekly sh /etc/update_hosts.sh >/dev/null" | tee -a "$ifdr"/etc/anacrontabs && "$blsync" ; fi
+  elif $(! grep update_hosts.sh "$ifdr"/etc/crontab "$ifdr"/etc/crontab/root) ; then echo "0 0 * * 0 root sh /etc/update_hosts.sh >/dev/null" | tee -a "$ifdr"/etc/crontab "$ifdr"/etc/crontabs/root && "$blsync" ; fi ; fi
 
 
 
@@ -762,13 +761,13 @@ fi
 
   ### < CRONJOB INIT.SH >
     if systemctl list-unit-files | grep -q anacron ; then
-    if $(! grep rc.local /etc/anacrontabs) ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a /etc/anacrontabs && "$blsync" ; fi
-  elif $(! grep rc.local /etc/crontabs/root /etc/crontab) ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a /etc/crontabs/root /etc/crontab ; fi
+    if $(! grep rc.local "$ifdr"/etc/anacrontabs) ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/anacrontabs && "$blsync" ; fi
+  elif $(! grep rc.local "$ifdr"/etc/crontabs/root "$ifdr"/etc/crontab) ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/crontabs/root "$ifdr"/etc/crontab ; fi
 
     # cronjob kernel - daily seek for update mainline kernel only from experimental branch. since i dont trust debian experimental repositories no more and am in no mood to fight with the packages and dependencies...
     if $debian ; then
-    if $(! grep -q "linux-image-amd64" /etc/anacrontabs) ; then
-    echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64 && grub-mkconfig'" | tee -a /etc/anacrontabs ; fi ; fi
+    if $(! grep -q "linux-image-amd64" "$ifdr"/etc/anacrontabs) ; then
+    echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64 && grub-mkconfig'" | tee -a "$ifdr"/etc/anacrontabs ; fi ; fi
 
 
 
@@ -797,11 +796,11 @@ fi
       if $wrt ; then echo "$(cat /etc/bak/root/cmdline) $par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
   ### android
-      if [ -f $droidprop ] ; then mkdir -p /system/etc/root ; "$bb"echo "$(cat /etc/bak/system/root/cmdline) '"$par"'" | tee /system/etc/root/cmdline ; "$bb"mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; else
+      if [ -f $droidprop ] ; then mkdir -p /system/etc/root ; "$bb"echo "$(cat "$ifdr"/etc/bak/system/root/cmdline) '"$par"'" | tee /system/etc/root/cmdline ; "$bb"mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; else
       mkdir -p /system/etc/root ; echo "$par" | tee /system/etc/root/cmdline &&
       mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; fi
       #if $(! $debian) ; then
-      #if $(! grep -q "/proc/cmdline" $fstab) && [ ! $droidfstab ] ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; elif $(! grep -q "/proc/cmdline" $fstab) &&  [ -f $droidfstab ] ; then echo "/system/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; fi
+      #if $(! grep -q "/proc/cmdline" $fstab) && [ ! -e $droidfstab ] ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; elif $(! grep -q "/proc/cmdline" $fstab) &&  [ -f $droidfstab ] ; then echo "/system/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; fi
       #fi
       # echo "doesnt work anyways" ; else echo "$par" | tee /root/cmdline &&
       #mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
@@ -835,7 +834,7 @@ fi
 
   ### < FSTAB UPDATE >
   ### fstab update
-  if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
+  if [ ! -f $droidprop ] ; then
     $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab #$fstab
     $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab #$fstab
     $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab #$fstab
@@ -846,29 +845,31 @@ fi
 
        # i hope there are no bash fuckups running legacy stuff here. rip
     if [ -f $droidprop ] ; then
-      # f2fs droid                                                                                                    # adjust if needed. left the last sed part here intentionally
-      dataf2fsdroid=$(grep data "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,ro/,rw/g')
-      cachef2fsdroid=$(grep cache "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,ro/,rw/g')
-        dataf2fsreplace=$(grep data "$fstab" | grep f2fs)
-        cachef2fsreplace=$(grep data "$fstab" | grep f2fs)
+      # f2fs droid                                                                                                    
+      dataf2fsdroid="$(grep /data "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw//g' | sed 's/\//\\\//g')"
+      dataf2fsreplace="$(grep /data "$fstab" | grep f2fs | sed 's/\//\\\//g')"
+      cachef2fsdroid="$(grep /cache "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, "'"$f2fs"',nosuid,nodev", $5 }' | sed 's/,rw//g' | sed 's/\//\\\//g')"
+      cachef2fsreplace="$(grep /cache "$fstab" | grep f2fs | sed 's/\//\\\//g')"
       # ext4 droid
-      dataext4droid=$(grep data "$fstab" | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev,lazytime", $5 }' | sed 's/,ro/,rw/g')
-      cacheext4droid=$(grep cache "$fstab" | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev,lazytime", $5 }' | sed 's/,ro/,rw/g')
-        dataext4replace=$(grep data "$fstab" | grep ext4)
-        cacheext4replace=$(grep data "$fstab" | grep ext4)
-              systemext4droid=$(grep system "$fstab" | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g')
-              systemext4replace=$(grep system "$fstab" | grep ext4)
+      dataext4droid="$(grep /data "$fstab" | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev", $5 }' | sed 's/,rw//g' | sed 's/\//\\\//g')"
+      dataext4replace="$(grep /data "$fstab" | grep ext4 | sed 's/\//\\\//g')"
+      cacheext4droid="$(grep /cache "$fstab" | grep ext4 | awk '{print $1, $2, $3, "'"$ext4"',nosuid,nodev", $5 }' | sed 's/,rw//g' | sed 's/\//\\\//g')"
+      cacheext4replace="$(grep /cache "$fstab" | grep ext4 | sed 's/\//\\\//g')"
+      systemext4droid="$(grep /system "$fstab" | grep ext4 | awk '{print $1, $2, $3, '"$ext4"', $5 }' | sed 's/,rw/,ro/g' | sed 's/\//\\\//g')"
+      systemext4replace="$(grep /system "$fstab" | grep ext4 | sed 's/\//\\\//g')"
 
         if $(! grep -q f2fs "$fstab") ; then
-echo $dataf2fsdroid | tee -a "$fstab"
-echo $cachef2fsdroid | tee -a "$fstab"
-        fi
+"$bb"echo "$dataf2fsdroid" | tee -a "$fstab"
+"$bb"echo "$cachef2fsdroid" | tee -a "$fstab"
+        fi 
+        
 
-sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' "$fstab"
-sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' "$fstab"
-sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' "$fstab"
-sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' "$fstab"
-sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' "$fstab"
+"$bb"sed -i 's/'"$dataf2fsreplace"'/'"$dataf2fsdroid"'/g' "$fstab"
+"$bb"sed -i 's/'"$cachef2fsreplace"'/'"$cachef2fsdroid"'/g' "$fstab"
+"$bb"sed -i 's/'"$dataext4replace"'/'"$dataext4droid"'/g' "$fstab"
+"$bb"sed -i 's/'"$cacheext4replace"'/'"$cacheext4droid"'/g' "$fstab"
+"$bb"sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' "$fstab"
+"$bb"sed -i 's/,errors=remount-ro//g' "$fstab"
     fi
 
 
@@ -879,7 +880,7 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' "$fstab"
   $s sh /etc/zram.sh
 
   
-  if [ ! $droidprop ] ; then
+  if [ ! -e $droidprop ] ; then
   ### fstab tmpfs on ram
     tmpfsadd=$(if grep -q "tmpfs" "$fstab" ; then echo "*BLS*=TMPFS found not applying to /etc/fstab."; else echo "*BLS*=TMPFS added to /etc/fstab." &&
     $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
@@ -904,15 +905,15 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' "$fstab"
     $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
   fi
   
+  "$bb"sed -i 's/ sw / sw,lazytime /g' "$fstab"
+  
   if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
-    sed -i 's/noatime/lazytime/g' "$fstab"
-    sed -i 's/nodiratime/lazytime/g' "$fstab"
-    sed -i 's/relatime/lazytime/g' "$fstab" 
-    sed -i 's/,errors=remount-ro//g' "$fstab" ; else
-    sed -i 's/lazytime/noatime/g' "$fstab"
-    sed -i 's/relatime/noatime/g' "$fstab" 
-    sed -i 's/,lazy_itable_init=0,lazy_journal_init=0//g' "$fstab" 
-    sed -i 's/,errors=remount-ro//g' "$fstab" ; fi
+    "$bb"sed -i 's/noatime/lazytime/g' "$fstab"
+    "$bb"sed -i 's/nodiratime/lazytime/g' "$fstab"
+    "$bb"sed -i 's/relatime/lazytime/g' "$fstab" ; else
+    "$bb"sed -i 's/lazytime/noatime/g' "$fstab"
+    "$bb"sed -i 's/relatime/noatime/g' "$fstab" 
+    "$bb"sed -i 's/nodiratime/lazytime/g' "$fstab" ; fi
 
 
 
@@ -924,26 +925,26 @@ sed -i 's/'"$systemext4replace"'/'"$systemext4droid"'/g' "$fstab"
       if $s grep -q "Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com," ~/.ssh/config ; then
       $s echo "Flag exists"; else $s echo 'Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
       Compression yes' | $s tee -a ~/.ssh/config /root/.ssh/config ; fi
-      $s sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" /etc/ssh/sshd_config
-      $s sed -i "/X11Forwarding yes/c\X11Forwarding no" /etc/ssh/sshd_config
-      $s sed -i "/#AllowTcpForwarding yes/c\AllowTcpForwarding no" /etc/ssh/sshd_config
-      $s sed -i "/#PermitTTY yes/c\PermitTTY no" /etc/ssh/sshd_config
+      $s sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" "$ifdr"/etc/ssh/sshd_config
+      $s sed -i "/X11Forwarding yes/c\X11Forwarding no" "$ifdr"/etc/ssh/sshd_config
+      $s sed -i "/#AllowTcpForwarding yes/c\AllowTcpForwarding no" "$ifdr"/etc/ssh/sshd_config
+      $s sed -i "/#PermitTTY yes/c\PermitTTY no" "$ifdr"/etc/ssh/sshd_config
 
 
 
 
   # samba
-      if $s grep -q "deadtime = 30" /etc/samba/smb.conf ; then $s echo "Flag exists" ; else $s echo 'deadtime = 30
+      if $s grep -q "deadtime = 30" "$ifdr"/etc/samba/smb.conf ; then $s echo "Flag exists" ; else $s echo 'deadtime = 30
       use sendfile = yes
       min receivefile size = 16384
-      socket options = IPTOS_LOWDELAY TCP_NODELAY IPTOS_THROUGHPUT SO_RCVBUF=131072 SO_SNDBUF=131072' | $s tee /etc/samba/smb.conf ; fi
+      socket options = IPTOS_LOWDELAY TCP_NODELAY IPTOS_THROUGHPUT SO_RCVBUF=131072 SO_SNDBUF=131072' | $s tee "$ifdr"/etc/samba/smb.conf ; fi
 
 
   # bluetooth
-      sed -i 's/AutoEnable.*/AutoEnable=false/' /etc/bluetooth/main.conf
-      sed -i 's/#FastConnectable.*/FastConnectable = false/' /etc/bluetooth/main.conf
-      sed -i 's/ReconnectAttempts.*/ReconnectAttempts = 1/' /etc/bluetooth/main.conf
-      sed -i 's/ReconnectIntervals.*/ReconnectIntervals = 1/' /etc/bluetooth/main.conf
+      sed -i 's/AutoEnable.*/AutoEnable=false/' "$ifdr"/etc/bluetooth/main.conf
+      sed -i 's/#FastConnectable.*/FastConnectable = false/' "$ifdr"/etc/bluetooth/main.conf
+      sed -i 's/ReconnectAttempts.*/ReconnectAttempts = 1/' "$ifdr"/etc/bluetooth/main.conf
+      sed -i 's/ReconnectIntervals.*/ReconnectIntervals = 1/' "$ifdr"/etc/bluetooth/main.conf
      # if [ ! -f $droidprop ] ; then rm -rfd /var/lib/bluetooth/* ; fi
 
 
@@ -981,8 +982,8 @@ ccache --set-config=sloppiness=locale,time_macros
 
 
   # selinux - we have apparmor, but leave this in passively config devices who have selinux instead
-    sed -i "/SELINUX=permissive/c\SELINUX=enforcing" /etc/selinux/config
-    sed -i "/SELINUXTYPE=/c\SELINUXTYPE=mls" /etc/selinux/config
+    sed -i "/SELINUX=permissive/c\SELINUX=enforcing" "$ifdr"/etc/selinux/config
+    sed -i "/SELINUXTYPE=/c\SELINUXTYPE=mls" "$ifdr"/etc/selinux/config
     #echo 1 > /sys/fs/selinux/enforce
     #setenforce 1
 
@@ -990,9 +991,9 @@ ccache --set-config=sloppiness=locale,time_macros
 
 
   # firewall
-    $s sed -i "/shields-down/c\shields-down=public" /etc/firewall/applet.conf
-    $s sed -i "/shields-up/c\shields-up=block" /etc/firewall/applet.conf
-    $s sed -i "/DefaultZone/c\DefaultZone=block" /etc/firewalld/firewalld.conf
+    $s sed -i "/shields-down/c\shields-down=public" "$ifdr"/etc/firewall/applet.conf
+    $s sed -i "/shields-up/c\shields-up=block" "$ifdr"/etc/firewall/applet.conf
+    $s sed -i "/DefaultZone/c\DefaultZone=block" "$ifdr"/etc/firewalld/firewalld.conf
     $s ufw deny 22/tcp
     $s ufw deny 22/udp
     $s ufw deny 23/tcp
@@ -1009,38 +1010,38 @@ ccache --set-config=sloppiness=locale,time_macros
     $s ufw deny out on lo
     sysctl net.ipv4.conf.all.rp_filter
     sysctl -a --pattern 'net.ipv4.conf.(eth|wlan)0.arp'
-if $(! grep -q 'order bind,hosts' /etc/host.conf) ; then
+if $(! grep -q 'order bind,hosts' "$ifdr"/etc/host.conf) ; then
 echo 'order bind,hosts
-multi on' | tee -a /etc/host.conf ; fi
+multi on' | tee -a "$ifdr"/etc/host.conf ; fi
 
 
 
   # dns
-    if $(! grep -q "$dns61" /etc/resolv.conf) ; then
+    if $(! grep -q "$dns61" "$ifdr"/etc/resolv.conf) ; then
 echo 'nameserver '"$dns1"'
 nameserver '"$dns2"'
 nameserver 127.0.0.1
 #nameserver ::1
 #nameserver '"$dns61"'
-#nameserver '"$dns62"'' | tee /etc/resolv.conf $droidresolv ; fi
+#nameserver '"$dns62"'' | tee "$ifdr"/etc/resolv.conf ; fi
 
 if [ $ipv6 = on ] ; then sed -i 's/#nameserver ::1
 #nameserver '"$dns61"'
 #nameserver '"$dns62"'/nameserver ::1
 nameserver '"$dns61"'
-nameserver '"$dns62"'/g' /etc/resolv/conf $droidresolv ; fi
+nameserver '"$dns62"'/g' "$ifdr"/etc/resolv/conf ; fi
 
-    if $(! grep -q edns0 /etc/resolv.conf) ; then
-    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf $droidresolv ; fi
+    if $(! grep -q edns0 "$ifdr"/etc/resolv.conf) ; then
+    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a "$ifdr"/etc/resolv.conf ; fi
 
 
 
-  if $(! grep -q "filterwin2k " /etc/hosts) ; then
+  if $(! grep -q "filterwin2k " "$ifdr"/etc/hosts) ; then
 echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
 127.0.0.1 localhost
-::1 localhost' | tee -a /etc/hosts $droidhosts ; fi
-    if $(! grep -a "127.0.1.1 "$(cat /etc/hostname)"" /etc/hosts $droidhosts) ; then
-    echo "127.0.1.1 "$(cat /etc/hostname)"" | tee -a /etc/hosts $droidhosts ; fi
+::1 localhost' | tee -a "$ifdr"/etc/hosts ; fi
+    if $(! grep -a "127.0.1.1 "$(cat /etc/hostname)"" "$ifdr"/etc/hosts) ; then
+    echo "127.0.1.1 "$(cat "$ifdr"/etc/hostname)"" | tee -a "$ifdr"/etc/hosts ; fi
 
 
   # clean
@@ -1132,17 +1133,17 @@ echo '[Definition]
 failregex = ^.*DROP_.*SRC=<ADDR> DST=.*$
 journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     sed -i 's/pam_permit.so/pam_limits.so/g' /etc/pam.d/common-session /etc/pam.d/common-session-noninteractive
-    sed -i 's/#LLMNR=yes/LLMNR=no/g' /etc/systemd/resolved.conf
-    sed -i 's/# SHA_CRYPT_MIN_ROUNDS 5000/SHA_CRYPT_MIN_ROUNDS 5000/g' /etc/login.defs
-    sed -i 's/# SHA_CRYPT_MAX_ROUNDS 5000/SHA_CRYPT_MAX_ROUNDS 50000/g' /etc/login.defs
-    sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/' /etc/sudoers
+    sed -i 's/#LLMNR=yes/LLMNR=no/g' "$ifdr"/etc/systemd/resolved.conf
+    sed -i 's/# SHA_CRYPT_MIN_ROUNDS 5000/SHA_CRYPT_MIN_ROUNDS 5000/g' "$ifdr"/etc/login.defs
+    sed -i 's/# SHA_CRYPT_MAX_ROUNDS 5000/SHA_CRYPT_MAX_ROUNDS 50000/g' "$ifdr"/etc/login.defs
+    sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/' "$ifdr"/etc/sudoers
     sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf /etc/systemd/user.conf
     sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf /etc/systemd/user.conf
-    chmod 0600 /etc/hosts.allow
-    chmod 0600 /etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
-    if $(! grep -q rngd /etc/modules) ; then
-    sed -i -r '/^fscache?/D' /etc/modules
-cat <<EOL>> /etc/modules
+    chmod 0600 "$ifdr"/etc/hosts.allow
+    chmod 0600 "$ifdr"/etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
+    if $(! grep -q rngd "$ifdr"/etc/modules) ; then
+    sed -i -r '/^fscache?/D' "$ifdr"/etc/modules
+cat <<EOL>> "$ifdr"/etc/modules
 jitterentropy-rngd
 rngd
 urngd
@@ -1154,7 +1155,7 @@ kvm
 fsache
 EOL
 fi
-        sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' /etc/init.d/rc
+        sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' "$ifdr"/etc/init.d/rc
         # prevent bruteforce
  iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
@@ -1791,19 +1792,19 @@ fi
 ##########################################################################################################
 # legacy dump from 3.x kernel for compatibility
 # command for you: grep -H '' $(ls /sys/module/*/parameters/*) | sed 's/:/ /g' | awk '{print "echo",  $2, ">", $1}'
-echo 0 > /sys/module/alarm/parameters/debug_mask
-echo 0 > /sys/module/alarm_dev/parameters/debug_mask
-echo 0 > /sys/module/bcmdhd/parameters/clockoverride
-echo 0 > /sys/module/bcmdhd/parameters/dhd_console_ms
+#echo 0 > /sys/module/alarm/parameters/debug_mask
+#echo 0 > /sys/module/alarm_dev/parameters/debug_mask
+#echo 0 > /sys/module/bcmdhd/parameters/clockoverride
+#echo 0 > /sys/module/bcmdhd/parameters/dhd_console_ms
 #echo 1 > /sys/module/bcmdhd/parameters/dhd_doflow
-echo 0 > /sys/module/bcmdhd/parameters/dhd_dpcpoll
+#echo 0 > /sys/module/bcmdhd/parameters/dhd_dpcpoll
 #echo -1 > /sys/module/bcmdhd/parameters/dhd_oob_gpio_num
-echo 0 > /sys/module/bcmdhd/parameters/disable_proptx
+#echo 0 > /sys/module/bcmdhd/parameters/disable_proptx
 #echo Driver > /sys/module/bcmdhd/parameters/info_string
 #echo Firmware > /sys/module/bcmdhd/parameters/info_string
 #echo Chip > /sys/module/bcmdhd/parameters/info_string
-echo 0 > /sys/module/bcmdhd/parameters/op_mode
-echo 0 > /sys/module/binder/parameters/debug_mask
+#echo 0 > /sys/module/bcmdhd/parameters/op_mode
+#echo 0 > /sys/module/binder/parameters/debug_mask
 echo N > /sys/module/binder/parameters/proc_no_lock
 echo 0 > /sys/module/binder/parameters/stop_on_user_error
 echo 0 > /sys/module/block/parameters/events_dfl_poll_msecs
@@ -1814,20 +1815,20 @@ echo 0 > /sys/module/block/parameters/events_dfl_poll_msecs
 #echo Y > /sys/module/bnep/parameters/compress_dst
 #echo Y > /sys/module/bnep/parameters/compress_src
 #echo Y > /sys/module/board_espresso_pmic/parameters/enable_sr
-echo 0 > /sys/module/brd/parameters/max_part
-echo 0 > /sys/module/brd/parameters/rd_nr
+#echo 0 > /sys/module/brd/parameters/max_part
+#echo 0 > /sys/module/brd/parameters/rd_nr
 #echo 8192 > /sys/module/brd/parameters/rd_size
 echo N > /sys/module/cfg80211/parameters/cfg80211_disable_40mhz_24ghz
 echo $country > /sys/module/cfg80211/parameters/ieee80211_regdom
-echo N > /sys/module/cpuidle44xx/parameters/disallow_smp_idle
-echo N > /sys/module/cpuidle44xx/parameters/keep_core_on
-echo N > /sys/module/cpuidle44xx/parameters/keep_mpu_on
-echo 0 > /sys/module/cpuidle44xx/parameters/max_state
-echo 0 > /sys/module/cpuidle44xx/parameters/only_state
-echo N > /sys/module/cpuidle44xx/parameters/skip_off
+#echo N > /sys/module/cpuidle44xx/parameters/disallow_smp_idle
+#echo N > /sys/module/cpuidle44xx/parameters/keep_core_on
+#echo N > /sys/module/cpuidle44xx/parameters/keep_mpu_on
+#echo 0 > /sys/module/cpuidle44xx/parameters/max_state
+#echo 0 > /sys/module/cpuidle44xx/parameters/only_state
+#echo N > /sys/module/cpuidle44xx/parameters/skip_off
 echo 0 > /sys/module/dns_resolver/parameters/debug
 echo 0 > /sys/module/dsscomp/parameters/debug
-echo 0 > /sys/module/earlysuspend/parameters/debug_mask
+#echo 0 > /sys/module/earlysuspend/parameters/debug_mask
 echo 0 > /sys/module/ehci_hcd/parameters/hird
 echo Y > /sys/module/ehci_hcd/parameters/ignore_oc
 echo 0 > /sys/module/ehci_hcd/parameters/log2_irq_thresh
@@ -1964,14 +1965,14 @@ echo 0 > /sys/module/usbhid/parameters/mousepoll
 #echo "(null)" > /sys/module/usbhid/parameters/quirks
 #echo -1 > /sys/module/usblp/parameters/proto_bias
 echo N > /sys/module/usbserial/parameters/debug
-echo 0 > /sys/module/userwakelock/parameters/debug_mask
-echo 0 > /sys/module/wakelock/parameters/debug_mask
+#echo 0 > /sys/module/userwakelock/parameters/debug_mask
+#echo 0 > /sys/module/wakelock/parameters/debug_mask
 #echo N > /sys/module/xpad/parameters/dpad_to_buttons
 #echo N > /sys/module/xpad/parameters/sticks_to_null
 #echo N > /sys/module/xpad/parameters/triggers_to_buttons
 #echo 438 > /sys/module/xt_qtaguid/parameters/ctrl_perms
 #echo Y > /sys/module/xt_qtaguid/parameters/ctrl_write_limited
-echo 0 > /sys/module/xt_qtaguid/parameters/debug_mask
+#echo 0 > /sys/module/xt_qtaguid/parameters/debug_mask
 #echo 292 > /sys/module/xt_qtaguid/parameters/iface_perms
 #echo 1024 > /sys/module/xt_qtaguid/parameters/max_sock_tags
 #echo N > /sys/module/xt_qtaguid/parameters/passive
@@ -4406,7 +4407,7 @@ vm.watermark_boost_factor = 15000
 vm.watermark_scale_factor = 200
 vm.zone_reclaim_mode = 0
 #include = latency-performance
-stack_erasing = 0' | tee /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl
+stack_erasing = 0' | tee "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
 
 if $(! $wrt) ; then
 echo 'net.ipv4.cipso_cache_bucket_size = 0
@@ -4585,7 +4586,7 @@ net.ipv4.route.redirect_load = 5
 net.ipv4.route.redirect_number = 9
 net.ipv4.route.redirect_silence = 5120
 net.ipv4.conf.all.accept_redirects = 0
-net.ipv6.conf.all.accept_redirects = 0' | tee -a /etc/sysctl.conf /etc/sysctl.d/sysctl.conf $droidsysctl ; fi
+net.ipv6.conf.all.accept_redirects = 0' | tee -a "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf ; fi
 
 
 if dmesg | grep -q raid ; then
@@ -5258,7 +5259,7 @@ export MOZ_ENABLE_WAYLAND=0
 #if [ $XDG_SESSION_TYPE = wayland ] ; then
 #export MOZ_ENABLE_WAYLAND=1
 #export MOZ_X11_EGL=0
-f#i
+#fi
 
 #VDPAU_DRIVER=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
 #LIBVA_DRIVER_NAME=$(dmesg | grep "use gpu addr" | awk '\''{print $3}'\'' | head -n 1)si
@@ -6009,6 +6010,11 @@ sed -i 's/relatime/lazytime/g' "$fstab"
 "$bb"fstrim /cache
 "$bb"fstrim /system
 
+
+settings put global window_animation_scale 0.0
+settings put global transition_animation_scale 0.0
+settings put global animator_duration_scale 0.0
+
 if [ $firstrun = yes ] ; then
 
      pm disable-user --user 0 com.android.apps.tag
@@ -6741,6 +6747,41 @@ blacklist uvcvideo
 '"$scsiblack"'
 '"$cecblack"'' | tee /etc/modprobe.d/nomisc.conf ; fi
 
+if $(! grep ktune "$ifdr"/etc/ppp/options) ; then
+### pppd config
+echo '#debug
+logfile /dev/null
+noipdefault
+lock
+maxfail 0
+modem
+asyncmap 0
+crtscts
+ktune
+mtu 1492
+default-mru
+bsdcomp 15,15
+deflate 15,15
+predictor1
+sync
+' | tee "$ifdr"/etc/ppp/options ; fi
+
+
+echo '# Defaults for kexec initscript
+# sourced by /etc/init.d/kexec and /etc/init.d/kexec-load
+
+# Load a kexec kernel (true/false)
+LOAD_KEXEC=true
+
+# Kernel and initrd image
+KERNEL_IMAGE="/vmlinuz"
+INITRD="/initrd.img"
+
+# If empty, use current /proc/cmdline
+APPEND=""
+
+# Load the default kernel from grub config (true/false)
+USE_GRUB_CONFIG=true' | tee /etc/default/kexec
 
   #
     systemctl daemon-reload
@@ -6806,18 +6847,13 @@ if $(! $wrt && systemctl list-unit-files | grep -q anacron) ; then if $(! grep -
 # compare par to cmdline, if not equal update. fkn bugs everywhere
 grubpar=$(awk '/GRUB_CMDLINE_LINUX_DEFAULT/ { print }' /etc/default/grub | sed 's/GRUB_CMDLINE_LINUX_DEFAULT="//g' | sed 's/"//g')
 cmdlinepar=$(cat /proc/cmdline)
-if [ "$grubpar" = "$cmdlinepar" ] ; then echo "no parameter bugs" ; else grub-mkconfig ; fi
-
-### reapply updated parameters
-$s update-grub
-
-
+if [ $firstrun = yes ] ; then update-grub ; grub-mkconfig ; elif [ ! $firstrun = yes ] && [ ! "$grubpar" = "$cmdlinepar" ] ; then update-grub ; grub-mkconfig ; fi 
 
 scriptdir=$(echo "$( pwd; )/$( basename -- "$0"; )")
 
 if [ $override = yes ] ; then
 sed 's/script_autoupdate="yes/script_autoupdate=no/g' "$scriptdir"
-if $droidprop ; then \cp -f "$scriptdir" /etc/bak/data/adb/service.d
+if [ -e $droidprop ] ; then \cp -f "$scriptdir" /etc/bak/data/adb/service.d
 if $(! grep -q mitigations /proc/cmdline) ; then ln -s "$scriptdir" /etc/init.d/init.sh ; fi ; fi
 \cp -f "$scriptdir" /etc/rc.local ; fi
 
@@ -6828,7 +6864,7 @@ if [ $script_autoupdate = yes ] && [ ! $override = yes ] ; then
 ping -c3 "$ping"
   if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
 # if debian
-    if $debian ; then rm -rf tmp/init.sh ; wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O tmp/init.sh ; if [ -f tmp/init.sh ] ; then rm -rf /etc/rc.local && cp tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local && rm -rf tmp
+    if $debian ; then rm -rf tmp/init.sh ; mkdir -p /tmp ; wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O tmp/init.sh ; if [ -f tmp/init.sh ] ; then rm -rf /etc/rc.local && cp tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local && rm -rf tmp
     fi ; fi
 # if wrt
       if $wrt ; then echo "*BLS*=OPENWRT found" &&
@@ -6843,7 +6879,7 @@ grep -q "ping -c3 "$ping"" /etc/rc.local
           fi
 # general devices and other distros
             elif ping -c3 "$ping"
-[ $? -eq 0 ] && $(! $wrt) ; then -rm -rf /tmp/init.sh ; wget --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh && cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local
+[ $? -eq 0 ] && $(! $wrt) ; then -rm -rf /tmp/init.sh ; wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh ; if [ -f tmp/init.sh ] ; then cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local ; fi
   fi
 fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
@@ -6864,17 +6900,36 @@ if [ ! -f $droidprop ] ; then systemctl disable bluetooth && systemctl mask blue
 
 
 
+if [ $firstrun = yes ] ; then
+
+  ### some more firstrun stuff
+  if $debian ; then apt -f -y install blktool hdparm lz4 macchanger net-tools wireless-tools iw preload ethtool kexec-tools ; dpkg-reconfigure dash kexec-tools
+                      ### disable and mask unneeded services
+$s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service                 
+                
+$s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service   
+fi
+  
+  rm -rf ~/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect 
+
+ "$bb"sh -x "$ifdr"/etc/update_hosts.sh 
+
 
 
         ### < SERVICES >
 
+      ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
+    disable_services="avahi-daemon\|plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower\|pstore"
 
+    enable_services="firewalld\|apparmor\|run-shm.mount\|snapd.apparmor.service"
+    # for accidental protection
+    exclude_from_disabling="sudo\|alsa\|anacron\|apparmor\|firewalld\|ufw\|run-shm.mount\|rtkit"
 
 disableserv=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
 maskdisable=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | grep -v "mask" | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
 
-#startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled | awk '{print $1}')
-#maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
+startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled | awk '{print $1}')
+maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
 
 # dunno if mdadm is needed for raid. checkout to be sure
 if $(! $wrt) ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
@@ -6882,30 +6937,39 @@ systemctl stop $disableserv
 systemctl disable $disableserv
 systemctl mask $maskdisable
 
-#systemctl unmask $maskenable
-#systemctl start --now $startserv
-#systemctl enable $startserv
+systemctl unmask $maskenable
+systemctl start --now $startserv
+systemctl enable $startserv
+fi
 fi
 
-if $(! grep -q "ipv6.conf.all.disable_ipv6" /etc/sysctl.conf) || [ $ipv6 = on ] ; then
+if [ $ipv6 = on ] ; then
+sysctl -w net.ipv6.conf.lo.disable_ipv6=0
+sysctl -w net.ipv6.conf.all.disable_ipv6=0
+sysctl -w net.ipv6.conf.default.disable_ipv6=0
+sysctl -w net.ipv6.conf.all.accept_ra=1
 echo 'net.ipv6.conf.all.disable_ipv6 = 0
 net.ipv6.conf.default.disable_ipv6 = 0
 net.ipv6.conf.lo.disable_ipv6 = 0
-net.ipv6.conf.all.accept_ra = 1' | tee -a /etc/sysctl.d/sysctl.conf /etc/sysctl.conf $droidsysctl
+net.ipv6.conf.all.accept_ra = 1' | tee -a "$ifdr"/etc/sysctl.d/sysctl.conf "$ifdr"/etc/sysctl.conf
 sed -i 's/net.ipv6.conf.all.disable_ipv6.*/net.ipv6.conf.all.disable_ipv6 = 0/g'
 sed -i 's/net.ipv6.conf.default.disable_ipv6.*/net.ipv6.conf.default.disable_ipv6 = 0/g'
 sed -i 's/net.ipv6.conf.lo.disable_ipv6.*/net.ipv6.conf.lo.disable_ipv6 = 0/g'
 sed -i 's/net.ipv6.conf.all.accept_ra.*/net.ipv6.conf.all.accept_ra = 1/g'
-else echo 'net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
+else 
+sysctl -w net.ipv6.conf.lo.disable_ipv6=1
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.default.disable_ipv6=1
+sysctl -w net.ipv6.conf.all.accept_ra=0
+echo 'net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.lo.disable_ipv6 = 1
-net.ipv6.conf.all.accept_ra = 0' | tee -a /etc/sysctl.d/sysctl.conf /etc/sysctl.conf $droidsysctl
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.all.accept_ra = 0' | tee -a "$ifdr"/etc/sysctl.d/sysctl.conf "$ifdr"/etc/sysctl.conf
 sed -i 's/net.ipv6.conf.all.disable_ipv6.*/net.ipv6.conf.all.disable_ipv6 = 1/g'
 sed -i 's/net.ipv6.conf.default.disable_ipv6.*/net.ipv6.conf.default.disable_ipv6 = 1/g'
 sed -i 's/net.ipv6.conf.lo.disable_ipv6.*/net.ipv6.conf.lo.disable_ipv6 = 1/g'
 sed -i 's/net.ipv6.conf.all.accept_ra.*/net.ipv6.conf.all.accept_ra = 0/g' ; fi
-
-
 
 
 
@@ -7044,19 +7108,22 @@ if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=
 if grep -q "cmdline" /etc/fstab "$fstab" ; then sed -i '/cmdline/c\' "$fstab" ; fi
 rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
 
-    "$bb"mount -t pstore none /sys/fs/pstore 
-    "$bb"mount -t tracefs none /sys/kernel/tracing
-    "$bb"mount -t tracefs none /sys/kernel/debug/tracing
-    "$bb"mount -t cgroup2 none /sys/fs/cgroup
-    "$bb"mount -t cgroup none /dev/memcg
-    "$bb"mount -t cgroup none /dev/cpuctl
-    "$bb"mount -t cgroup none /acct
-    "$bb"mount -t debugfs none /sys/kernel/debug
-    "$bb"umount pstore
-    "$bb"umount tracefs
-    "$bb"umount cgroup2
-    "$bb"umount cgroup
-    "$bb"umount debugfs
+    "$bb"mount -t pstore none0 /sys/fs/pstore 
+    "$bb"mount -t tracefs none1 /sys/kernel/tracing
+    "$bb"mount -t tracefs none2 /sys/kernel/debug/tracing
+    "$bb"mount -t cgroup2 none3 /sys/fs/cgroup
+    "$bb"mount -t cgroup none4 /dev/memcg
+    "$bb"mount -t cgroup none5 /dev/cpuctl
+    "$bb"mount -t cgroup none6 /acct
+    "$bb"mount -t debugfs none7 /sys/kernel/debug
+    "$bb"umount /sys/fs/pstore
+    "$bb"umount /sys/kernel/tracing
+    "$bb"umount /sys/kernel/debug/tracing
+    "$bb"umount /sys/fs/cgroup
+    "$bb"umount /dev/memcg
+    "$bb"umount /dev/cpuctl
+    "$bb"umount /acct
+    "$bb"umount /sys/kernel/debug
 
     # remount ro android
 
@@ -7076,7 +7143,7 @@ rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
     "$bb"mount -o ro /dev/block/bootdevice/by-name/vendor /vendor
     "$bb"mount -o ro /dev/block/bootdevice/by-name/system /system ; fi
 
-if [ $firstrun = yes ] ; then rm -rf ~/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect ; fi
+if $debian && [ $firstrun = yes ] ; then update-initramfs -u -k all ; mkinitramfs -c lz4 -o /boot/initrd.img-* ; fi
 
 # drop all caches upon finalizing
     sysctl -w vm.drop_caches=3

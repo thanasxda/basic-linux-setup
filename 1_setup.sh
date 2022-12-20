@@ -41,7 +41,7 @@ echo "" && echo ""
 ####### START #############################################################
 
 
-
+    export DEBIAN_FRONTEND=noninteractive
 
 
     #"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"
@@ -101,7 +101,7 @@ echo "" && echo ""
             sl=">/dev/null"
             s="sudo"
             up="$s apt update"
-            a="$s apt -f install -y --fix-broken --fix-missing"
+            a="$s apt install -y --fix-broken --fix-missing"
             apt="$s apt -f install -y -t experimental --fix-broken --fix-missing"
             rem="apt -f -y purge"
             raid="no"
@@ -151,6 +151,7 @@ cd $tmp
                     $s cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
                     $s rm -rf /var/lib/apt/lists/* && $s apt clean && $s apt autoclean
 
+                    $s apt dist-upgrade -y
 
 
                 
@@ -173,7 +174,7 @@ cd $tmp
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install kexec-tools'
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install macchanger'
                     #xdotool key Left | xdotool key KP_Enter | xdotool key Left | xdotool key KP_Enter | $s dpkg-reconfigure kexec-tools
-                    $a libc6 ; $a kexec-tools insserv ; $s dpkg-reconfigure --frontend readline insserv kexec-tools --force ; $a libpam-systemd ; $a macchanger
+                    $a libc6 systemd-sysv kexec-tools insserv libpam-systemd macchanger 
             $a deb-multimedia-keyring \
             gnome-keyring \
                 ca-certificates \
@@ -426,7 +427,7 @@ cd $source
           #$s apt upgrade -f -y -t experimental --fix-broken --fix-missing --with-new-pkgs
           #$s apt upgrade -f -y -t kali-bleeding-edge --fix-broken --fix-missing --with-new-pkgs
           #$s apt upgrade -f -y -t kali-experimental --fix-broken --fix-missing --with-new-pkgs
-          $s apt full-upgrade -f -y --fix-broken --fix-missing
+          $s apt upgrade -f -y --fix-broken --fix-missing
         $s dpkg --configure -a
         #$s apt clean
         #$s apt autoclean
@@ -662,8 +663,9 @@ $s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avah
 
 $s systemctl enable --now dbus-broker
 
-    $s update-initramfs -u -k all
-    $s mkinitramfs -c lz4 -o /boot/initrd.img-*
+        # already in init.sh
+    #s update-initramfs -u -k all
+    #$s mkinitramfs -c lz4 -o /boot/initrd.img-*
     
     # switch to dracut
     #$a dracut

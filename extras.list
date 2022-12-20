@@ -1,3 +1,11 @@
+### kali
+deb [arch=amd64,i386] https://kali.download/kali kali-dev main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-last-snapshot main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-experimental main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-debian-picks main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali debian-testing main non-free contrib
+deb [arch=amd64,i386] https://kali.download/kali kali-bleeding-edge main contrib non-free
+
 ### debian
 deb [arch=amd64,i386 trusted=yes] http://debian.ipacct.com/debian/ testing-updates main contrib non-free
 deb [arch=amd64,i386] http://debian.ipacct.com/debian/ testing main contrib non-free
@@ -19,6 +27,13 @@ deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages unstable main
 ### llvm
 deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main
 
+### extras - apps
+deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main
+deb [arch=amd64] http://dl.google.com/linux/earth/deb/ stable main
+deb [arch=amd64] https://repo.skype.com/deb stable main
+deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main
+deb [arch=amd64,i386] https://dl.winehq.org/wine-builds/debian/ unstable main
+
 ### kde
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Testing/ ./
 deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/ ./
@@ -37,13 +52,6 @@ deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining
 #deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma526/Debian_Testing/ ./
 #deb [arch=amd64,i386] https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/plasma526/Debian_Unstable/ ./
 
-### ubuntu - repository pinned with lowest priority
+### ubuntu - repository pinned with lowest priority, only enable for individual packages when theres no alternative
 #deb [arch=amd64,i386] http://archive.ubuntu.com/ubuntu/ devel main restricted universe multiverse 
-
-### extras - apps
-deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main
-deb [arch=amd64] http://dl.google.com/linux/earth/deb/ stable main
-deb [arch=amd64] https://repo.skype.com/deb stable main
-deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main
-deb [arch=amd64,i386] https://dl.winehq.org/wine-builds/debian/ unstable main
 
