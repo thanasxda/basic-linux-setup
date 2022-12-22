@@ -27,9 +27,9 @@ rem="$s apt -f -y purge"
 ### llvm version
 #llver="$(apt-cache search llvm | awk '{print $1}' | grep llvm- | tail  | head -n 1 | cut -c6-7)"
 llver="$(apt-cache search llvm | awk '{print $1}' | grep "llvm-.*-runtime" | sort -n | tail -n 1 | cut -c6-7)"
-gccver="$(apt-cache search gcc | awk '{print $1}' | grep "gcc-.*-linux-gnu" | cut -c5-6 | sort -n | tail -n 1)"
+gccver="$(apt-cache search gcc -t experimental | awk '{print $1}' | grep "gcc-.*-linux-gnu" | cut -c5-6 | sort -n | tail -n 1)"
 
-### kernel version kali
+### kernel version
 kernelv="6*"
 
 echo -e "${yellow}"
@@ -52,26 +52,19 @@ echo "DO NOT INSTALL ALL PACKAGES ITS COMPLETELY UNNECESSARY AND WILL DOUBLE YOU
 
 
 
-if dmesg | grep -q nvidia ; then $a nvidia-driver-495 libnvidia-gl-495 libnvidia-gl-495:i386 libvulkan1 libvulkan1:i386 ; fi
-$a -t unstable libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
+#if dmesg | grep -q nvidia ; then $a nvidia-driver-495 libnvidia-gl-495 libnvidia-gl-495:i386 libvulkan1 libvulkan1:i386 ; fi
+$a libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 cd $tmp
 $a pip
 pip install requests
 
 
-$rem kali-linux-default \
- kali-linux-headless \
- kali-tools-top10
-
-
 # kernel
 #$a "$(apt search linux-image-6.*-rt-amd64-unsigned | awk '{print $1}' | grep "linux-image-.*-rt-amd64-unsigned" | tail -n 1 | cut -c1-37)" -t experimental
-#$a linux-image-$kernelv-kali*-rt-amd64 -t kali-experimental
 $a linux-image-amd64 -t experimental 
-$a linux-image-6.*-kali3-amd64 -t kali-experimental
 
 
-$a flatpak -t unstable
+$a flatpak
 
 #flatpak --noninteractive
 $s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -82,33 +75,26 @@ $s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.f
 # remove stuff
 #$rem intel-microcode
 #$rem amd64-microcode
-$rem akonadi-server \
- openssh-server openssh-sftp-server \
+$rem openssh-server openssh-sftp-server \
  ubuntu-archive-keyring \
- avahi-daemon \
  cron \
  bluez \
  firefox-esr
 
 
 
-$a -t unstable libdvdcss2 \
+$a libdvdcss2 \
 mencoder \
 libvorbisidec1 
 
-$a -t unstable libavcodec59 
+$a libavcodec59 
 
-$a -t unstable q4wine \
- wine \
- wine32 \
- wine64 \
- winetricks 
+$a libxcb-xf86dri0
  
- $a -t unstable flatpak \
+ $a flatpak \
  fwupd \
  git \
  links \
- mpv \
  muon \
  openssh-client \
  putty \
@@ -121,13 +107,11 @@ $a -t unstable q4wine \
  libxgks2 \
  libmkl-def \
  blktool \
- tuned-utils \
- npm \
- xattr attr \
  gedit \
- gufw
+ vlc \
+ alien
  
- $a -t experimental libllvm-$llver-ocaml-dev \
+ $a libllvm-$llver-ocaml-dev \
  libllvm$llver \
  llvm-$llver \
  llvm-$llver-dev \
@@ -151,18 +135,18 @@ $a -t unstable q4wine \
  libclc-$llver-dev \
  libunwind-$llver-dev \
  libmlir-$llver-dev \
- mlir-$llver-tools 
+ mlir-$llver-tools \
+ libomp5-$llver \
+ bolt-$llver
  
- $a -t unstable binwalk \
- firmware-mod-kit \
- atom-beta \
+ $a libtcmalloc-minimal4
+ $a libmimalloc2.0
+ $a atom-beta \
  nmap \
  apparmor \
- cachefilesd \
  cpufrequtils \
  diffuse \
  dkms \
- firmware-amd-graphics \
  firmware-linux \
  firmware-linux-free \
  firmware-linux-nonfree \
@@ -173,16 +157,10 @@ $a -t unstable q4wine \
  kmod \
  net-tools \
  wireless-regdb \
- xinit \
- kali-linux-firmware \
- kali-linux-core \
- kali-tweaks \
- kali-defaults \
- kali-defaults-desktop \
  htop \
  qapt-deb-installer 
 
- $a -t unstable libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
+ $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
  libosmesa6 \
  libd3dadapter9-mesa \
  libegl-mesa0 \
@@ -204,12 +182,12 @@ $a -t unstable q4wine \
  mesa-utils \
  mesa-utils-bin 
  
- $a -t unstable x265
- $a -t unstable w64codecs
- $a -t unstable ffmpeg
- $a -t unstable x264
+ $a x265
+ $a w64codecs
+ $a ffmpeg
+ $a x264
   
- $a -t unstable mesa-vdpau-drivers \
+ $a mesa-vdpau-drivers \
  libvdpau-va-gl1 \
  va-driver-all \
  vdpau-driver-all \
@@ -222,29 +200,25 @@ $a -t unstable q4wine \
  mesa-common-dev \
  mesa-vdpau-drivers 
  
-  $rem akonadi-server \
- openssh-server openssh-sftp-server \
+  $rem openssh-server openssh-sftp-server \
  ubuntu-archive-keyring \
- avahi-daemon \
- cron \
  bluez \
  firefox-esr
  
- $a -t unstable ethtool \
+ $a ethtool \
+ binwalk \
  wireless-tools \
  rcconf \
  mc \
  iw \
  rtirq-init \
  rename \
- anacron \
  lz4 \
- arch-install-scripts \
  anacron \
  qt5-style-kvantum-themes qt5-style-kvantum-l10n qt5-style-kvantum \
  dolphin-plugins \
  sddm \
- kio-fuse kio-extras mtp-tools kio \
+ kio-fuse kio-extras kio \
  gstreamer1.0-qt5 gstreamer1.0-plugins-bad \
  openssl ufw unattended-upgrades fail2ban \
  *qtgstreamer* \
@@ -252,7 +226,6 @@ $a -t unstable q4wine \
  xinit \
  preload \
  dbus-broker \
- linux-cpupower \
  efibootmgr systemd-boot systemd-boot-efi \
  irqbalance \
  adb fastboot
@@ -273,17 +246,25 @@ $a -t unstable q4wine \
  #plasma-discover-backend-snap
  #$a qdbus-qt6
  
- #$a libpoppler-qt6-3 qt6-base-dev 
- 
-$a llvm-$llver -t experimental
+ #$a libpoppler-qt6-3 
+ $a qt6-base-dev 
+ $a qt6ct
+ $a xserver-xorg-input-evdev
+
+$a gcc-$gccver-offload-amdgcn -t experimental
+$a amdgcn-tools -t experimental
 $a gcc-$gccver -t experimental
+$a llvm-$llver 
+
+$rem intel-microcode 
+$rem amd-microcode
  
  #qt6ct 
  
 
 
- 
-$a kali-desktop-kde 
+  $a intel-mkl
+
 
 
 

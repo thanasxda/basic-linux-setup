@@ -20,7 +20,7 @@
     </entry>
     <entry name="TransitionAnimationDuration" type="int">
       <label>Fade Transition Animation  (ms)</label>
-      <default>1000</default>
+      <default>2000</default>
     </entry>
     <entry name="Subreddit" type="String">
       <label>Subreddits from which to fetch wallpapers</label>
@@ -28,11 +28,11 @@
     </entry>
     <entry name="SubredditSection" type="String">
       <label>Subreddits section from which to fetch wallpapers</label>
-      <default>top</default>
+      <default>hot</default>
     </entry>
     <entry name="SubredditSectionTime" type="String">
       <label>Timespan to filter wallpapers to</label>
-      <default>month</default>
+      <default>forever</default>
     </entry>
     <entry name="PreferOrientation" type="String">
       <label>Try to get images that are landscape or portrait or any.</label>
@@ -48,7 +48,7 @@
     </entry>
     <entry name="ShowPostTitle" type="bool">
       <label>Show the post title in the lower right?</label>
-      <default>false</default>
+      <default>true</default>
     </entry>
     <entry name="AllowNSFW" type="bool">
       <label>Should NSFW wallpapers be fetched?</label>
@@ -56,7 +56,7 @@
     </entry>
     <entry name="RefetchSignal" type="bool">
       <label>Need this to enable a refetch button in the config page that bypasses the apply button.</label>
-      <default>false</default>
+      <default>true</default>
     </entry>
   </group>
 

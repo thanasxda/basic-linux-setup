@@ -1,5 +1,7 @@
 [Dolphin]
-Timestamp=2020,5,10,19,3,11
+SortHiddenLast=true
+SortRole=type
+Timestamp=2022,12,22,12,50,13.15
 Version=4
 
 [Settings]

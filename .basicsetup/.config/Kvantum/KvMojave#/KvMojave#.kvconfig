@@ -126,7 +126,7 @@ kinetic_scrolling=false
 scroll_jump_workaround=true
 blur_only_active_window=true
 centered_forms=true
-noninteger_translucency=true
+noninteger_translucency=false
 style_vertical_toolbars=false
 
 [PanelButtonCommand]

@@ -24,13 +24,13 @@ IntensityAmount=0
 IntensityEffect=0
 
 [Colors:Button]
-BackgroundAlternate=125,100,182
+BackgroundAlternate=30,87,193
 BackgroundNormal=77,77,77
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=11,92,244
+DecorationHover=11,92,244
+ForegroundActive=11,92,244
 ForegroundInactive=105,105,105
-ForegroundLink=146,110,228
+ForegroundLink=11,92,244
 ForegroundNegative=218,68,83
 ForegroundNeutral=255,109,0
 ForegroundNormal=255,255,255
@@ -40,11 +40,11 @@ ForegroundVisited=0,188,212
 [Colors:Complementary]
 BackgroundAlternate=48,48,48
 BackgroundNormal=40,40,40
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=11,92,244
+DecorationHover=11,92,244
+ForegroundActive=11,92,244
 ForegroundInactive=175,176,179
-ForegroundLink=146,110,228
+ForegroundLink=11,92,244
 ForegroundNegative=237,21,21
 ForegroundNeutral=201,206,59
 ForegroundNormal=239,240,241
@@ -52,13 +52,13 @@ ForegroundPositive=17,209,22
 ForegroundVisited=61,174,230
 
 [Colors:Selection]
-BackgroundAlternate=116,91,174
-BackgroundNormal=116,91,174
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+BackgroundAlternate=22,78,185
+BackgroundNormal=22,78,185
+DecorationFocus=11,92,244
+DecorationHover=11,92,244
+ForegroundActive=11,92,244
 ForegroundInactive=255,255,255
-ForegroundLink=146,110,228
+ForegroundLink=11,92,244
 ForegroundNegative=218,68,83
 ForegroundNeutral=255,109,0
 ForegroundNormal=255,255,255
@@ -68,11 +68,11 @@ ForegroundVisited=189,195,199
 [Colors:Tooltip]
 BackgroundAlternate=40,40,40
 BackgroundNormal=40,40,40
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=11,92,244
+DecorationHover=11,92,244
+ForegroundActive=11,92,244
 ForegroundInactive=105,105,105
-ForegroundLink=146,110,228
+ForegroundLink=11,92,244
 ForegroundNegative=218,68,83
 ForegroundNeutral=255,109,0
 ForegroundNormal=223,223,223
@@ -82,11 +82,11 @@ ForegroundVisited=0,188,212
 [Colors:View]
 BackgroundAlternate=48,48,48
 BackgroundNormal=48,48,48
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=11,92,244
+DecorationHover=11,92,244
+ForegroundActive=11,92,244
 ForegroundInactive=105,105,105
-ForegroundLink=146,110,228
+ForegroundLink=11,92,244
 ForegroundNegative=218,68,83
 ForegroundNeutral=255,109,0
 ForegroundNormal=223,223,223
@@ -96,11 +96,11 @@ ForegroundVisited=0,188,212
 [Colors:Window]
 BackgroundAlternate=48,48,48
 BackgroundNormal=40,40,40
-DecorationFocus=146,110,228
-DecorationHover=146,110,228
-ForegroundActive=146,110,228
+DecorationFocus=11,92,244
+DecorationHover=11,92,244
+ForegroundActive=11,92,244
 ForegroundInactive=105,105,105
-ForegroundLink=146,110,228
+ForegroundLink=11,92,244
 ForegroundNegative=218,68,83
 ForegroundNeutral=255,109,0
 ForegroundNormal=223,223,223
@@ -108,20 +108,20 @@ ForegroundPositive=1,162,153
 ForegroundVisited=0,188,212
 
 [DirSelect Dialog]
-DirSelectDialog Size=811,573
+DirSelectDialog Size=811,564
 History Items[$e]=file:$HOME/.config/qtcurve,file:$HOME/.local/share/plasma/look-and-feel/com.github.vinceliuice.ChromeOS-dark,file:$HOME
 
 [General]
-AccentColor=146,110,228
+AccentColor=11,92,244
 BrowserApplication[$e]=brave-browser-nightly.desktop
 ColorSchemeHash=c198fa7d1896b2ebf8e3c2668f8833b26c94997c
-LastUsedCustomAccentColor=146,110,228
+LastUsedCustomAccentColor=11,92,244
 Name=ChromeOSDark
 XftAntialias=true
 XftHintStyle=hintfull
 XftSubPixel=none
 dbfile=~/.mozilla/firefox/zk1bmsw3.default/places.sqlite
-fixed=Hack,9,-1,5,50,0,0,0,0,0
+fixed=Hack Nerd Font,9,-1,5,50,0,0,0,0,0
 font=Noto Sans,10,-1,5,50,0,0,0,0,0,Condensed
 menuFont=Noto Sans,10,-1,5,50,0,0,0,0,0,Condensed
 shadeSortColumn=true

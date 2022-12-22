@@ -24,7 +24,7 @@ echo "Unattended setup mainly for Kali/Debian with subsection for OpenWrt and ge
 echo "DISCLAIMER!!!:"
 echo "I am not responsible if your computer catches fire and brings your house along with it."
 echo -e "${restore}" && echo -e "${yellow}"
-echo "Never apt dist-upgrade/full-upgrade -t experimental"
+echo "Never apt dist-upgrade/full-upgrade"
 echo "Read arch wiki for personalization:"
 echo -e "${magenta}"
 echo "https://wiki.archlinux.org/title/Improving_performance"
@@ -41,7 +41,8 @@ echo "" && echo ""
 ####### START #############################################################
 
 
-    export DEBIAN_FRONTEND=noninteractive
+    #   NOTE: it isnt possible just for editing purposes to group a script. i did it in the beginning but its not worth as its double maintenance. things need to get executed in order for all to be smooth and might not be grouped as titles show.
+    
 
 
     #"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"
@@ -83,11 +84,7 @@ echo "" && echo ""
         echo "" && echo ""
     
         echo "Please enter your password to start the setup..." && echo -e "${restore}" 
-    
-    
-    
-    
-    
+
     
     
     ###     <<<< VARIABLES >>>> - values that are called later in the setup for convenience and avoiding clutter >>>>>>>>>>>>>>>>>>>>
@@ -103,8 +100,7 @@ echo "" && echo ""
             up="$s apt update"
             a="$s apt install -y --fix-broken --fix-missing"
             apt="$s apt -f install -y -t experimental --fix-broken --fix-missing"
-            rem="apt -f -y purge"
-            raid="no"
+            rem="$s apt -f -y purge"
 
             
             
@@ -119,6 +115,7 @@ mkdir -p $tmp
 
         $s chmod +x *
         echo ""
+        echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian
         $s sh $source/2* # execute backup sources.list script
         $s rm -rf /var/lib/dpkg/lock* /var/lib/aptitude/lock* /var/cache/apt/archives/ /var/lib/apt/lists/*
         #$s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
@@ -132,6 +129,12 @@ mkdir -p $tmp
                 echo 'Acquire::ForceIPv4 "true";' | $s tee /etc/apt/apt.conf.d/99force-ipv4
                 $s dpkg --add-architecture i386
                 $s dpkg-reconfigure dash
+                
+                    
+    
+        export DEBIAN_FRONTEND=noninteractive
+        export firstrun=yes
+    
             
 cd $tmp
 
@@ -151,7 +154,6 @@ cd $tmp
                     $s cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
                     $s rm -rf /var/lib/apt/lists/* && $s apt clean && $s apt autoclean
 
-                    $s apt dist-upgrade -y
 
 
                 
@@ -162,6 +164,20 @@ cd $tmp
     ###      <<<< BASIC PKGS & KEYRINGS >>>> - needed for running this script >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         $up -oAcquire::AllowInsecureRepositories=true
         $s dpkg --configure -a
+        $s apt -f -y install --fix-broken --fix-missing
+        $a zsh curl
+        $s dpkg-reconfigure zsh
+        $s sed -i 's/\/bin\/bash/\/usr\/bin\/zsh/g' /etc/passwd
+        $s chsh -s $(which zsh) # switch to zsh if not already on kali
+        #chsh --shell $(which zsh) 
+        #for i in $(sudo getent passwd | grep 1000 | awk -F ':' '{print $1}') ; do chsh --shell $(which zsh) ; done
+        for i in $(ls /home) ; do sudo rm -rf /home/$i/.oh-my-zsh ; done
+        sudo rm -rf /root/.oh-my-zsh
+        $s sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        $s apt upgrade -y
+        $s dpkg --configure -a
+        $s apt -f -y install --fix-broken --fix-missing
         $a rsync
             $s rsync -v -K -a --force --include=".*" config.dat /var/cache/debconf/config.dat
             echo -e 'DPkg::Options {
@@ -174,9 +190,9 @@ cd $tmp
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install kexec-tools'
                     #/bin/bash -ic 'xdotool key Left | xdotool key KP_Enter | sudo apt -f -y install macchanger'
                     #xdotool key Left | xdotool key KP_Enter | xdotool key Left | xdotool key KP_Enter | $s dpkg-reconfigure kexec-tools
-                    $a libc6 systemd-sysv kexec-tools insserv libpam-systemd macchanger 
+                    $s export DEBIAN_FRONTEND=noninteractive && $a libc6 systemd-sysv kexec-tools insserv libpam-systemd macchanger 
             $a deb-multimedia-keyring \
-            gnome-keyring \
+               gnome-keyring \
                 ca-certificates \
                 apt-transport-https \
                 coreutils \
@@ -219,13 +235,13 @@ cd $tmp
                     
 
     ###     <<<< BASIC PKGS >>>> - we just added and updated sources, latest pkgs can be updated >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    $s rm -rf /var/lib/dpkg/lock*
         $a deb-multimedia-keyring \
             brave-browser-nightly \
-            chromium \
             google-earth-pro-stable \
-            kali-tweaks \
-            firefox \
-            zsh curl
+            
+            
+            $a -t unstable firefox #chromium
             
             $rem firefox-esr
                 #$a netselect-apt
@@ -237,11 +253,11 @@ cd $tmp
                         
 
     ###     <<<< NECESSARY PACKAGE FOR GIT >>>> - pkgs and the way they operate get changed >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            if [ $INSTALLBUILDENV = true ] ; then
-                    curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
-                    printf 'y' | sh ./install-from-source.sh &&
-                    git-credential-manager-core configure &&
-                    git config --global credential.credentialStore secretservice ; fi
+           # if [ $INSTALLBUILDENV = true ] ; then
+           #         curl -LO https://raw.githubusercontent.com/GitCredentialManager/git-credential-manager/main/src/linux/Packaging.Linux/install-from-source.sh &&
+           #         printf 'y' | sh ./install-from-source.sh &&
+           #         git-credential-manager-core configure &&
+           #         git config --global credential.credentialStore secretservice ; fi
 
 
                     
@@ -254,23 +270,17 @@ cd $tmp
         # zsh
         #`ZSH= sh install.sh`
         #$s apt -f -y remove zsh-autosuggestions zsh-syntax-highlighting zsh-antigen
-        $s dpkg-reconfigure zsh
-        $s chsh -s $(which zsh) # switch to zsh if not already on kali
-        for i in $(ls /home) ; do sudo rm -rf /home/$i/.oh-my-zsh ; done
-        sudo rm -rf /root/.oh-my-zsh
-        $s sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         for i in $(ls /home) ; do
-        git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git /home/$i/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-        git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git /home/$i/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-        git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /home/$i/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
-        git clone --depth=1 https://github.com/marlonrichert/zsh-autocomplete.git /home/$i/.oh-my-zsh/custom/plugins/zsh-autocomplete
-        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /home/$i/.oh-my-zsh/custom/themes/powerlevel10k ; done
-        $s git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions
-        $s git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
-        $s git clone --depth=1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
-        $s git clone --depth=1 https://github.com/marlonrichert/zsh-autocomplete.git /root/.oh-my-zsh/custom/plugins/zsh-autocomplete
-        $s git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/.oh-my-zsh/custom/themes/powerlevel10k
+        git clone --depth=1 --single-branch -j16 https://github.com/zsh-users/zsh-autosuggestions.git /home/$i/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+        git clone --depth=1 --single-branch -j16 https://github.com/zsh-users/zsh-syntax-highlighting.git /home/$i/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+        git clone --depth=1 --single-branch -j16 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /home/$i/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
+        git clone --depth=1 --single-branch -j16 https://github.com/marlonrichert/zsh-autocomplete.git /home/$i/.oh-my-zsh/custom/plugins/zsh-autocomplete
+        git clone --depth=1 --single-branch -j16 https://github.com/romkatv/powerlevel10k.git /home/$i/.oh-my-zsh/custom/themes/powerlevel10k ; done
+        $s git clone --depth=1 --single-branch -j16 https://github.com/zsh-users/zsh-autosuggestions.git /root/.oh-my-zsh/custom/plugins/zsh-autosuggestions
+        $s git clone --depth=1 --single-branch -j16 https://github.com/zsh-users/zsh-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+        $s git clone --depth=1 --single-branch -j16 https://github.com/zdharma-continuum/fast-syntax-highlighting.git /root/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
+        $s git clone --depth=1 --single-branch -j16 https://github.com/marlonrichert/zsh-autocomplete.git /root/.oh-my-zsh/custom/plugins/zsh-autocomplete
+        $s git clone --depth=1 --single-branch -j16 https://github.com/romkatv/powerlevel10k.git /root/.oh-my-zsh/custom/themes/powerlevel10k
         $s chown root /root/.oh-my-zsh/*
         #$s chmod 0600 /root/.oh-my-zsh/*
         $a zsh-autosuggestions zsh-syntax-highlighting zsh-antigen fonts-powerline
@@ -295,6 +305,7 @@ cd $basicsetup
                     $s rsync -v -K -a --force --include=".*" .bashrc ~/.bashrc
                     $s rsync -v -K -a --force --include=".*" .bashrc /root/.bashrc
                     $s rsync -v -K -a --force --include=".*" .config ~/
+                    $s rsync -v -K -a --force --include=".*" .config /root/
                     $s rsync -v -K -a --force --include=".*" .kde ~/
                     $s rsync -v -K -a --force --include=".*" .local ~/
                     $s rsync -v -K -a --force --include=".*" .gtkrc-2.0 ~/
@@ -302,8 +313,9 @@ cd $basicsetup
                     $s rsync -v -K -a --force --include=".*" MalakasUniverse /usr/share/wallpapers/
                     $s rsync -v -K -a --force --include=".*" .config/BraveSoftware/Brave-Browser-Nightly/* ~/.config/chromium/
 
-                    
-                    
+                    mkdir -p tmp ; cd tmp ; wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/Hack.zip ; unzip Hack.zip -d hackz ; sudo cp hackz/* /usr/share/fonts/truetype/hack/
+
+                     wget https://github.com/Yash-Handa/logo-ls/releases/download/v1.3.7/logo-ls_amd64.deb ; sudo dpkg -i logo-ls_amd64.deb
                     
                     
                     
@@ -328,12 +340,13 @@ cd $basicsetup/.mozilla/firefox/.default-release
                 # make sure firefox generates config
                     #inotifywait -m -e create /tmp/x | while read -r _ flags file; do if [[ $flags = CREATE,ISDIR ]]; then printf "subdirectory '%s' was created\n" "$file"; fi; done
                     #while $(ls /home/"$(ls /home)"/.mozilla/firefox) [ $? = 1 ] ; do
-                    for i in {1..20} ; do until ls /home/$(ls /home)/.mozilla/firefox/*.default-release ; do firefox | sleep 2 | sudo pkill -f firefox ; done ; done ; if $(ls /home/$(ls /home)/.mozilla/firefox) [ $? = 0 ] ; then break ; fi 
+                    for i in {1..20} ; do until ls /home/$(ls /home)/.mozilla/firefox/*.default-release ; do firefox & sleep 10 ; $s pkill -f firefox ; done ; done ; if $(ls /home/$(ls /home)/.mozilla/firefox) [ $? = 0 ] ; then break ; fi 
                     # done 
                     $s rsync -v -K -a --force --include=".*" extensions/* /usr/share/mozilla/extensions/\{ec8030f7-c20a-464f-9b0e-13a3a9e97384\}/
                     #yes | firefox -install-global-extension /usr/share/mozilla/extensions/\{ec8030f7-c20a-464f-9b0e-13a3a9e97384\}/*
                     for i in $(ls /home) ; do 
                     $s \cp -rf prefs.js /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)"/prefs.js
+                    $s \cp -rf prefs.js /etc/firefox/firefox.js
                     $s \cp -rf extensions /home/$i/.mozilla/firefox/extensions
                     $s \cp -rf extensions /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)"/extensions ; done
 
@@ -385,12 +398,12 @@ cd $source
             
             
     ### lol, dont use snap pls - disabled it again
-        $s apt purge -y snapd snap-confine && $s apt install -y snapd
-        $s systemctl enable --now snapd.socket
-        $s systemctl enable --now snapd.apparmor
-        sleep 5
-        $s apparmor_parser -r /etc/apparmor.d/*snap-confine*
-        $s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
+      #  $s apt purge -y snapd snap-confine && $s apt install -y snapd
+      #  $s systemctl enable --now snapd.socket
+      #  $s systemctl enable --now snapd.apparmor
+      #  sleep 5
+      #  $s apparmor_parser -r /etc/apparmor.d/*snap-confine*
+      #  $s apparmor_parser -r /var/lib/snapd/apparmor/profiles/snap-confine*
             mkdir -p ~/.wine && $s mkdir -p /root/.wine
             # echo "127.0.0.1 release.gitkraken.com"  | $s tee -a /etc/hosts # workaround to use kraken with private repos dunno if works
 
@@ -421,7 +434,6 @@ cd $source
 
 	#{     # start 2d part of log and append to latest log
     $s apt install --reinstall ca-certificates
-        $a kali-desktop-kde 
 
 
           #$s apt upgrade -f -y -t experimental --fix-broken --fix-missing --with-new-pkgs
@@ -445,11 +457,10 @@ cd $source
                 
                 
                             ### run preconfiguration script and meanwhile update /etc/hosts with blocklist and dns optimizations
-                $s sh init.sh # execute copied init.sh which now is /etc/rc.local
-                $s sh /etc/update_hosts.sh $sl     # remember we have executed the init.sh which is rc.local which includes stock pihole blocklists, so during setup we execute an update
+                firstrun=yes sudo ./init.sh # execute copied init.sh which now is /etc/rc.local
+               # $s sh /etc/update_hosts.sh $sl     # remember we have executed the init.sh which is rc.local which includes stock pihole blocklists, so during setup we execute an update
                 $s fc-cache -rfv
                 
-                $s dpkg-reconfigure -f noninteractive unattended-upgrades
                 
      # UPDATE: now http3 on latest firefox in this install enabled and preconfigured by default.
     ### <<<< DNSCRYPT >>>> - add enable and preconfigure cloudflaredoh. do not replace these settings if you want http3 and DoH, in the past buggy dnsscrypt-proxy was needed now it works without. http3 quic protocol only works with brave and is preconfigured in about:flags. also check about:gpu if you need to make changes depending in your hardware. 1.1.1.1/help for doublechecking dns does in fact run over DoH. pllugins for firefox have not been included anymore. 
@@ -467,31 +478,7 @@ cd $source
         $s systemctl stop --now NetworkManager NetworkManager-wait-online 
         sleep 2
         
-echo '[main]
-plugins=ifupdown,keyfile
-dns=none
-#rc-manager=unmanaged
-systemd-resolved=false
 
-[ifupdown]
-managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
-       
-       
-       #
-echo 'nameserver 1.1.1.1
-nameserver 1.0.0.1
-nameserver 127.0.0.1
-#nameserver ::1
-#nameserver 2606:4700:4700::1111
-#nameserver 2606:4700:4700::1001
-options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
-' | $s tee /etc/resolv.conf.override /etc/resolv.conf
-        $s mkdir -p /run/resolvconf
-        
-if grep -q wrt /etc/os-release ; then 
-if ! grep -q edns0 /tmp/resolv.conf.ppp ; then
-echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a /etc/resolv.conf.ppp ; fi ; fi
-        
         
 echo '#!/bin/sh
 sudo mkdir -p /run/resolvconf
@@ -544,81 +531,7 @@ sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/
         
         $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
         $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
-        $a uuid-runtime
-        #
-        $s rm -rf "/etc/NetworkManager/system-connections/*"
-        $s rm -rf '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-        $s touch '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-        $s chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-        $s chmod 0666 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-        
-        
 
-        uuidgen="$(uuidgen)"
-        sleep 1
-        
-
-echo '[connection]
-id=802-11-wireless connection 1
-uuid=
-type=wifi
-metered=2
-zone=block
-
-[wifi]
-# cloned-mac-address=1A:76:38:6B:A9:A1 # leave disabled handled by macchanger
-mode=infrastructure
-ssid=YourWifiHere
-
-[ipv4]
-dns=1.1.1.1;1.0.0.1;
-dns-search=
-ignore-auto-dns=true
-method=auto
-
-[ipv6]
-addr-gen-mode=stable-privacy
-method=disabled
-
-[proxy]' | $s tee '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-
-
-
-        $s sed -i '/uuid/c\uuid='"$uuidgen"'' "/etc/NetworkManager/system-connections/802-11-wireless connection 1"
-        
-        
-
-
-echo '[connection]
-id=Wired connection 1
-uuid=
-type=ethernet
-metered=2
-zone=block
-
-[ethernet]
-# cloned-mac-address=CA:11:D1:A5:7E:1D # leave disabled handled by macchanger
-
-[ipv4]
-dns=1.1.1.1;1.0.0.1;
-dns-search=
-ignore-auto-dns=true
-method=auto
-
-[ipv6]
-addr-gen-mode=stable-privacy
-method=disabled
-
-[proxy]' | $s tee '/etc/NetworkManager/system-connections/Wired connection 1'
-
-
-
-        $s sed -i 's/uuid/uuid='"$uuidgen"'/g' '/etc/NetworkManager/system-connections/Wired connection 1'
-        
-        
-
-        $s chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-        $s chmod 0600 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
         
         
         
@@ -650,17 +563,6 @@ method=disabled
                 
                 
 
-
-                
-                
-                
-             
-                    ### disable and mask unneeded services
-$s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service                 
-                
-$s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common avahi-daemon bluetooth gdomap smartmontools speech-dispatcher avahi-daemon.service bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service   
-
-
 $s systemctl enable --now dbus-broker
 
         # already in init.sh
@@ -670,11 +572,7 @@ $s systemctl enable --now dbus-broker
     # switch to dracut
     #$a dracut
     #$s dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f # --no-early-microcode
-    #if [ $raid = no ] ; then  
-    $s systemctl disable --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
     
-    $s systemctl mask --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
-    #fi
         ### <<<< DISK MAINTENANCE >>>> - as this script is for me i want to reduce clutter, for ease of maintenance edit yourself. im on xfs. >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         #$s rm -rf $source/tmp
         #git reset --hard    # reset and clean up source

@@ -1,48 +1,32 @@
 Package: *
-Pin: origin *kali.download
-Pin-Priority: 899
+Pin: release n=experimental
+Pin-Priority: -1
 
 Package: *
-Pin: origin *cli.github.com
-Pin-Priority: 899
+Pin: release n=unstable
+Pin-Priority: -1
 
 Package: *
-Pin: origin *apt.llvm.org
-Pin-Priority: 899
+Pin: release n=sid
+Pin-Priority: -1
 
 Package: *
-Pin: origin *brave-browser-apt-nightly.s3.brave.com
-Pin-Priority: 899
+Pin: release n=kali-rolling
+Pin-Priority: -1
 
 Package: *
-Pin: origin *dl.google.com
-Pin-Priority: 899
+Pin: release n=tesing
+Pin-Priority: 999
 
 Package: *
-Pin: origin *repo.skype.com
-Pin-Priority: 899
+Pin: release n=tesing-updates
+Pin-Priority: 999
 
 Package: *
-Pin: origin *packagecloud.io
-Pin-Priority: 899
+Pin: release n=tesing-security
+Pin-Priority: 999
 
 Package: *
-Pin: origin *dl.winehq.org/wine-builds
-Pin-Priority: 899
-
-Package: *
-Pin: origin *deb-multimedia.org
-Pin-Priority: 899
-
-Package: *
-Pin: origin *download.opensuse.org
-Pin-Priority: 899
-
-#Package: *
-#Pin: origin *debian.ipacct.com
-#Pin-Priority: 899
-
-Package: *
-Pin: origin *archive.ubuntu.com
-Pin-Priority: 1
+Pin: release n=Debian_Testing
+Pin-Priority: 999
 
