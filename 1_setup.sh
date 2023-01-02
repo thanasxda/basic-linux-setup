@@ -111,9 +111,10 @@ echo "" && echo ""
 # for editing ~/basic-linux-setup/'test*' is already in gitignore. so make a file, !#/bin/bash on top, save & chmod +x test.sh to make it executable,
 # run or copy paste parts to console individually for testing. script is usually safer, keep in mind
 cd $source
-mkdir -p $tmp
 
         $s chmod +x *
+        $s rm -rf $tmp
+        $s mkdir -p $tmp
         echo ""
         echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian
         $s sh $source/2* # execute backup sources.list script
@@ -313,7 +314,7 @@ cd $basicsetup
                     $s rsync -v -K -a --force --include=".*" MalakasUniverse /usr/share/wallpapers/
                     $s rsync -v -K -a --force --include=".*" .config/BraveSoftware/Brave-Browser-Nightly/* ~/.config/chromium/
 
-                    mkdir -p tmp ; cd tmp ; wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/Hack.zip ; unzip Hack.zip -d hackz ; sudo cp hackz/* /usr/share/fonts/truetype/hack/
+                   $s rm -rf $tmp ; $s mkdir -p $tmp ; cd $tmp ; wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/Hack.zip ; unzip Hack.zip -d hackz ; sudo cp hackz/* /usr/share/fonts/truetype/hack/
 
                      wget https://github.com/Yash-Handa/logo-ls/releases/download/v1.3.7/logo-ls_amd64.deb ; sudo dpkg -i logo-ls_amd64.deb
                     
@@ -628,7 +629,7 @@ echo "Setup took: $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) seconds to compl
 read -p "    !!!!!! PRESS < ENTER > TO REBOOT Ctrl+C TO CANCEL !!!!!!!    "     ### REBOOT
 
 
-        reboot
+         systemctl reboot
 
 
 

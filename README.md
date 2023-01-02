@@ -99,7 +99,7 @@ Assuming you followed advice by not enabling the root account and instead you ha
 Sources.list will probably not be included so head over to your basic-linux-setup folder.
 Btw, if you did not choose mountpoints for a partition you can still do so by doing:
 ```
-sudo fdisk -l # check partition you want to mountpoints
+sudo fdisk -l # check partition you want to mount
 ```
 After you have the partition for example /dev/sda3 and its xfs you would do the following to mount it:
 ```
@@ -132,6 +132,7 @@ sudo systemctl stop firewalld ufw
 # Pair your device
 sudo systemctl start firewalld ufw
 ```
+If your benches aren't good rerun the setup: sudo su ; firstrun=yes sh init.sh ; reboot.
 
 ## Main contents:
 ---

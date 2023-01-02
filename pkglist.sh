@@ -105,12 +105,19 @@ $a libxcb-xf86dri0
  uget \
  ccache \
  libxgks2 \
- libmkl-def \
  blktool \
  gedit \
  vlc \
- alien
- 
+ alien \
+ xsettings-kde
+
+$a libmkl-def \
+ dpdk
+
+$a dracut
+ # choose which of the 2 u want initramfs-tools or dracut
+#$a initramfs-tools
+
  $a libllvm-$llver-ocaml-dev \
  libllvm$llver \
  llvm-$llver \
@@ -238,6 +245,7 @@ $a libxcb-xf86dri0
  kde-config-updates \
  plasma-browser-integration \
  partitionmanager \
+ qapt-utils \
  plasma-discover-backend-flatpak plasma-discover-backend-fwupd 
 
  
@@ -248,16 +256,16 @@ $a libxcb-xf86dri0
  
  #$a libpoppler-qt6-3 
  $a qt6-base-dev 
- $a qt6ct
- $a xserver-xorg-input-evdev
+ #$a qt6ct
+ #$a xserver-xorg-input-evdev
 
 $a gcc-$gccver-offload-amdgcn -t experimental
 $a amdgcn-tools -t experimental
 $a gcc-$gccver -t experimental
 $a llvm-$llver 
 
-$rem intel-microcode 
-$rem amd-microcode
+#$rem intel-microcode 
+#$rem amd-microcode
  
  #qt6ct 
  

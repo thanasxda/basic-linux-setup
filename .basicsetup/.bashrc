@@ -155,14 +155,4 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# ccache
-export USE_CCACHE=1
-export USE_PREBUILT_CACHE=1
-export PREBUILT_CACHE_DIR=~/.ccache
-export CCACHE_DIR=~/.ccache
-ccache -M 30G >/dev/null
-
-# path
-export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games:/snap/bin'
-
 export DRI_PRIME=1
