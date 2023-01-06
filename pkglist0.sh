@@ -80,6 +80,8 @@ $a autotools-dev \
   libncurses6 \
   libncurses-dev
 
+$a tig
+  
 echo -e "$restore}"
 
 

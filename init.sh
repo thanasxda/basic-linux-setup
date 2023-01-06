@@ -45,6 +45,8 @@ fi
       # firstrun="yes"
       # if you have issues enable this for bootparams only. mainly x86. also overrides LD_PRELOAD libraries
         #safeconfig="no" not used now
+        compositor="x11"
+        windowmanager="openbox" # kwin, kwin_gles, openbox etc
 
       ### < MISC >
       # ipv6 "on" to enable
@@ -77,6 +79,7 @@ fi
       # - linux kernel tcp congestion algorithm
         tcp_con="bbr"
         if [ ! -f /proc/sys/net/core/default_qdisc ] ; then if grep -q westwood /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then export tcp_con=westwood ; else export tcp_con="cubic" ; fi ; fi
+        if grep -q bbr2 /proc/sys/net/ipv4/tcp_available_congestion_control ; then export tcp_con=bbr2 ; fi
 
       ### < QDISC >
       # - queue managment
@@ -107,13 +110,19 @@ fi
       # -
         duplex="full"
         autoneg="on"
-               
+
       ### < ADDITIONAL BLOCKLISTS FOR HOSTS FILE > - not on openwrt
         list1=
         list2=
         list3=
         list4=
-        
+        list5=
+        list6=
+        list7=
+        list8=
+        list9=
+        list10=
+
       ### < EXTRAS >
         idle="poll"
         perfamdgpu="auto" #"performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
@@ -127,6 +136,7 @@ fi
         microcode="on"
         seccomp="0"
         thp="on"
+        vdso="on"
         dracut="enabled" # include dracut in mkinitramfs firstrun
 
       ### < FSTAB FLAGS >
@@ -438,35 +448,35 @@ swappiness=10
 cpress=50
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
-# problems never stop.... from the kernel documentation: The number of kernel parameters is not limited, but the length of the complete command line (parameters including spaces etc.) is limited to a fixed number of characters. This limit depends on the architecture and is between 256 and 4096 characters. It is defined in the file ./include/asm/setup.h as COMMAND_LINE_SIZE. 
+# problems never stop.... from the kernel documentation: The number of kernel parameters is not limited, but the length of the complete command line (parameters including spaces etc.) is limited to a fixed number of characters. This limit depends on the architecture and is between 256 and 4096 characters. It is defined in the file ./include/asm/setup.h as COMMAND_LINE_SIZE.
 # if you wonder why your setup doesnt show all parameters in /proc/cmdline.... suddenly chronological order becomes important. fucking bullshit once again. and btw 6.1.1.1~exp2 debian kernel regressed performance 7% lol. so dont think its the parameters
 
 # mitigations
-if [ $mitigations = off ] ; then 
-if [ $(uname -r | cut -c1-1) -ge 5 ] ; then mit1=" mitigations=off" ; fi
+if [ $mitigations = off ] ; then
+if [ $(uname -r | cut -c1-1) -ge 5 ] ; then mit1=" mitigations=off noinvpcid" ; fi
 if lscpu | grep -q ARM || [ -f $droidprop ] ; then mit2=" nokaslr kpti=0" ; fi
 if lscpu | grep -q PPC ; then mit3=" no_stf_barrier" ; fi
 if lscpu | grep -q Intel ; then mit4=" ibpb=off kvm-intel.vmentry_l1d_flush=never mds=off" ; fi
 if lscpu | grep -q x86 ; then mit5=" noibrs nopti l1tf=off" ; fi
-if [ $(uname -r | cut -c1-1) -lt 5 ] ; then 
+if [ $(uname -r | cut -c1-1) -lt 5 ] ; then
 if lscpu | grep -q ARM || [ -f $droidprop ] ; then mit6=" ssbd=force-off nospectre_bhb" ; fi
 if lscpu | grep -q PPC ; then mit7=" no_entry_flush no_uaccess_flush" ; fi
 if lscpu | grep -q s390 ; then mit8=" nobp=0" ; fi
 if lscpu | grep -q Intel ; then mit9=" srbds=off" ; fi
 if lscpu | grep -q x86 ; then mit10=" mmio_stale_data=off retbleed=off mds=off tsx_async_abort=off kvm.nx_huge_pages=off l1tf=off spectre_v2_user=off" ; fi
-if lscpu | grep -q "x86\|PPC" ; then mit11=" nospectre_v1 spec_store_bypass_disable=off" ; fi
+if lscpu | grep -q "x86\|PPC" ; then mit11=" nospectre_v1 spec_store_bypass_disable=off" ; fi # some kernels support nospec flag instead
 if lscpu | grep -q "x86\|PPC\|s390|\ARM" || [ -f $droidprop ] ; then mit12=" nospectre_v2" ; fi
-mit13=" cpu_spec_mitigations=off" ; fi 
+fi
 xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mit13" ; fi
 
 # cpu amd/intel
 xcpu="$(if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic" ; elif lscpu | grep -q Intel ; then echo " kvm-intel.nested=1 intel_iommu=on tsx=on" ; fi)"
 #
-xvarious=" pci=noaer,pcie_bus_perf,realloc,check_enable_amd_mmconf cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog rcu_nocb_poll slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=pt page_alloc.shuffle=0 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 hpet=disable schedstats=disable ftrace_enabled=0 gpt slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig irqaffinity=0 slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -q Intel ; then echo ' unsafe_fsgsbase=1' ; fi)"
+xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grep -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog rcu_nocb_poll slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=force,pt page_alloc.shuffle=0 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet schedstats=disable ftrace_enabled=0 gpt slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig irqaffinity=0 slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -q Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages workqueue.power_efficient=0"
 #
 xrflags=$(if [ $(uname -r | cut -c1-1) -ge 4 ] ; then echo " rootflags=lazytime" ; else echo " rootflags=noatime" ; fi)
-# 
-xsched=$(if [ $(uname -r | cut -c1-1) -le 5 ] ; then echo " elevator=$sched" ; fi)  
+#
+xsched=$(if [ $(uname -r | cut -c1-1) -le 5 ] ; then echo " elevator=$sched" ; fi)
 #
 xipv6="$(if [ ! $ipv6 = on ] || $(! $wrt) ; then echo " ipv6.disable=1" ; fi)"
 #
@@ -476,11 +486,11 @@ xkaslr="$(if [ $kaslr = off ] && [ ! -f $droidprop ] || [ $kaslr = off ] && $(ls
 #
 xzsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0" ; fi)"
 # extras only with kexec
-xtra0=" libahci.ignore_sss=1 libata.force=udma7,ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pci_aspm=force pstore.backend=null"
+xtra0=" libahci.ignore_sss=1 libata.force=udma7,ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance pstore.backend=null"
 #
-xtra1=" cpufreq.default_governor=$governor cgroup_no_v1=all cryptomgr.notests nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1 nvme_core.default_ps_max_latency_us=0 pata_legacy.all=0 uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles parport=0 floppy=0 agp=0 lp=0 fstab=yes reboot=w processor.ignore_tpc=1 processor.latency_factor=1 noresume hibernate=noresume processor.bm_check_disable=1 rfkill.default_state=0$xipv6 rfkill.master_switch_mode=1" 
+xtra1=" cpufreq.default_governor=$governor cgroup_no_v1=all cryptomgr.notests nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(ls /sys/block | grep -q nvme) ; then echo " nvme_core.default_ps_max_latency_us=0" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes reboot=force,w processor.ignore_tpc=1 processor.latency_factor=1 noresume hibernate=noresume processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
 #if [ $safeconfig = no ] ; then
-xtra2="$(if [ $mitigations = off ] ; then echo ' cpu_spec_mitigations=off' ; fi) apparmor=1 autoswap biosdevname=0 boot_delay=0 carrier_timeout=1 io_delay=none ip=:::::::$dns1:$dns2: memtest=0 page_poison=0 rd.fstab=no rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 rootdelay=0 skip_ddc=1 skip_duc=1 slab_merge stack_depot_disable=true sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 vt.default_utf8=1 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig" 
+xtra2=" stack_depot_disable=true rfkill.default_state=0$xipv6 rfkill.master_switch_mode=1 io_delay=none pata_legacy.all=0 uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 carrier_timeout=1 ip=:::::::$dns1:$dns2: memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 rootdelay=0 skip_ddc=1 skip_duc=1 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 vt.default_utf8=1 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig parport=0 floppy=0 agp=0 lp=0"
 #fi
 # disable radeon and have just amdgpu workaround for performance degradation in some gpus. need to unlock for manual control of voltages, didnt work for me
 #unlockgpu="$(printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))")"
@@ -490,7 +500,7 @@ xtra2="$(if [ $mitigations = off ] ; then echo ' cpu_spec_mitigations=off' ; fi)
 #
 #x="$( if dmesg | grep -q i915 ; then echo " i915.modeset=1 i915.enable_ppgtt=3 i915.fastboot=0 i915.enable_fbc=1 i915.enable_guc=3 i915.lvds_downclock=1 i915.semaphores=1 i915.reset=0 i915.enable_dc=2 i915.enable_psr=0 i915.enable_cmd_parser=1 i915.enable_rc6=0 i915.lvds_use_ssc=0 i915.use_mmio_flip=1 i915.disable_power_well=1 i915.powersave=1 i915.enable_execlists=0" ; else echo " i915.enable_rc6=0" ; fi)"
 #
-#swiotlb=force processor.max_cstate=$maxcstate nohz_full=1-$(nproc) 
+#swiotlb=force processor.max_cstate=$maxcstate nohz_full=1-$(nproc)
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
@@ -499,9 +509,9 @@ xtra2="$(if [ $mitigations = off ] ; then echo ' cpu_spec_mitigations=off' ; fi)
                                         export par="quiet splash$bootargvars$xtra0$xtra1$xtra2"
 
                                         if [ $uninstall = yes ] ; then par="quiet splash" ; fi
-                                        
+
 # module options
-for i in modprobe ; do 
+for i in modprobe ; do
 $i ahci mobile_lpm_policy=0
 $i cec debug=0
 $i cpufreq default_governor=$governor
@@ -509,16 +519,17 @@ $i cryptomgr notests
 $i kvm mmu_audit=0
 $i libahci ignore_sss=1
 $i libata force=udma7,ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer
-$i nf_conntrack acct=0 
+$i nf_conntrack acct=0
 $i nfs enable_ino64=1
-$i nvme_core default_ps_max_latency_us=0
+if $(ls /sys/block | grep -q nvme) ; then
+$i nvme_core default_ps_max_latency_us=0 ; fi
 $i pata_legacy all=0
 $i processor bm_check_disable=1
-$i processor ignore_tpc=1 
+$i processor ignore_tpc=1
 $i processor latency_factor=1
 $i processor max_cstate=$maxcstate
 $i pstore backend=null
-$i rfkill default_state=0 
+$i rfkill default_state=0
 $i rfkill master_switch_mode=1
 $i scsi_mod use_blk_mq=1
 $i uhci-hcd debug=0
@@ -584,13 +595,13 @@ $i amdgpu no_system_mem_limit=true
 $i amdgpu tmz=1
 $i amdgpu ip_block_mask=0xffffffff
 $i amdgpu vcnfw_log=0 ; fi
-if [ $ipv6 = off ] ; then 
-$i ipv6 disable_ipv6=1 
-$i ipv6 disable=1 
+if [ $ipv6 = off ] ; then
+$i ipv6 disable_ipv6=1
+$i ipv6 disable=1
 $i ipv6 autoconf=0 ; elif
-[ $ipv6 = on ] ; then 
-$i ipv6 disable_ipv6=0 
-$i ipv6 disable=0 
+[ $ipv6 = on ] ; then
+$i ipv6 disable_ipv6=0
+$i ipv6 disable=0
 $i ipv6 autoconf=1 ; fi
 done
 
@@ -616,7 +627,7 @@ if [ $? -eq 0 ]; then
 if [ -e /system/build.prop ] ; then '"$bb"'mount -o remount,rw /system ; export ifdr="/system" ; fi
 rm -rf "$ifdr"/etc/hosts "$ifdr"/etc/hosts_temp &&
 mkdir -p "$ifdr"/etc/hosts_temp && cd "$ifdr"/etc/hosts_temp
-'"$bb"'echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
+'"$bb"'echo '\''options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 single-request-reopen no-tld-query
 127.0.0.1 localhost'\'' | tee "$ifdr"/etc/hosts
 echo "127.0.1.1 $(cat "$ifdr"/etc/hostname)" | tee -a "$ifdr"/etc/hosts
 x1="$('"$bb"'wget $u1 -O "$ifdr"/etc/hosts_temp/u1'"$wg"')"
@@ -636,11 +647,23 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7
               l2='"$list2"'
               l3='"$list3"'
               l4='"$list4"'
-              c1="$('"$bb"'wget $l1 -O "$ifdr"/etc/hosts_temp/u7'"$wg"')"
-              c2="$('"$bb"'wget $l2 -O "$ifdr"/etc/hosts_temp/u8'"$wg"')"
-              c3="$('"$bb"'wget $l3 -O "$ifdr"/etc/hosts_temp/u9'"$wg"')"
-              c4="$('"$bb"'wget $l4 -O "$ifdr"/etc/hosts_temp/u10'"$wg"')"
-            if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || echo fail ; fi
+              l5='"$list5"'
+              l6='"$list6"'
+              l7='"$list7"'
+              l8='"$list8"'
+              l9='"$list9"'
+              l10='"$list10"'
+              c1="$('"$bb"'wget $l1 -O "$ifdr"/etc/hosts_temp/u11'"$wg"')"
+              c2="$('"$bb"'wget $l2 -O "$ifdr"/etc/hosts_temp/u12'"$wg"')"
+              c3="$('"$bb"'wget $l3 -O "$ifdr"/etc/hosts_temp/u13'"$wg"')"
+              c4="$('"$bb"'wget $l4 -O "$ifdr"/etc/hosts_temp/u14'"$wg"')"
+              c5="$('"$bb"'wget $l5 -O "$ifdr"/etc/hosts_temp/u15'"$wg"')"
+              c6="$('"$bb"'wget $l6 -O "$ifdr"/etc/hosts_temp/u16'"$wg"')"
+              c7="$('"$bb"'wget $l7 -O "$ifdr"/etc/hosts_temp/u17'"$wg"')"
+              c8="$('"$bb"'wget $l8 -O "$ifdr"/etc/hosts_temp/u18'"$wg"')"
+              c9="$('"$bb"'wget $l9 -O "$ifdr"/etc/hosts_temp/u19'"$wg"')"
+              c10="$('"$bb"'wget $l10 -O "$ifdr"/etc/hosts_temp/u20'"$wg"')"
+            if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || $c5 && $c5 || $c6 && $c6 || $c7 && $c7 || $c8 && $c8 || $c9 && $c9 || $c10 && $c10 || echo fail ; fi
 
 cd "$ifdr"/etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a "$ifdr"/etc/hosts
 cd "$(pwd)" && rm -rf "$ifdr"/etc/hosts_temp
@@ -695,7 +718,8 @@ done'
         if echo "$(pwd)" | grep -q basic-linux-setup ; then export firstrun=yes ; firstrun=yes ; fi
         if [ $firstrun = yes ] ; then export DEBIAN_FRONTEND=noninteractive ; DEBIAN_FRONTEND=noninteractive ; fi
 
-      sed -i 's/ACTIVE_CONSOLES=.*/ACTIVE_CONSOLES="\/dev\/tty[1-6]"/g' /etc/default/console-setup
+               if $debian ; then
+      #sed -i 's/ACTIVE_CONSOLES=.*/ACTIVE_CONSOLES="\/dev\/tty[1-6]"/g' /etc/default/console-setup
       #sed -i 's/#NAutoVTs=.*/#NAutoVTs=0/g' /etc/systemd/logind.conf
       #sed -i 's/#UserStopDelaySec=.*/UserStopDelaySec=1/g' /etc/systemd/logind.conf
       #sed -i 's/#ReserveVT=.*/ReserveVT=1/g' /etc/systemd/logind.conf
@@ -705,14 +729,28 @@ done'
       sed -i 's/#HandleRebootKey=.*/HandleRebootKey=reboot/g' /etc/systemd/logind.conf
       sed -i 's/#HandlePowerKey=.*/HandlePowerKey=poweroff/g' /etc/systemd/logind.conf
       #sed -i 's/#HoldoffTimeoutSec=.*/HoldoffTimeoutSec=1/g' /etc/systemd/logind.conf
-       if $debian ; then sed -i 's/RESUME=UUID=/#RESUME=UUID=/g' /etc/initramfs-tools/conf.d/resume ; fi
+      sed -i 's/RESUME=UUID=/#RESUME=UUID=/g' /etc/initramfs-tools/conf.d/resume
+
+     sed -i 's/background: Some(.*/background: Some(9),/g' /etc/system76-scheduler/config.ron
+     sed -i 's/foreground: Some(.*/foreground: Some(-19),/g' /etc/system76-scheduler/config.ron
+
+    if $(! grep -q pulseaudio /etc/system76-scheduler/assignments/default.ron) ; then
+     sed -i 's/"wireplumber",/"wireplumber",\n"alsa",\n"pulseaudio",/g' /etc/system76-scheduler/assignments/default.ron ; fi
+
+    if $(! grep -q brave-browser-nightly /etc/system76-scheduler/assignments/default.ron) ; then
+     sed -i 's/"Xorg",/"Xorg",\n"kwin_x11",\n"kwin_wayland",\n"openbox",\n"firefox",\n"chromium",\n"brave-browser-nightly",\n"google-earth-pro",\n"gitkraken",\n"github-desktop",\n"konsole",/g' /etc/system76-scheduler/assignments/default.ron ; fi
+
+    if $(! grep -q dbus-broker /etc/system76-scheduler/assignments/default.ron) ; then
+     sed -i 's/"dbus",/"dbus",\n"dbus-broker",/g' /etc/system76-scheduler/assignments/default.ron ; fi
+
+    fi
 
 
          if $debian ; then cclm=$(ls /usr/lib | grep 'llvm-' | tail -n 1 | rev | cut -c-3 | rev) ; elif [ $firstrun = yes ] && $debian ; then cclm="$(apt-cache search llvm | awk '{print $1}' | grep "llvm-.*-runtime" | sort -n | tail -n 1 | cut -c5-7)" ; fi
          if $(! $debian) ; then cclm=$(echo "") ; fi
-         if [ ! -f droidprop ] && $debian ; then maxframes="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '.' '{print $1}' | awk '{print $2}')" ; ompthreads=$(nproc --all) ; fi #ompthreads=$(($(nproc --all)*4)) ; fi
+         if [ ! -f $droidprop ] && $debian ; then export maxframes="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '.' '{print $1}' | awk '{print $2}')" ; fi #ompthreads=$(($(nproc --all)*4)) ; fi
 
-    
+
 
 
 if $(! grep -q '* soft nofile 524288' /etc/security/limits.conf) ; then
@@ -906,7 +944,7 @@ fi
     $s sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE="'"$resolution"'"/g' /etc/default/grub
 
 
-    
+
 
 
 
@@ -1016,9 +1054,9 @@ fi
 
   ### < ADDITIONAL LINUX CONFIG >
   # ssh
-      if $s grep -q "Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com," ~/.ssh/config ; then
+      if $s grep -q "Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com," $HOME/.ssh/config ; then
       $s echo "Flag exists"; else $s echo 'Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
-      Compression yes' | $s tee -a ~/.ssh/config /root/.ssh/config ; fi
+      Compression yes' | $s tee -a $HOME/.ssh/config /root/.ssh/config ; fi
       $s sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" "$ifdr"/etc/ssh/sshd_config
       $s sed -i "/X11Forwarding yes/c\X11Forwarding no" "$ifdr"/etc/ssh/sshd_config
       $s sed -i "/#AllowTcpForwarding yes/c\AllowTcpForwarding no" "$ifdr"/etc/ssh/sshd_config
@@ -1053,13 +1091,14 @@ fi
 
 
   # preload
-        sed -i 's/memfree =.*/memfree = 100/g'         /etc/preload.conf
-        sed -i 's/memcached =.*/memcached = 30/g'       /etc/preload.conf
-        sed -i 's/processes =.*/processes = 60/g'      /etc/preload.conf
-        
-        
-        
-        
+        sed -i 's/memfree =.*/memfree = 50/g' /etc/preload.conf
+        sed -i 's/memcached =.*/memcached = 0/g' /etc/preload.conf
+        sed -i 's/processes =.*/processes = 500/g' /etc/preload.conf
+        sed -i 's/memtotal =.*/memtotal = -10/g' /etc/preload.conf
+        sed -i 's/minsize =.*/minsize = 10000/g' /etc/preload.conf
+
+
+
   # hdparm
       sed -i 's/#apm =.*/apm = 254/g' /etc/hdparm.conf
       sed -i 's/#dma =.*/dma = on/g' /etc/hdparm.conf
@@ -1067,9 +1106,9 @@ fi
       sed -i 's/#keep_features_over_reset =.*/keep_features_over_reset = on/g' /etc/hdparm.conf
       sed -i 's/#write_cache =.*/write_cache = on/g' /etc/hdparm.conf
 
-    
-    
-    
+
+
+
   # force apt only to use ipv4
     if [ ! $ipv6 = on ] ; then echo 'Acquire::ForceIPv4 "true";' | $s tee -a /etc/apt/apt.conf.d/99force-ipv4 ; else echo 'Acquire::ForceIPv4 "false";' | $s tee -a /etc/apt/apt.conf.d/99force-ipv4 ; fi
   # dont aquire translations for apt
@@ -1130,12 +1169,12 @@ nameserver '"$dns61"'
 nameserver '"$dns62"'/g' "$ifdr"/etc/resolv/conf ; fi
 
     if $(! grep -q edns0 "$ifdr"/etc/resolv.conf) ; then
-    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query' | tee -a "$ifdr"/etc/resolv.conf ; fi
+    echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 single-request-reopen no-tld-query' | tee -a "$ifdr"/etc/resolv.conf ; fi
 
 
 
   if $(! grep -q "filterwin2k " "$ifdr"/etc/hosts) ; then
-echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
+echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 single-request-reopen no-tld-query
 127.0.0.1 localhost
 ::1 localhost' | tee -a "$ifdr"/etc/hosts ; fi
     if $(! grep -a "127.0.1.1 "$(cat "$ifdr"/etc/hostname)"" "$ifdr"/etc/hosts) ; then
@@ -1277,7 +1316,7 @@ fi
   iptables -A INPUT -p tcp --dport 23 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
 
-        # config dracut as well in case of not using initramfs-tools 
+        # config dracut as well in case of not using initramfs-tools
                     #if echo "$zswap" | grep -q "zswap.enabled=1" ; then draczswap=" zsmalloc z3fold" ; fi
           if [ $dracut = enabled ] && [ $firstrun = yes ] ; then
             dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4"
@@ -1416,7 +1455,7 @@ echo "0" > /dev/cpuset/restricted/cpus
 #echo "0-7" /dev/cpuset/system-background/cpus
 #echo "0-3" > /dev/cpuset/kernel/cpus
 
-echo "0" > /sys/module/workqueue/parameters/power_efficient
+echo "N" > /sys/module/workqueue/parameters/power_efficient
 echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
 echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
 echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
@@ -1924,7 +1963,7 @@ echo 0 > /sys/module/dns_resolver/parameters/debug
 echo 0 > /sys/module/dsscomp/parameters/debug
 echo 0 > /sys/module/ehci_hcd/parameters/log2_irq_thresh
 echo 0 > /sys/module/hid/parameters/debug
-echo "(null)" > /sys/module/hid_prodikeys/parameters/id
+echo null > /sys/module/hid_prodikeys/parameters/id
 echo $( if [ $ipv6 = on ] ; then echo "1" ; else echo "0" ; fi) > /sys/module/ipv6/parameters/autoconf
 echo $( if [ $ipv6 = off ] ; then echo "1" ; else echo "0" ; fi) > /sys/module/ipv6/parameters/disable
 echo $( if [ $ipv6 = off ] ; then echo "1" ; else echo "0" ; fi) > /sys/module/ipv6/parameters/disable_ipv6
@@ -3024,8 +3063,8 @@ echo 32 > /sys/module/fscrypto/parameters/num_prealloc_crypto_pages
 echo N > /sys/module/fuse/parameters/allow_sys_admin_access
 echo 1281 > /sys/module/fuse/parameters/max_user_bgreq
 echo 1281 > /sys/module/fuse/parameters/max_user_congthresh
-echo "(null)" > /sys/module/gpiolib_acpi/parameters/ignore_interrupt
-echo "(null)" > /sys/module/gpiolib_acpi/parameters/ignore_wake
+echo null > /sys/module/gpiolib_acpi/parameters/ignore_interrupt
+echo null > /sys/module/gpiolib_acpi/parameters/ignore_wake
 echo 1 > /sys/module/gpiolib_acpi/parameters/run_edge_events_on_boot
 echo 0 > /sys/module/hid/parameters/debug
 echo 1 > /sys/module/hid/parameters/ignore_special_drivers
@@ -3045,7 +3084,7 @@ echo 0 > /sys/module/kernel/parameters/consoleblank
 echo N > /sys/module/kernel/parameters/crash_kexec_post_notifiers
 echo N > /sys/module/kernel/parameters/ignore_rlimit_data
 echo N > /sys/module/kernel/parameters/initcall_debug
-echo "(null)" > /sys/module/kernel/parameters/module_blacklist
+echo null > /sys/module/kernel/parameters/module_blacklist
 echo 0 > /sys/module/kernel/parameters/panic
 echo 0 > /sys/module/kernel/parameters/panic_on_warn
 echo 0 > /sys/module/kernel/parameters/panic_print
@@ -3132,14 +3171,14 @@ echo 100000 > /sys/module/nvme_core/parameters/apst_secondary_latency_tol_us
 echo 2000 > /sys/module/nvme_core/parameters/apst_secondary_timeout_ms
 echo 0 > /sys/module/nvme_core/parameters/default_ps_max_latency_us
 echo N > /sys/module/nvme_core/parameters/force_apst
-echo numa > /sys/module/nvme_core/parameters/iopolicy
+#echo numa > /sys/module/nvme_core/parameters/iopolicy
 echo 30 > /sys/module/nvme_core/parameters/io_timeout
 echo 5 > /sys/module/nvme_core/parameters/max_retries
 echo Y > /sys/module/nvme_core/parameters/multipath
 echo 5 > /sys/module/nvme_core/parameters/shutdown_timeout
 echo N > /sys/module/page_alloc/parameters/shuffle
 echo 11 > /sys/module/page_reporting/parameters/page_reporting_order
-echo [default] > /sys/module/pcie_aspm/parameters/policy
+echo [performance] > /sys/module/pcie_aspm/parameters/policy
 echo N > /sys/module/pciehp/parameters/pciehp_poll_mode
 echo 0 > /sys/module/pciehp/parameters/pciehp_poll_time
 echo N > /sys/module/pci_hotplug/parameters/debug
@@ -3192,7 +3231,7 @@ echo 1 > /sys/module/rcutree/parameters/jiffies_till_first_fqs
 echo 1 > /sys/module/rcutree/parameters/jiffies_till_next_fqs
 echo 18446744073709551615 > /sys/module/rcutree/parameters/jiffies_till_sched_qs
 echo 25 > /sys/module/rcutree/parameters/jiffies_to_sched_qs
-echo 0 > /sys/module/rcutree/parameters/kthread_prio
+#echo 0 > /sys/module/rcutree/parameters/kthread_prio
 echo 10000 > /sys/module/rcutree/parameters/qhimark
 echo 100 > /sys/module/rcutree/parameters/qlowmark
 echo 20000 > /sys/module/rcutree/parameters/qovld
@@ -3230,15 +3269,15 @@ echo N > /sys/module/snd_hda_codec_hdmi/parameters/static_hdmi_pcm
 echo -1 > /sys/module/snd_hda_codec/parameters/dump_coef
 echo -1 > /sys/module/snd_hda_intel/parameters/align_buffer_size
 echo -1 > /sys/module/snd_hda_intel/parameters/bdl_pos_adj
-echo Y, > /sys/module/snd_hda_intel/parameters/beep_mode
+echo N > /sys/module/snd_hda_intel/parameters/beep_mode
 echo N > /sys/module/snd_hda_intel/parameters/dmic_detect
-echo Y > /sys/module/snd_hda_intel/parameters/enable
+#echo Y > /sys/module/snd_hda_intel/parameters/enable
 echo -1 > /sys/module/snd_hda_intel/parameters/enable_msi
-echo "(null)" > /sys/module/snd_hda_intel/parameters/id
+echo null > /sys/module/snd_hda_intel/parameters/id
 echo -1 > /sys/module/snd_hda_intel/parameters/index
 echo 0 > /sys/module/snd_hda_intel/parameters/jackpoll_ms
-echo "(null)" > /sys/module/snd_hda_intel/parameters/model
-echo "(null)" > /sys/module/snd_hda_intel/parameters/patch
+echo null > /sys/module/snd_hda_intel/parameters/model
+echo null > /sys/module/snd_hda_intel/parameters/patch
 echo Y > /sys/module/snd_hda_intel/parameters/pm_blacklist
 echo -1 > /sys/module/snd_hda_intel/parameters/position_fix
 echo 1 > /sys/module/snd_hda_intel/parameters/power_save
@@ -3252,7 +3291,7 @@ echo 0 > /sys/module/snd_intel_sdw_acpi/parameters/sdw_link_mask
 echo 1 > /sys/module/snd/parameters/cards_limit
 echo 116 > /sys/module/snd/parameters/major
 echo 8388608 > /sys/module/snd/parameters/max_user_ctl_alloc_size
-echo "(null)" > /sys/module/snd/parameters/slots
+echo null > /sys/module/snd/parameters/slots
 echo 33554432 > /sys/module/snd_pcm/parameters/max_alloc_per_card
 echo 4 > /sys/module/snd_pcm/parameters/maximum_substreams
 echo 1 > /sys/module/snd_pcm/parameters/preallocate_dma
@@ -3321,7 +3360,6 @@ echo 5000 > /sys/module/usbcore/parameters/initial_descriptor_timeout
 echo N > /sys/module/usbcore/parameters/nousb
 echo N > /sys/module/usbcore/parameters/old_scheme_first
 echo p > /sys/module/usbcore/parameters/quirks
-echo  > /sys/module/usbcore/parameters/quirks
 echo 16 > /sys/module/usbcore/parameters/usbfs_memory_mb
 echo N > /sys/module/usbcore/parameters/usbfs_snoop
 echo 65536 > /sys/module/usbcore/parameters/usbfs_snoop_max
@@ -3330,7 +3368,7 @@ echo 0 > /sys/module/usbhid/parameters/ignoreled
 echo 0 > /sys/module/usbhid/parameters/jspoll
 echo 0 > /sys/module/usbhid/parameters/kbpoll
 echo 0 > /sys/module/usbhid/parameters/mousepoll
-echo "(null)" > /sys/module/usbhid/parameters/quirks
+echo null > /sys/module/usbhid/parameters/quirks
 echo 1 > /sys/module/usb_storage/parameters/delay_use
 echo 1 > /sys/module/usb_storage/parameters/option_zero_cd
 echo p > /sys/module/usb_storage/parameters/quirks
@@ -3406,7 +3444,7 @@ echo 1 > /sys/kernel/mm/ksm/merge_across_nodes
 
 echo "1" > /sys/module/subsystem_restart/parameters/disable_restart_work
 
-echo "(null)" > /sys/kernel/cgroup/features
+echo null > /sys/kernel/cgroup/features
 
 
 #
@@ -3415,7 +3453,7 @@ echo "1" > /sys/kernel/sound_control/mic_gain
 echo "1" > /proc/sys/dev/cnss/randomize_mac
 
 # amdgpu
-if dmesg | grep -q amdgpu ; then
+#if dmesg | grep -q amdgpu ; then
 # command to dump yours: for i in $(ls /sys/module/amdgpu/parameters) ; do echo "#echo -1 > /sys/module/amdgpu/parameters/$i" ; done
 # more info: https://www.kernel.org/doc/html/v4.20/gpu/amdgpu.html
 #echo -1 > /sys/module/amdgpu/parameters/abmlevel
@@ -3500,8 +3538,8 @@ echo 0 > /sys/module/amdgpu/parameters/vm_fault_stop
 #echo -1 > /sys/module/amdgpu/parameters/vm_size
 #echo -1 > /sys/module/amdgpu/parameters/vm_update_mode
 #echo -1 > /sys/module/amdgpu/parameters/vramlimit
-fi
-if dmesg | grep -q radeon ; then
+#fi
+#if dmesg | grep -q radeon ; then
 echo 0 > /sys/module/radeon/parameters/agpmode
 echo 1 > /sys/module/radeon/parameters/aspm
 echo 0 > /sys/module/radeon/parameters/audio
@@ -3534,8 +3572,8 @@ echo 0 > /sys/module/radeon/parameters/tv
 #echo -1 > /sys/module/radeon/parameters/vce
 #echo -1 > /sys/module/radeon/parameters/vm_block_size
 #echo -1 > /sys/module/radeon/parameters/vm_size
-#echo -1 > /sys/module/radeon/parameters/vramlimit 
-fi
+#echo -1 > /sys/module/radeon/parameters/vramlimit
+#fi
 
 if echo $zswap | grep -q "zswap.enabled=1" ; then
 echo 90 > /sys/module/zswap/parameters/accept_threshold_percent
@@ -3622,7 +3660,7 @@ echo N > /sys/module/ehci_hcd/parameters/log2_irq_thresh
 echo N > /sys/module/nmi_backtrace/parameters/backtrace_idle
 echo N > /sys/module/ramoops/parameters/ftrace_size
 echo 99999999999999999999999999999999 > /sys/module/pstore/parameter/update_ms
-echo "(null)" > /sys/module/pstore/parameters/backend
+echo null > /sys/module/pstore/parameters/backend
 
 # general and omit debugging android, x86 and more
 /etc/init.d/syslogd stop
@@ -4345,9 +4383,9 @@ sysctl -w kernel.sched_schedstats=0
 
 
 
-
-
-
+echo Y > /sys/module/tcp_bbr2/parameters/ecn_enable
+echo N > /sys/module/tcp_bbr2/parameters/debug_ftrace
+echo Y > /sys/module/tcp_bbr2/parameters/fast_path
 
 
 
@@ -5061,7 +5099,7 @@ wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basic
 
 
 sed -i 's/StartServer=.*/StartServer=false/g' /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/akonadi/akonadiserverrc
- 
+
 
 
 
@@ -5071,17 +5109,7 @@ if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsuj
 
 
 
-# xorg screen
-echo 'Section "Screen"
-       Identifier     "Screen"
-       DefaultDepth    24
-       SubSection      "Display"
-       Depth           24
-       Option "NoAccel" "false"
-       Option "Accel" "true"
-       Option "DPMS" "true"
-       EndSubSection
-EndSection' | tee /etc/X11/xorg.conf.d/10-screen.conf
+
 
 echo '#!/bin/sh
 
@@ -5113,82 +5141,81 @@ rm -f /etc/xdg/autostart/tracker-miner-fs-3.desktop /etc/xdg/autostart/snap-user
 echo '<driconf>
 <device driver="amdgpu">
 <application name="Default">
+<option name="adaptive_sync" type="bool" value="true"/>
+<option name="allow_draw_out_of_order" type="bool" default="true" value="true"/>
+<option name="allow_extra_pp_tokens" value="false"/>
+<option name="allow_glsl_120_subset_in_110" value="true"/>
+<option name="allow_glsl_builtin_const_expression" value="false"/>
+<option name="allow_glsl_builtin_variable_redeclaration" value="true"/>
+<option name="allow_glsl_compat_shaders" value="false"/>
+<option name="allow_glsl_cross_stage_interpolation_mismatch" value="true"/>
+<option name="allow_glsl_extension_directive_midshader" value="false"/>
+<option name="allow_glsl_relaxed_es" value="true"/>
+<option name="allow_higher_compat_version" value="true"/>
+<option name="allow_invalid_glx_destroy_window" type="bool" default="false"/>
+<option name="allow_rgb10_configs" type="bool" default="true"/>
+<option name="always_have_depth_buffer" type="bool" default="true"/>
+<option name="disable_arb_gpu_shader5" value="0"/>
+<option name="disable_blend_func_extended" value="false"/>
+<option name="disable_glsl_line_continuations" value="false"/>
+<option name="do_dce_before_clip_cull_analysis" value="true"/>
+<option name="force_compat_profile" type="bool" default="false"/>
+<option name="force_compat_shaders" type="bool" default="false"/>
+<option name="force_direct_glx_context" type="bool" default="true" value="true"/>
+<option name="force_gl_map_buffer_synchronized" type="bool" default="false"/>
+<option name="force_gl_names_reuse" value="false"/>
+<option name="force_gl_renderer" type="string" default=""/>
+<option name="force_gl_vendor" type="string" default=""/>
+<option name="force_glsl_abs_sqrt" value="false"/>
+<option name="force_glsl_extensions_warn" value="false"/>
+<option name="force_glsl_version" value="4.6"/>
+<option name="force_integer_tex_nearest" type="bool" default="false"/>
+<option name="force_protected_content_check" type="bool" default="false"/>
+<option name="force_s3tc_enable" value="true"/>
+<option name="fragment_shader" value="true"/>
+<option name="fthrottle_mode" value="1"/>
+<option name="glsl_correct_derivatives_after_discard" value="false"/>
+<option name="glsl_ignore_write_to_readonly_var" default="false"/>
+<option name="glsl_zero_init" type="bool" default="false"/>
+<option name="glthread_nop_check_framebuffer_status" type="bool" default="false"/>
+<option name="glx_extension_override" type="string" default=""/>
+<option name="ignore_map_unsynchronized" type="bool" default="false"/>
+<option name="indirect_gl_extension_override" type="string" default=""/>
+<option name="keep_native_window_glx_drawable" type="bool" default="false"/>
+<option name="mesa_extension_override" type="string" default=""/>
 <option name="mesa_glthread" value="true"/>
 <option name="mesa_no_error" value="true"/>
+<option name="override_vram_size" type="int" default="-1" valid="-1:2147483647"/>
 <option name="pp_celshade" value="0"/>
 <option name="pp_jimenezmlaa" value="0"/>
 <option name="pp_jimenezmlaa_color" value="0"/>
-<option name="force_glsl_extensions_warn" value="false"/>
-<option name="disable_glsl_line_continuations" value="false"/>
-<option name="disable_blend_func_extended" value="false"/>
-<option name="disable_arb_gpu_shader5" value="0"/>
-<option name="force_glsl_version" value="4.6"/>
-<option name="allow_extra_pp_tokens" value="false"/>
-<option name="allow_glsl_extension_directive_midshader" value="false"/>
-<option name="allow_glsl_120_subset_in_110" value="true"/>
-<option name="allow_glsl_builtin_const_expression" value="false"/>
-<option name="allow_glsl_relaxed_es" value="true"/>
-<option name="allow_glsl_builtin_variable_redeclaration" value="true"/>
-<option name="allow_glsl_cross_stage_interpolation_mismatch" value="false"/>
-<option name="do_dce_before_clip_cull_analysis" value="true"/>
-<option name="allow_higher_compat_version" value="true"/>
-<option name="allow_glsl_compat_shaders" value="false"/>
-<option name="force_glsl_abs_sqrt" value="false"/>
-<option name="glsl_correct_derivatives_after_discard" value="false"/>
-<option name="glsl_ignore_write_to_readonly_var" default="false"/>
-<option name="allow_draw_out_of_order" type="bool" default="true" value="true"/>
-<option name="glthread_nop_check_framebuffer_status" type="bool" default="false"/>
-<option name="force_compat_profile" type="bool" default="false"/>
-<option name="force_compat_shaders" type="bool" default="false"/>
-<option name="force_gl_names_reuse" value="false"/>
-<option name="force_gl_map_buffer_synchronized" type="bool" default="false"/>
-<option name="transcode_etc" type="bool" default="false"/>
+<option name="precise_trig" value="true"/>
+<option name="radeonsi_aux_debug" value="false"/>
+<option name="radeonsi_clamp_div_by_zero" type="bool" default="false"/>
+<option name="radeonsi_dcc_msaa" value="true"/>
+<option name="radeonsi_debug_disassembly" value="false"/>
+<option name="radeonsi_disable_sam" value="false"/>
+<option name="radeonsi_dump_shader_binary" value="false"/>
+<option name="radeonsi_enable_sam" value="true"/>
+<option name="radeonsi_force_use_fma32" default="false"/>
+<option name="radeonsi_fp16" type="bool" default="true"/>
+<option name="radeonsi_halt_shaders" value="false"/>
+<option name="radeonsi_inline_uniforms" value="true"/>
+<option name="radeonsi_mall_noalloc" value="false"/>
+<option name="radeonsi_max_vram_map_size" type="int" default="8196" valid="-2147483648:2147483647"/>
+<option name="radeonsi_no_infinite_interp" type="bool" default="false"/>
+<option name="radeonsi_sync_compile" value="false"/>
+<option name="radeonsi_tc_max_cpu_storage_size" type="int" default="2500" valid="-2147483648:2147483647"/>
+<option name="radeonsi_vrs2x2" value="true"/>
+<option name="radeonsi_vs_fetch_always_opencode" value="false"/>
+<option name="radeonsi_zerovram" value="false"/>
+<option name="stub_occlusion_query" value="true"/>
+<option name="tcl_mode" value="3"/>
 <option name="transcode_astc" type="bool" default="false"/>
-<option name="force_gl_vendor" type="string" default=""/>
-<option name="force_gl_renderer" type="string" default=""/>
-<option name="override_vram_size" type="int" default="-1" valid="-1:2147483647"/>
-<option name="glx_extension_override" type="string" default=""/>
-<option name="mesa_extension_override" type="string" default=""/>
-<option name="indirect_gl_extension_override" type="string" default=""/>
-<option name="force_protected_content_check" type="bool" default="false"/>
-<option name="ignore_map_unsynchronized" type="bool" default="false"/>
-<option name="force_direct_glx_context" type="bool" default="true" value="true"/>
-<option name="allow_invalid_glx_destroy_window" type="bool" default="false"/>
-<option name="keep_native_window_glx_drawable" type="bool" default="false"/>
-<option name="always_have_depth_buffer" type="bool" default="true"/>
-<option name="glsl_zero_init" type="bool" default="false"/>
+<option name="transcode_etc" type="bool" default="false"/>
+<option name="vblank_mode" value="0"/>
 <option name="vs_position_always_invariant" type="bool" default="false"/>
 <option name="vs_position_always_precise" type="bool" default="false"/>
-<option name="allow_rgb10_configs" type="bool" default="true"/>
-<option name="force_integer_tex_nearest" type="bool" default="false"/>
-<option name="adaptive_sync" type="bool" value="true"/>
-<option name="mesa_glthread" type="bool" value="true"/>
-<option name="radeonsi_inline_uniforms" value="true"/>
-<option name="radeonsi_aux_debug" value="false"/>
-<option name="radeonsi_sync_compile" value="false"/>
-<option name="radeonsi_dump_shader_binary" value="false"/>
-<option name="radeonsi_debug_disassembly" value="false"/>
-<option name="radeonsi_halt_shaders" value="false"/>
-<option name="radeonsi_vs_fetch_always_opencode" value="false"/>
-<option name="radeonsi_no_infinite_interp" type="bool" default="false"/>
-<option name="radeonsi_clamp_div_by_zero" type="bool" default="false"/>
-<option name="radeonsi_vrs2x2" value="true"/>
-<option name="radeonsi_enable_sam" value="true"/>
-<option name="radeonsi_disable_sam" value="false"/>
-<option name="radeonsi_fp16" type="bool" default="true"/>
-<option name="radeonsi_tc_max_cpu_storage_size" type="int" default="2500" valid="-2147483648:2147483647"/>
-<option name="radeonsi_max_vram_map_size" type="int" default="8196" valid="-2147483648:2147483647"/>
-<option name="radeonsi_force_use_fma32" value="false"/>
-<option name="radeonsi_dcc_msaa" value="true"/>
-<option name="radeonsi_mall_noalloc" value="false"/>
-<option name="radeonsi_zerovram" value="false"/>
-<option name="force_s3tc_enable" value="true"/>
-<option name="precise_trig" value="true"/>
-<option name="tcl_mode" value="3"/>
-<option name="fthrottle_mode" value="1"/>
-<option name="vblank_mode" value="0"/>
-<option name="stub_occlusion_query" value="true"/>
-<option name="fragment_shader" value="true"/>
 </application>
 </device>
 </driconf>' | tee /home/$(ls /home)/.drirc /root/.drirc /etc/drirc
@@ -5227,7 +5254,7 @@ interpolation
 tscale=oversample' | tee /etc/.config/mpv/mpv.conf
 
 
-if $(! grep -q "xrandr --auto" /etc/X11/xinit/xinitrc) ; then 
+if $(! grep -q "xrandr --auto" /etc/X11/xinit/xinitrc) ; then
 echo 'xrandr --auto' | tee -a /etc/X11/xinit/xinitrc ; fi
 
 
@@ -5248,9 +5275,11 @@ echo 'options drm_kms_helper poll=0' | tee -a /etc/modprobe.d/modprobe.conf ; fi
 
 
 # enable kde compose cache on disk
+mkdir -p /var/cache/libx11/compose
 mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.compose-cache
-
-
+touch /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.XCompose
+mkdir -p $HOME/.compose-cache
+touch $HOME/.XCompose
 
 
 
@@ -5262,13 +5291,20 @@ $s sed -i 's/StartServer.*/StartServer=false/' /home/"$(getent passwd | grep 100
 
 
 
-#echo '[General]
-#DisplayServer=wayland
-#GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
-#CompositorCommand=kwin_wayland --no-lockscreen' | $s tee /etc/sddm.conf.d/10-wayland.conf
 
 
 
+# xorg screen
+echo 'Section "Screen"
+       Identifier     "Screen"
+       DefaultDepth    24
+       SubSection      "Display"
+       Depth           24
+       Option "NoAccel" "false"
+       Option "Accel" "true"
+       Option "DPMS" "true"
+       EndSubSection
+EndSection' | tee /etc/X11/xorg.conf.d/10-screen.conf
 
 
 # enable dri 3 for amdgpu
@@ -5311,8 +5347,49 @@ echo 'Section "OutputClass"
   Option "FramebufferCompression" "true"
   Option "AccelMethod" "glamor"
   #Option "CacheLines" "256"
+  Option "RenderAccel" "true"
+  Option "AllowGLXWithComposite" "true"
 EndSection' | tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) # ; fi
 
+echo 'Section "OutputClass"
+  Identifier "Radeon"
+  MatchDriver "radeon"
+  Driver "radeon"
+  Option "DRI2" "0"
+  Option "DRI" "3"
+  Option "DRI3" "1"
+  Option "TearFree" "true"
+  Option "SwapbuffersWait" "true"
+  Option "EnablePageFlip" "on"
+  Option "NoAccel" "false"
+  Option "Accel" "true"
+  Option "TripleBuffer" "true"
+  Option "Present" "true"
+  Option "FallbackDebug" "false"
+  Option "DebugFlushBatches" "false"
+  Option "DebugFlushCaches" "false"
+  Option "DebugWait" "false"
+  Option "HWRotation" "true"
+  Option "PageFlip" "true"
+  Option "Tiling" "true"
+  Option "RelaxedFencing" "true"
+  Option "Throttle" "true"
+  Option "HotPlug" "true"
+  Option "DDC" "true"
+  Option "Dac6Bit" "true"
+  Option "VariableRefresh" "true"
+  Option "ForceCompositionPipeline" "on"
+  Option "AllowIndirectGLXProtocol" "off"
+  Option "SWcursor" "off"
+  Option "HWCursor" "on"
+  Option "FastVram" "on"
+  Option "DPMS" "on"
+  Option "FramebufferCompression" "true"
+  Option "AccelMethod" "glamor"
+  #Option "CacheLines" "256"
+  Option "RenderAccel" "true"
+  Option "AllowGLXWithComposite" "true"
+EndSection' | tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep radeon) $(if $(ls /usr/share/X11/xorg.conf.d | grep -q radeon) ; then echo "/etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep radeon)" ; fi)
 
 echo 'Section "Extensions"
         Option "DPMS" "Enable"
@@ -5330,7 +5407,7 @@ echo 'Section "ServerFlags"
       #Option "DontZap" "true"
       Option "IndirectGLX" "false"
       Option "DRI2" "off"
-      Option "DRI3" "on" 
+      Option "DRI3" "on"
 EndSection' | tee /etc/X11/xorg.conf.d/1-server.conf
 
 echo 'Section "Module"
@@ -5367,9 +5444,14 @@ if [ $raid = yes ] ; then systemctl enable $(systemctl list-unit-files | grep md
 #sed -i 's/Exec=start-pulseaudio-x11/Exec=QT_NO_GLIB=0 start-pulseaudio-x11/g' /etc/xdg/autostart/pulseaudio.desktop ; fi
 
 
+#GLMode=TFP
+#GLVSync=true
+#GLPlatformInterface=
+#RefreshRate=
+#HiddenPreviews=0
 
 
-# ~/.config/kwinrc
+# $HOME/.config/kwinrc
 echo '[$Version]
 update_info=kwin.upd:replace-scalein-with-scale,kwin.upd:port-minimizeanimation-effect-to-js,kwin.upd:port-scale-effect-to-js,kwin.upd:port-dimscreen-effect-to-js,kwin.upd:auto-bordersize,kwin.upd:animation-speed,kwin.upd:desktop-grid-click-behavior,kwin.upd:no-swap-encourage,kwin.upd:make-translucency-effect-disabled-by-default,kwin.upd:remove-flip-switch-effect,kwin.upd:remove-cover-switch-effect,kwin.upd:remove-cubeslide-effect,kwin.upd:remove-xrender-backend,kwin.upd:enable-scale-effect-by-default,kwin.upd:overview-group-plugin-id,kwin.upd:animation-speed-cleanup
 
@@ -5382,21 +5464,17 @@ DisableChecks=true
 Enabled=true
 GLColorCorrection=false
 GLCore=true
-GLLegacy=false
 GLDirect=true
-#GLMode=TFP
+GLLegacy=false
 GLPreferBufferSwap=e
 GLStrictBinding=true
 GLTextureFilter=0
-#GLVSync=true
-#GLPlatformInterface=
 GraphicsSystem=native
-LatencyPolicy=Medium
-#MaxFPS=
-#RefreshRate=
-RenderTimeEstimator=Minimum
 HiddenPreviews=0
+LatencyPolicy=Medium
+MaxFPS='"$maxframes"'
 OpenGLIsUnsafe=true
+RenderTimeEstimator=Minimum
 UnredirectFullscreen=false
 WindowsBlockCompositing=true
 XRenderSmoothScale=false
@@ -5433,8 +5511,10 @@ Active=true
 NightTemperature=4000
 
 [Plugins]
+autocomposerEnabled=true
 blurEnabled=false
 contrastEnabled=true
+kwin-system76-scheduler-integrationEnabled=true
 kwin4_effect_dialogparentEnabled=false
 kwin4_effect_fadingpopupsEnabled=false
 kwin4_effect_frozenappEnabled=false
@@ -5452,6 +5532,7 @@ wobblywindowsEnabled=true
 TextOnly=true
 
 [TabBox]
+AutogroupSimilarWindows=true
 BorderActivate=9
 DesktopLayout=org.kde.breeze.desktop
 DesktopListLayout=org.kde.breeze.desktop
@@ -5459,8 +5540,8 @@ LayoutName=org.kde.breeze.desktop
 TouchBorderActivate=9
 
 [Windows]
-ElectricBorders=1
 BorderlessMaximizedWindows=false
+ElectricBorders=1
 
 [org.kde.kdecoration2]
 BorderSize=Large
@@ -5531,52 +5612,6 @@ fi
 
 
 
-
-
-# kde environment variables
-kdeenv='__GL_FSAA_MODE=0
-__GL_LOG_MAX_ANISO=0
-__GL_YIELD=USLEEP
-DOTNET_CLI_TELEMETRY_OPTOUT=1
-DRI_PRIME=1
-KWIN_TRIPLE_BUFFER=1
-KDE_DEBUG=0
-KDE_IS_PRELINKED=1
-KDE_MALLOC=1
-KDE_NO_IPV6=1
-KDE_NOUNLOAD=1
-KDE_USE_IPV6=no
-KDE_UTF8_FILENAMES=1
-KDEWM=kwin_gles
-KWIN_DIRECT_GL=1
-KWIN_DRM_PREFER_COLOR_DEPTH=24
-KWIN_EXPLICIT_SYNC=0
-KWIN_GL_DEBUG=0
-KWIN_NO_REMOTE=1
-KWIN_NO_XI2=1
-KWIN_PERSISTENT_VBO=1
-KWIN_USE_BUFFER_AGE=1
-LIBGL_DEBUG=0
-PLASMA_ENABLE_QML_DEBUG=0
-PLASMA_PRELOAD_POLICY=none
-POWERSHELL_TELEMETRY_OPTOUT=1
-WAYLAND_DEBUG=0'
-
-#echo "$kdeenv" | $s tee /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh && $s chmod +x /etc/profile.d/kwin.sh && $s chmod +x /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-
-#DESKTOP_SESSION=plasmawayland
-#KDE_FAILSAFE=1
-#KDE_FULL_SESSION=true
-#KWIN_COMPOSE=Q
-#KWIN_FORCE_LANCZOS=0
-#KWIN_OPENGL_INTERFACE=egl
-#KWIN_OPENGL_INTERFACE=egl_wayland
-#QT_AUTO_SCREEN_SCALE_FACTOR=0
-#QT_QPA_PLATFORM=wayland-egl
-#QT_WAYLAND_FORCE_DPI=$kcmfonts_general_forcefontdpiwayland
-#XDG_CURRENT_DESKTOP=KDE
-#XDG_SESSION_TYPE=wayland
-#XLIB_SKIP_ARGB_VISUALS=0
 
 if [ $ipv6 = on ]
 then
@@ -5714,29 +5749,101 @@ if [ $safeconfig = no ] ; then
 if grep -q preload=yes /etc/bak/dontdelete ; then ld_preload='LD_PRELOAD=' ; fi
 fi
 
+if grep -q preload=yes /etc/bak/dontdelete ; then linker="LD=mold" ; fi
+
 
 if $debian ; then
   # ccache & path
-    if $(! sudo grep -q "USE_CCACHE=1" ~/.zshrc) ; then 
-    $s sed -i "\$aUSE_CCACHE=1" ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$aUSE_PREBUILT_CACHE=1" ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$aPREBUILT_CACHE_DIR=~/.ccache" ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$aCCACHE_DIR=~/.ccache" ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$accache -M 30G >/dev/null" ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi ; fi
-    if $(! sudo grep -q 'LD_LIBRARY_PATH' ~/.zshrc) ; then
+    if $(! sudo grep -q "USE_CCACHE=1" $HOME/.zshrc) ; then
+    $s sed -i "\$aUSE_CCACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
+    $s sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
+    $s sed -i "\$aPREBUILT_CACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
+    $s sed -i "\$aCCACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
+    $s sed -i "\$accache -M 30G >/dev/null" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi ; fi
+    if $(! sudo grep -q 'LD_LIBRARY_PATH' $HOME/.zshrc) ; then
     #echo "$ld_preload" | tee -a /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc
     clang=$(ls /usr/lib | grep 'llvm-' | tail -n 1 | rev | cut -c-3 | rev)
     echo 'PATH=/usr/lib/ccache/bin/:/lib/x86_64-linux-gnu:/usr/lib/llvm'"$clang"'/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
     LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:/usr/lib/llvm'"$clang"'/lib:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-    '"$ld_preload"'' | tee -a ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment ~/.zshrc ~/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.profile /root/.profile ; fi 
+    '"$ld_preload"'' | tee -a $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.profile /root/.profile ; fi
 ccache --set-config=sloppiness=locale,time_macros
 
-#if $(! grep -q LD_PRELOAD ~/.zshrc) ; then echo "$ld_preload" | tee -a /root/.zshrc /root/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi
+#if $(! grep -q LD_PRELOAD $HOME/.zshrc) ; then echo "$ld_preload" | tee -a /root/.zshrc /root/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi
 
 #if $(! grep -q /etc/environment /root/.zshrc) ; then echo '#for i in $(cat /etc/environment | grep -v "-" | grep -v "if" | sed '\''s/\[//g'\'' | sed '\''s/|//g'\'' | awk '\''{print $2}'\'') ; do export $i >/dev/null ; done' | tee -a /root/.zshrc /root/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi
 
 # smcr info to check if your hardware is capable
 #ld_preload="export LD_PRELOAD=libtrick.so:libmkl_core.so:libomp"$cclm".so.5:libmkl_def.so:libhugetlbfs.so.0:libmimalloc.so.2:libeatmydata.so:libsmc-preload.so.1:libmkl_vml_avx2.so:libmkl_intel_lp64.so:libmkl_intel_thread.so$(if dmesg | grep -q amdgpu ; then echo ":libomptarget.rtl.amdgpu.so.$cclm" | sed 's/-//g'
+
+
+
+
+# kde environment variables
+kdeenv='__GL_FSAA_MODE=0
+__GL_LOG_MAX_ANISO=0
+__GL_YIELD=USLEEP
+DOTNET_CLI_TELEMETRY_OPTOUT=1
+DRI_PRIME=1
+KWIN_TRIPLE_BUFFER=1
+KDE_DEBUG=0
+KDE_IS_PRELINKED=1
+KDE_MALLOC=1
+KDE_NO_IPV6=1
+KDE_NOUNLOAD=1
+KDE_USE_IPV6=no
+KDE_UTF8_FILENAMES=1
+KDEWM='"$windowmanager"'
+KWIN_DIRECT_GL=1
+KWIN_DRM_PREFER_COLOR_DEPTH=24
+KWIN_EXPLICIT_SYNC=0
+KWIN_GL_DEBUG=0
+KWIN_NO_REMOTE=1
+KWIN_NO_XI2=1
+KWIN_PERSISTENT_VBO=1
+KWIN_USE_BUFFER_AGE=1
+LIBGL_DEBUG=0
+PLASMA_ENABLE_QML_DEBUG=0
+PLASMA_PRELOAD_POLICY=none
+POWERSHELL_TELEMETRY_OPTOUT=1
+WAYLAND_DEBUG=0'
+
+
+#DESKTOP_SESSION=plasmawayland
+#KDE_FAILSAFE=1
+#KDE_FULL_SESSION=true
+#KWIN_COMPOSE=Q
+#KWIN_FORCE_LANCZOS=0
+#KWIN_OPENGL_INTERFACE=egl
+#KWIN_OPENGL_INTERFACE=egl_wayland
+#QT_AUTO_SCREEN_SCALE_FACTOR=0
+#QT_QPA_PLATFORM=wayland-egl
+#QT_WAYLAND_FORCE_DPI=$kcmfonts_general_forcefontdpiwayland
+#XDG_CURRENT_DESKTOP=KDE
+#XDG_SESSION_TYPE=wayland
+#XLIB_SKIP_ARGB_VISUALS=0
+
+#XDG vars only work for de, root doesnt run a de
+if [ $compositor = x11 ] ; then
+xdgidri='OPENGL_PROFILE=xorg-x11
+MOZ_X11_EGL=1
+EGL_PLATFORM=x11
+CLUTTER_BACKEND=x11
+MOZ_ENABLE_WAYLAND=0
+SDL_VIDEODRIVER=x11'
+if [ ! -z /etc/sddm.conf.d/10-wayland.conf ] ; then rm -f /etc/sddm.conf.d/10-wayland.conf ; fi
+elif [ $compositor = wayland ] ; then
+xdgidri='MOZ_ENABLE_WAYLAND=1
+MOZ_X11_EGL=0
+SDL_VIDEODRIVER=wayland'
+if [ ! -f /etc/sddm.conf.d/10-wayland.conf ] ; then
+mkdir -p /etc/sddm.conf.d
+echo '[General]
+DisplayServer=wayland
+GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
+CompositorCommand=kwin_wayland --no-lockscreen' | $s tee /etc/sddm.conf.d/10-wayland.conf ; fi
+fi
+
+
 
 # /etc/environment variables
 # test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
@@ -5746,8 +5853,12 @@ echo '#!/bin/sh -x
 PATH=/usr/lib/ccache/bin:/lib/x86_64-linux-gnu:/usr/lib/llvm*/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
 LD_LIBRARY_PATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib:/lib/x86_64-linux-gnu
 LDPATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib
-LD="ld.lld'"$cclm"'"
+'"$linker"'
 '"$kdeenv"'
+'"$xdgidri"'
+XIM_GLOBAL_CACHE_DIR=/var/cache/libx11/compose
+XCOMPOSEFILE=~/.XCompose
+XCOMPOSECACHE=~/.compose-cache
 WLR_RENDERER=vulkan
 WLR_DRM_NO_MODIFIERS=1
 WLR_DRM_NO_ATOMIC=1
@@ -5788,7 +5899,6 @@ STAGING_RT_PRIORITY_BASE=2
 STAGING_AUDIO_PERIOD=13333
 SOFTPIPE_USE_LLVM=1
 SMC_DEBUG=0
-SDL_VIDEODRIVER=x11,wayland
 SDL_VIDEO_YUV_HWACCEL=1
 SDL_VIDEO_X11_DGAMOUSE=0
 SDL_VIDEO_FULLSCREEN_HEAD=0
@@ -5828,6 +5938,7 @@ PROTON_USE_WINED3D=1
 PROTON_NO_ESYNC=1
 PROTON_LOG=0
 PROTON_FSYNC=1
+PROTON_ESYNC=0
 PROTON_FORCE_LARGE_ADDRESS_AWARE=1
 POWERSHELL_UPDATECHECK=Off
 POWERSHELL_TELEMETRY_OPTOUT=1
@@ -5836,7 +5947,6 @@ PIPEWIRE_PROFILE_MODULES=default,rtkit
 PIPEWIRE_LINK_PASSIVE=1
 PIPEWIRE_LATENCY=512/48000
 PAGER=less
-OPENGL_PROFILE=xorg-x11
 OMP_TARGET_OFFLOAD=MANDATORY
 OMP_NUM_THREADS='"$(nproc)"'
 OMP_DYNAMIC=true
@@ -5846,19 +5956,17 @@ OBJSIZE=llvm-size'"$cclm"'
 OBJDUMP=llvm-objdump'"$cclm"'
 OBJCOPY=llvm-objcopy'"$cclm"'
 NM=llvm-nm'"$cclm"'
-MOZ_X11_EGL=1
-MOZ_ENABLE_WAYLAND=0
 MKL_THREADING_LAYER=sequential
 MKL_ENABLE_INSTRUCTIONS=AVX2
 MKL_DEBUG_CPU_TYPE=5
 MKL_CBWR=auto
 MIMALLOC_VERBOSE=0
-MIMALLOC_SHOW_STATS=0 
+MIMALLOC_SHOW_STATS=0
 MIMALLOC_SHOW_ERRORS=0
-MIMALLOC_RESERVE_HUGE_OS_PAGES=0 
-MIMALLOC_PAGE_RESET=0 
+MIMALLOC_RESERVE_HUGE_OS_PAGES=0
+MIMALLOC_PAGE_RESET=0
 MIMALLOC_LARGE_OS_PAGES=1
-MIMALLOC_EAGER_COMMIT_DELAY=4 
+MIMALLOC_EAGER_COMMIT_DELAY=4
 MESA_SHADER_CACHE_DISABLE=false
 MESA_NO_ERROR=1
 MESA_NO_DITHER=1
@@ -5884,7 +5992,7 @@ LESSSECURE=1
 LESSHISTSIZE=0
 LESSHISTFILE=-
 LDFLAGS_MODULE=--strip-debug
-LDFLAGS="-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wnoformat-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize" #-Xclang -plugin /usr/lib/llvm'"$cclm"'/lib/LLVMPolly.so
+LDFLAGS="-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wnoformat-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize --hash-style=SHT_GNU_HASH" #-Xclang -plugin /usr/lib/llvm'"$cclm"'/lib/LLVMPolly.so
 LD_DEBUG_OUTPUT=0
 LD_BIND_NOW=0
 KIRIGAMI_LOWPOWER_HARDWARE=1
@@ -5905,7 +6013,6 @@ GLSLC=glslc
 GDK_GL=gles
 GDK_BACKEND="x11,wayland"
 ELM_ACCEL=opengl
-EGL_PLATFORM=x11
 DXVK_LOG_LEVEL=none
 DXVK_FAKE_DX11_SUPPORT=1
 DXVK_FAKE_DX10_SUPPORT=1
@@ -5919,7 +6026,6 @@ DOTNET_CLI_TELEMETRY_OPTOUT=1
 CONFIG_SND_HDA_PREALLOC_SIZE=16
 COMMAND_NOT_FOUND_INSTALL_PROMPT=1
 COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
-CLUTTER_BACKEND=x11
 CC=clang'"$cclm"'
 BROWSER=/usr/bin/firefox
 AR=llvm-ar'"$cclm"'
@@ -5938,8 +6044,10 @@ __GL_LOG_MAX_ANISO=0
 __GL_FSAA_MODE=0' | tee /etc/environment /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.profile /root/.profile /etc/environment.d/env.conf /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xserverrc /root/.xserverrc ; fi
 
 
-#KWIN_OPENGL_INTERFACE=EGL
 #LD_DEBUG=0
+#QSG_RHI_BACKEND=vulkan
+#QSG_RHI=1
+#QSG_RENDERER_BUFFER_STRATEGY=dynamic
 #__GL_SYNC_TO_VBLANK=1
 #__GLVND_DISALLOW_PATCHING=0
 #DXVK_HUD=compile
@@ -5948,7 +6056,7 @@ __GL_FSAA_MODE=0' | tee /etc/environment /home/"$(getent passwd | grep 1000 | aw
 #GOMP_CPU_AFFINITY="N-M"
 #GST_GL_API=gles2
 #GTK_DEBUG=0
-#HUGETLB_DEBUG=0 
+#HUGETLB_DEBUG=0
 #KMP_AFFINITY=granularity=fine,compact,1,0
 #KMP_BLOCKTIME=1
 #KWIN_OPENGL_INTERFACE=egl
@@ -5960,9 +6068,8 @@ __GL_FSAA_MODE=0' | tee /etc/environment /home/"$(getent passwd | grep 1000 | aw
 #MESA_LOADER_DRIVER_OVERRIDE=radeon
 #OMP_PROC_BIND=CLOSE
 #OMP_SCHEDULE=STATIC
-#PROTON_ESYNC=1
-#QT_NO_GLIB=1 
-#QT_ONSCREEN_PAINT=1 
+#QT_NO_GLIB=1
+#QT_ONSCREEN_PAINT=1
 #QT_OPENGL_ES_3_2=1
 #QT_QPA_PLATFORM=EGL
 #QT_QPA_PLATFORMTHEME=qt6ct
@@ -7292,7 +7399,7 @@ if [ $firstrun = yes ] ; then
 
 
 
-usermod -a -G video $LOGNAME 
+usermod -a -G video $LOGNAME
 
 
 
@@ -7566,8 +7673,6 @@ if $(! $wrt) && [ ! $ipv6 = on ] ; then echo "blacklist ipv6" | sudo tee /etc/mo
 
 
 
-#journalctl --vacuum-size=100M
-#journalctl --vacuum-time=2weeks
 
 
 # daily fstrim weekly xfs defragment
@@ -7674,28 +7779,66 @@ fi
 
 
 
-if [ $firstrun = yes ] ; then
+if [ $firstrun = yes ] && $debian; then
 
   ### some more firstrun stuff
+  #aptitude search '~i!~Nlib(~Dqt|~Dkde)'
   mkdir -p tmp
+  cd tmp
+  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/kdebugsettings_22.12.0-2.1_amd64.deb ; dpkg -i kdebugsettings*.deb
+  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/mkcomposecache_1.2.2-2.4_amd64.deb ; dpkg -i mkcomposecache*.deb
   wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so
-  #wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
+  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb
+  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/kscripts.zip ; mkdir -p /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts ; cp -f kscripts.zip /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts ; unzip /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kscripts.zip ; rm -rf /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kscripts.zip ; systemctl enable com.system76.Scheduler.service
+  if [ ! -f /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js ] ; then
+mkdir -p /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code
+echo 'workspace.clientActivated.connect(function(client) {
+    callDBus("com.system76.Scheduler", "/com/system76/Scheduler", "com.system76.Scheduler", "SetForegroundProcess", client.pid);
+})' | tee /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js
+echo '[Desktop Entry]
+Name=System76 Scheduler Integration
+Comment=Notify System76 Scheduler which app has focus so it can be prioritized
+Icon=pop-os
+
+X-KDE-PluginInfo-Author=Maximiliano Bertacchini
+X-KDE-PluginInfo-Email=maxiberta@gmail.com
+X-KDE-PluginInfo-Name=kwin-system76-scheduler-integration
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-License=MIT
+
+Type=Service
+X-KDE-ServiceTypes=KWin/Script
+X-Plasma-API=javascript
+X-Plasma-MainScript=code/main.js' | tee /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/metadata.desktop ; fi
+
+ # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
  # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libsmc-preload32.so -O /usr/lib/libsmc-preload32.so
  if $debian && [ $microcode = off ] ; then apt -f -y remove intel-microcode amd-microcode iucode-tool ; elif $debian && [ microcode = on ] ; then apt -f -y install intel-microcode amd-microcode iucode-tool ; fi
   if $debian ; then apt -f -y install blktool hdparm lz4 macchanger net-tools wireless-tools iw preload ethtool kexec-tools ; dpkg-reconfigure dash kexec-tools
-  apt -f -y install libmimalloc2.0 libhugetlbfs0
+  if $(grep -q "/usr/bin/sddm" /etc/X11/default-display-manager) ; then
+  apt -f -y install kdebugsettings ; fi
+  apt -f -y install mold
   if [ $? -eq 0 ] ; then preload=yes ; echo "preload=yes" | tee /etc/bak/dontdelete ; fi
                       ### disable and mask unneeded services
 $s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path
 
 $s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path
-    if [ ! $raid = yes ] ; then
+
+systemctl disable configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service
+
+systemctl mask configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service
+
+    if [ ! $raid = no ] ; then
     $s systemctl disable --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
 
-    $s systemctl mask --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket ; fi
+    $s systemctl mask --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
+
+    systemctl disable dm-event.socket mdadm-grow-continue@.service mdadm-last-resort@.service mdadm-last-resort@.timer
+
+    systemctl mask dm-event.socket mdadm-grow-continue@.service mdadm-last-resort@.service mdadm-last-resort@.timer ; fi
 fi
 
-  rm -rf ~/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect
+  rm -rf $HOME/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect
 
  "$bb"sh -x "$ifdr"/etc/update_hosts.sh
 
@@ -7971,7 +8114,8 @@ pkill -f kglobalaccel5
 pkill -f drkonqi
 
 
-    journalctl --vacuum-size=1 
+    journalctl --vacuum-size=1
+    journalctl --vacuum-time=2weeks
     pkill -f journalctl
 loginctl unlock-sessions
 
@@ -7979,23 +8123,26 @@ if [ $firstrun = yes ] ; then
 mv /usr/share/dbus-1/services/org.kde.runners.baloo.service /usr/share/dbus-1/services/org.kde.runners.baloo.service.disable
 mv /usr/share/dbus-1/services/org.kde.kglobalaccel.service /usr/share/dbus-1/services/org.kde.kglobalaccel.service.disable
 mv /usr/share/dbus-1/services/org.freedesktop.Akonadi.Control.service /usr/share/dbus-1/services/org.freedesktop.Akonadi.Control.service.disable
-mv /usr/share/dbus-1/services/org.fedoraproject.Config.Printing.service /usr/share/dbus-1/services/org.fedoraproject.Config.Printing.service.disable 
+mv /usr/share/dbus-1/services/org.fedoraproject.Config.Printing.service /usr/share/dbus-1/services/org.fedoraproject.Config.Printing.service.disable
 fi
 
 sh /etc/environment
 
 setenforce 1
 sysctl -p /etc/sysctl.conf
+kdebugsettings --disable-full-debug
+kdebugsettings --debug-mode Off
+cd "$(pwd)" ; rm -rf tmp
 # drop all caches upon finalizing
     sysctl -w vm.drop_caches=3
     if [ $? = 1 ] ; then echo 3 > /proc/sys/vm/drop_caches ; fi
-
+rm -rf /~
 
 #tuned -p network-throughput
 
 echo "script ran from $scriptdir"
 
-
+exit ; su - $(whoami) -c "mkcomposecache en_US.UTF-8 /var/tmp/buildroot/usr/share/X11/locale/en_US.UTF-8/Compose /var/tmp/buildroot/var/X11R6/compose_cache /usr/share/X11/locale/en_US.UTF-8/Compose"
 
 ######
 ### still configuring this script, tips are welcome

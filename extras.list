@@ -1,7 +1,6 @@
 ### git
 deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages testing main
 deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages sid main
-deb [arch=amd64,i386 trusted=yes] https://cli.github.com/packages unstable main
 
 ### llvm
 deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain main
@@ -10,3 +9,6 @@ deb [arch=amd64,i386 trusted=yes] https://apt.llvm.org/unstable/ llvm-toolchain 
 deb [arch=amd64] https://brave-browser-apt-nightly.s3.brave.com/ stable main
 deb [arch=amd64] http://dl.google.com/linux/earth/deb/ stable main
 deb [arch=amd64] https://packagecloud.io/AtomEditor/atom/any/ any main
+
+### custom kernel 
+deb http://deb.xanmod.org releases main

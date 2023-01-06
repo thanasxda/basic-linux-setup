@@ -2,17 +2,25 @@
 update_info=kwin.upd:replace-scalein-with-scale,kwin.upd:port-minimizeanimation-effect-to-js,kwin.upd:port-scale-effect-to-js,kwin.upd:port-dimscreen-effect-to-js,kwin.upd:auto-bordersize,kwin.upd:animation-speed,kwin.upd:desktop-grid-click-behavior,kwin.upd:no-swap-encourage,kwin.upd:make-translucency-effect-disabled-by-default,kwin.upd:remove-flip-switch-effect,kwin.upd:remove-cover-switch-effect,kwin.upd:remove-cubeslide-effect,kwin.upd:remove-xrender-backend,kwin.upd:enable-scale-effect-by-default,kwin.upd:overview-group-plugin-id,kwin.upd:animation-speed-cleanup
 
 [Compositing]
+AllowTearing=false
 AnimationSpeed=0
-Backend=OpenGL
+Backend=QPainter
 CheckIsSafe=false
 DisableChecks=true
 Enabled=true
+GLColorCorrection=false
 GLCore=true
 GLDirect=true
+GLLegacy=false
 GLPreferBufferSwap=e
+GLStrictBinding=true
 GLTextureFilter=0
+GraphicsSystem=native
 HiddenPreviews=0
+LatencyPolicy=Medium
+MaxFPS=70
 OpenGLIsUnsafe=true
+RenderTimeEstimator=Minimum
 UnredirectFullscreen=false
 WindowsBlockCompositing=true
 XRenderSmoothScale=false
@@ -49,8 +57,10 @@ Active=true
 NightTemperature=4000
 
 [Plugins]
+autocomposerEnabled=true
 blurEnabled=false
 contrastEnabled=true
+kwin-system76-scheduler-integrationEnabled=true
 kwin4_effect_dialogparentEnabled=false
 kwin4_effect_fadingpopupsEnabled=false
 kwin4_effect_frozenappEnabled=false
@@ -68,6 +78,7 @@ wobblywindowsEnabled=true
 TextOnly=true
 
 [TabBox]
+AutogroupSimilarWindows=true
 BorderActivate=9
 DesktopLayout=org.kde.breeze.desktop
 DesktopListLayout=org.kde.breeze.desktop
@@ -75,7 +86,8 @@ LayoutName=org.kde.breeze.desktop
 TouchBorderActivate=9
 
 [Windows]
-ElectricBorders=0
+BorderlessMaximizedWindows=false
+ElectricBorders=1
 
 [org.kde.kdecoration2]
 BorderSize=Large

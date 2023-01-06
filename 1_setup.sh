@@ -79,8 +79,12 @@ echo "" && echo ""
 	
     ### choice of buildenv
         echo -e "${yellow}"
-        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system." yn
+        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system. Answer Y/N" yn
         case $yn in  [Yy]* ) export INSTALLBUILDENV=true ; break;; [Nn]* ) break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        echo "" && echo ""
+    
+        while true; do read -p "Do you want to use Debian SID or TESTING. TESTING is considered stable. Yes for SID. No for TESTING. Answer Y/N." yn
+        case $yn in  [Yy]* ) export enable_sid="yes" ; sed -z -i 's/Pin: release n=sid\nPin-Priority: -1/Pin: release n=sid\nPin-Priority: 999/g' preferences ; break;; [Nn]* ) unset enable_sid ; sed -z -i 's/Package: *\nPin: release n=sid\nPin-Priority: 999/Package: *\nPin: release n=sid\nPin-Priority: -1/g' preferences ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
         echo "" && echo ""
     
         echo "Please enter your password to start the setup..." && echo -e "${restore}" 
@@ -116,7 +120,8 @@ cd $source
         $s rm -rf $tmp
         $s mkdir -p $tmp
         echo ""
-        echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian
+        if [ $enable_sid = yes ] ; then echo 'APT::Default-Release "sid";' | $s tee /etc/apt/apt.conf.d/00debian ; else
+        echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian ; fi
         $s sh $source/2* # execute backup sources.list script
         $s rm -rf /var/lib/dpkg/lock* /var/lib/aptitude/lock* /var/cache/apt/archives/ /var/lib/apt/lists/*
         #$s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
@@ -141,6 +146,7 @@ cd $tmp
 
 
     ###     <<<< ADD KEYS >>>> - for access to repositories >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            $s wget https://dl.xanmod.org/xanmod-repository.deb ; $s dpkg -i xanmod-repository.deb
             $s wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && $s dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
             $s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
             $s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
@@ -154,6 +160,7 @@ cd $tmp
     ###     <<<< WORKAROUND GPG >>>> - avoiding errors when running apt update >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
                     $s cp /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
                     $s rm -rf /var/lib/apt/lists/* && $s apt clean && $s apt autoclean
+                    $s find /etc/apt/sources.list.d/* -type f -not -name 'extras.list' -delete
 
 
 
@@ -176,7 +183,11 @@ cd $tmp
         sudo rm -rf /root/.oh-my-zsh
         $s sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        $s apt upgrade -y
+        $s apt -f -y purge akonadi-server \
+        k3b
+        if [ $enable_sid = yes ] ; then
+        $s apt upgrade -t sid -y ; fi
+        $s apt dist-upgrade -y
         $s dpkg --configure -a
         $s apt -f -y install --fix-broken --fix-missing
         $a rsync
@@ -515,7 +526,7 @@ nameserver 127.0.0.1
 #nameserver ::1
 #nameserver 2606:4700:4700::1111
 #nameserver 2606:4700:4700::1001
-options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 rotate single-request-reopen no-tld-query
+options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 single-request-reopen no-tld-query
 ' | $s tee /etc/resolv.conf.override /etc/resolv.conf
 
 

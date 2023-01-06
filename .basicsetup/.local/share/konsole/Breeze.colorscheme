@@ -1,10 +1,10 @@
 [Background]
-Color=35,38,39
+Color=0,0,0
 RandomHueRange=360
 RandomSaturationRange=100
 
 [BackgroundFaint]
-Color=49,54,59
+Color=0,0,0
 RandomHueRange=360
 RandomSaturationRange=100
 
@@ -103,9 +103,10 @@ RandomSaturationRange=100
 [General]
 Anchor=0.5,0.5
 Blur=false
-ColorRandomization=true
+ColorRandomization=false
 Description=Breeze
 FillStyle=Tile
-Opacity=0.85
-Wallpaper=/usr/share/wallpapers/MalakasUniverse/contents/images/malakas.jpg
+Opacity=0.75
+Wallpaper=
+WallpaperFlipType=NoFlip
 WallpaperOpacity=0.7

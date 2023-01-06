@@ -1,3 +1,11 @@
+Package: linux-image-amd64
+Pin: release n=experimental
+Pin-Priority: 999
+
+Package: linux-image-amd64
+Pin: release n=sid
+Pin-Priority: 999
+
 Package: *
 Pin: release n=experimental
 Pin-Priority: -1
@@ -30,3 +38,6 @@ Package: *
 Pin: release n=Debian_Testing
 Pin-Priority: 999
 
+Package: *
+Pin: release n=stable
+Pin-Priority: 999

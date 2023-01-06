@@ -61,7 +61,8 @@ pip install requests
 
 # kernel
 #$a "$(apt search linux-image-6.*-rt-amd64-unsigned | awk '{print $1}' | grep "linux-image-.*-rt-amd64-unsigned" | tail -n 1 | cut -c1-37)" -t experimental
-$a linux-image-amd64 -t experimental 
+#$a linux-image-amd64 -t experimental 
+$a linux-xanmod-x64v1 # since setup is highly modified this kernel really performs well. better than stock. not usually the case when it comes to hackbench at least. also contains clear linux patches 
 
 
 $a flatpak
@@ -109,10 +110,11 @@ $a libxcb-xf86dri0
  gedit \
  vlc \
  alien \
- xsettings-kde
+ xsettings-kde \
+ kdebugsettings
 
-$a libmkl-def \
- dpdk
+#$a libmkl-def \
+# dpdk
 
 $a dracut
  # choose which of the 2 u want initramfs-tools or dracut
@@ -125,6 +127,7 @@ $a dracut
  llvm-$llver-examples \
  llvm-$llver-runtime \
  clang-$llver \
+ clangd-$llver \
  clang-tools-$llver \
  libclang-common-$llver-dev \
  libclang-$llver-dev \
@@ -146,8 +149,6 @@ $a dracut
  libomp5-$llver \
  bolt-$llver
  
- $a libtcmalloc-minimal4
- $a libmimalloc2.0
  $a atom-beta \
  nmap \
  apparmor \
@@ -246,16 +247,17 @@ $a dracut
  plasma-browser-integration \
  partitionmanager \
  qapt-utils \
- plasma-discover-backend-flatpak plasma-discover-backend-fwupd 
+ plasma-discover-backend-flatpak plasma-discover-backend-fwupd \
+ plasma-firewall
 
  
- 
+ apt -y install anbox -t unstable
  
  #plasma-discover-backend-snap
  #$a qdbus-qt6
  
  #$a libpoppler-qt6-3 
- $a qt6-base-dev 
+ #$a qt6-base-dev 
  #$a qt6ct
  #$a xserver-xorg-input-evdev
 
@@ -269,9 +271,8 @@ $a llvm-$llver
  
  #qt6ct 
  
-
-
-  $a intel-mkl
+$rem akonadi-server
+$rem k3b
 
 
 

@@ -3,12 +3,10 @@ deb [arch=amd64,i386 trusted=yes] http://debian.ipacct.com/debian/ testing-updat
 deb [arch=amd64,i386] http://debian.ipacct.com/debian/ testing main contrib non-free
 deb [arch=amd64,i386] http://security.debian.org/debian-security testing-security main contrib non-free
 deb [arch=amd64,i386] http://debian.ipacct.com/debian/ sid main contrib non-free
-deb [arch=amd64,i386] http://debian.ipacct.com/debian/ unstable main contrib non-free
 deb [arch=amd64,i386 trusted=yes] http://debian.ipacct.com/debian/ experimental main contrib non-free
 
 ### debian-multimedia
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ testing main non-free
 deb [arch=amd64,i386] https://www.deb-multimedia.org/ sid main non-free
-deb [arch=amd64,i386] https://www.deb-multimedia.org/ unstable main non-free
 deb [arch=amd64,i386 trusted=yes] https://www.deb-multimedia.org/ experimental main
 

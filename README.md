@@ -1,5 +1,5 @@
 # BASIC-LINUX-SETUP
-## NOW ON DEBIAN TESTING. NO MORE KALI.
+## DEBIAN SID/TESTING
 ![image](bls.jpg)
 
 ## DISCLAIMER:
@@ -132,7 +132,12 @@ sudo systemctl stop firewalld ufw
 # Pair your device
 sudo systemctl start firewalld ufw
 ```
-If your benches aren't good rerun the setup: sudo su ; firstrun=yes sh init.sh ; reboot.
+If your benches aren't good rerun the setup: 
+```
+sudo su ; firstrun=yes sh init.sh ; reboot.
+```
+Experimental only used for kernel.
+Setup gives choice for sid/testing.
 
 ## Main contents:
 ---
@@ -157,9 +162,6 @@ ___
 
  Recommendations x86 Intel:
   - [__me_cleaner__](https://github.com/corna/me_cleaner)
-
- Kernel used:
-  - [__linux-image-amd64__ _-t experimental_](https://packages.debian.org/experimental/linux-image-amd64)
 
  For kernel parameters check:
   - [__linux - kernel parameters__](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
@@ -205,7 +207,7 @@ nano ramdisk/fstab*
 # Editing linux kernel command line parameters
 nano split_img/boot.img-cmdline
 # Flags that are worth for commandline might be: cgroup_disable=memory and for newer kernels above 5.1.13 mitigations=off, older kernels must call mention the individual mitigations, for fstab: lazytime.
-# Disabling mitigations on older kernels for arm64: spectre_v2_user=off ssbd=force-off kvm.nx_huge_pages=off kpti=0
+# Disabling mitigations on older kernels for arm64: spectre_v2_user=off ssbd=force-off kvm.nx_huge_pages=off kpti=0 (also needs 'nokaslr')... more details in the script.
 # Now repack the image. Note modifying default.prop on ramdisk is also possible. Modifying init.rc might also be a good idea.
 ./repackimg.sh
 adb push image-new.img /sdcard/moddedboot.img
@@ -235,6 +237,8 @@ Note: This way one could also include F2FS support on Android since the drivers 
    - [linux kernel - parameters](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
 
    - [linux kernel - gpu documentation](https://www.kernel.org/doc/html/v4.20/gpu/drivers.html)
+   
+   - [linux kernel - x86 general](https://docs.kernel.org/x86)
 
    - [arch wiki - improving performance](https://wiki.archlinux.org/title/Improving_performance)
 
