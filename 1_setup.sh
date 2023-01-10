@@ -1,4 +1,4 @@
-#!/bin/bash
+﻿#!/bin/bash
 #############################################################
 #############################################################
 ##                  basic-linux-setup                      ##
@@ -24,7 +24,7 @@ echo "Unattended setup mainly for Kali/Debian with subsection for OpenWrt and ge
 echo "DISCLAIMER!!!:"
 echo "I am not responsible if your computer catches fire and brings your house along with it."
 echo -e "${restore}" && echo -e "${yellow}"
-echo "Never apt dist-upgrade/full-upgrade"
+echo "Never apt dist-upgrade/full-upgrade -t experimental"
 echo "Read arch wiki for personalization:"
 echo -e "${magenta}"
 echo "https://wiki.archlinux.org/title/Improving_performance"
@@ -74,20 +74,23 @@ echo "" && echo ""
 	
 	
 	
-	
-	
+	            s="sudo"
+         echo -e "${yellow}"
+
+	     echo "Please enter your password to start the setup..." ; sudo echo ""
 	
     ### choice of buildenv
-        echo -e "${yellow}"
-        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system. Answer Y/N" yn
+
+        while true; do read -p "Do you want to use Debian SID or TESTING. TESTING is considered stable. Yes for SID. No for TESTING. Answer Y/N. :  " yn
+        case $yn in  [Yy]* ) export enable_sid="yes" ; break;; [Nn]* ) unset enable_sid ; sed -z -i 's/Package: *\nPin: release n=sid\nPin-Priority: 999/Package: *\nPin: release n=sid\nPin-Priority: -1/g' preferences ; echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        echo "" && echo ""
+    
+       
+        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system. Answer Y/N. :  " yn
         case $yn in  [Yy]* ) export INSTALLBUILDENV=true ; break;; [Nn]* ) break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
         echo "" && echo ""
-    
-        while true; do read -p "Do you want to use Debian SID or TESTING. TESTING is considered stable. Yes for SID. No for TESTING. Answer Y/N." yn
-        case $yn in  [Yy]* ) export enable_sid="yes" ; sed -z -i 's/Pin: release n=sid\nPin-Priority: -1/Pin: release n=sid\nPin-Priority: 999/g' preferences ; break;; [Nn]* ) unset enable_sid ; sed -z -i 's/Package: *\nPin: release n=sid\nPin-Priority: 999/Package: *\nPin: release n=sid\nPin-Priority: -1/g' preferences ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
-        echo "" && echo ""
-    
-        echo "Please enter your password to start the setup..." && echo -e "${restore}" 
+
+   echo -e "${restore}" 
 
     
     
@@ -100,7 +103,6 @@ echo "" && echo ""
         basicsetup=$source/.basicsetup
         tmp=$source/tmp
             sl=">/dev/null"
-            s="sudo"
             up="$s apt update"
             a="$s apt install -y --fix-broken --fix-missing"
             apt="$s apt -f install -y -t experimental --fix-broken --fix-missing"
@@ -120,9 +122,8 @@ cd $source
         $s rm -rf $tmp
         $s mkdir -p $tmp
         echo ""
-        if [ $enable_sid = yes ] ; then echo 'APT::Default-Release "sid";' | $s tee /etc/apt/apt.conf.d/00debian ; else
-        echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian ; fi
-        $s sh $source/2* # execute backup sources.list script
+        $up ; $a wget unzip dpkg curl git
+        $s sh 2* # execute backup sources.list script
         $s rm -rf /var/lib/dpkg/lock* /var/lib/aptitude/lock* /var/cache/apt/archives/ /var/lib/apt/lists/*
         #$s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
         $s fuser -viks /var/cache/debconf/config.dat
@@ -144,9 +145,9 @@ cd $source
             
 cd $tmp
 
-
+        if [ $enable_sid = yes ] ; then sed -z -i 's/Pin: release n=sid\nPin-Priority: -1/Pin: release n=sid\nPin-Priority: 999/g' preferences ; echo 'APT::Default-Release "sid";' | $s tee /etc/apt/apt.conf.d/00debian ; fi
     ###     <<<< ADD KEYS >>>> - for access to repositories >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-            $s wget https://dl.xanmod.org/xanmod-repository.deb ; $s dpkg -i xanmod-repository.deb
+            $a wget ; $s wget https://dl.xanmod.org/xanmod-repository.deb ; $s dpkg -i xanmod-repository.deb
             $s wget http://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2016.8.1_all.deb && $s dpkg -i deb-multimedia-keyring_2016.8.1_all.deb
             $s wget -qO- https://download.opensuse.org/repositories/home:/npreining:/debian-kde:/other-deps/Debian_Unstable/Release.key | $s apt-key add -
             $s wget -qO- https://download.opensuse.org/repositories/Debian:/debbuild/Debian_Testing/Release.key | $s apt-key add -
@@ -183,12 +184,7 @@ cd $tmp
         sudo rm -rf /root/.oh-my-zsh
         $s sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-        $s apt -f -y purge akonadi-server \
-        k3b
-        if [ $enable_sid = yes ] ; then
-        $s apt upgrade -t sid -y ; fi
-        $s apt dist-upgrade -y
-        $s dpkg --configure -a
+
         $s apt -f -y install --fix-broken --fix-missing
         $a rsync
             $s rsync -v -K -a --force --include=".*" config.dat /var/cache/debconf/config.dat
@@ -325,9 +321,9 @@ cd $basicsetup
                     $s rsync -v -K -a --force --include=".*" MalakasUniverse /usr/share/wallpapers/
                     $s rsync -v -K -a --force --include=".*" .config/BraveSoftware/Brave-Browser-Nightly/* ~/.config/chromium/
 
-                   $s rm -rf $tmp ; $s mkdir -p $tmp ; cd $tmp ; wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/Hack.zip ; unzip Hack.zip -d hackz ; sudo cp hackz/* /usr/share/fonts/truetype/hack/
+                   $s rm -rf $tmp ; $s mkdir -p $tmp ; cd $tmp ; sudo wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/Hack.zip ; sudo unzip Hack.zip -d hackz ; sudo cp hackz/* /usr/share/fonts/truetype/hack/
 
-                     wget https://github.com/Yash-Handa/logo-ls/releases/download/v1.3.7/logo-ls_amd64.deb ; sudo dpkg -i logo-ls_amd64.deb
+                     sudo wget https://github.com/Yash-Handa/logo-ls/releases/download/v1.3.7/logo-ls_amd64.deb ; sudo dpkg -i logo-ls_amd64.deb ; sudo rm -rf logo-ls_amd64.deb
                     
                     
                     
@@ -571,9 +567,10 @@ sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/
                     $s rsync -v -K -a --force --include=".*" journald.conf /etc/systemd/journald.conf
                 
                 
+                mkcomposecache en_US.UTF-8 /var/tmp/buildroot/usr/share/X11/locale/en_US.UTF-8/Compose /var/tmp/buildroot/var/X11R6/compose_cache /usr/share/X11/locale/en_US.UTF-8/Compose
                 
-                
-                
+                kdebugsettings --disable-full-debug
+                #kdebugsettings --debug-mode Off
 
 $s systemctl enable --now dbus-broker
 
@@ -589,9 +586,9 @@ $s systemctl enable --now dbus-broker
         #$s rm -rf $source/tmp
         #git reset --hard    # reset and clean up source
         #git clean -xfd
-        #$s passwd -l root # remove root account, use init=/bin/bash instead as parameter in grub
+        $s passwd -l root # remove root account, use init=/bin/bash instead as parameter in grub
         $s bootctl install && $s bootctl update
-        
+        $s rm -rf $tmp
         
         echo -e "${magenta}" && echo "Finalizing with fstrim / ... be patient." && echo -e "${yellow}"
     

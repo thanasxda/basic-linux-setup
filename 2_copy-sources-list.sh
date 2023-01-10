@@ -21,7 +21,7 @@ s="sudo"
 
 echo -e "${yellow}"
 
-if grep -q sid /etc/apt/apt.conf.d/00debian || [ $enable_sid = yes ] ; then sed -z -i 's/Pin: release n=sid\nPin-Priority: -1/Pin: release n=sid\nPin-Priority: 999/g' preferences ; fi
+if grep -q sid /etc/apt/apt.conf.d/00debian ; then sed -z -i 's/Pin: release n=sid\nPin-Priority: -1/Pin: release n=sid\nPin-Priority: 999/g' preferences ; fi
 
 
 if [ -f  ${source}/backup.${distro}.sources.list ]; then
@@ -56,3 +56,5 @@ echo "Done."
 echo -e "${restore}"
 
 ###### END
+
+sed -z -i 's/Pin: release n=sid\nPin-Priority: 999/Pin: release n=sid\nPin-Priority: -1/g' preferences 

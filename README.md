@@ -139,6 +139,10 @@ sudo su ; firstrun=yes sh init.sh ; reboot.
 Experimental only used for kernel.
 Setup gives choice for sid/testing.
 
+Depending on if you use mitigations or not you can test your browsers [here](https://webkay.robinlinus.com/).
+The setup has some methods to compensate like host blocklists but javascript filtering addons are not included by default for the browsers.
+For chromium based browsers use [noscript](https://chrome.google.com/webstore/detail/noscript/doojmbjmlfjjnbmnoijecmcbfeoakpjm?hl=en), for firefox based browsers use [librejs](https://addons.mozilla.org/el/firefox/addon/librejs/).
+
 ## Main contents:
 ---
    - [main setup](https://github.com/thanasxda/basic-linux-setup/blob/master/1_setup.sh)

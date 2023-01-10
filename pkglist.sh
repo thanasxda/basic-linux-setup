@@ -1,4 +1,4 @@
-#!/bin/bash -l
+﻿#!/bin/bash -l
 #############################################################
 #############################################################
 ##                  basic-linux-setup                      ##
@@ -37,6 +37,11 @@ echo "" && echo "" && echo "" && echo "pkglist starting..." && echo "" && echo "
 echo "DO NOT INSTALL ALL PACKAGES ITS COMPLETELY UNNECESSARY AND WILL DOUBLE YOUR LATENCY ON SCORES AND OVERALL PERFORMANCE, AS IS IS OPTIMAL. HANDPICK YOURSELF WHAT YOU ABSOLUTELY NEED ONLY. AND DOUBLECHECK IF WHAT YOU INSTALL RUNS 24/7 ON BACKGROUND SERVICES WITHOUT BEING NECESSARY WHATSOVER." && echo "" && echo "" && echo ""
 
 
+
+  if [ $enable_sid = yes ] ; then echo 'APT::Default-Release "sid";' | $s tee /etc/apt/apt.conf.d/00debian ; fi
+  if grep -q sid /etc/apt/apt.conf.d/00debian || [ $enable_sid = yes ] ; then sed -z -i 's/Pin: release n=sid\nPin-Priority: -1/Pin: release n=sid\nPin-Priority: 999/g' preferences ; fi
+$s apt update
+$s apt dist-upgrade -y 
 
 
 # thanas
@@ -111,9 +116,11 @@ $a libxcb-xf86dri0
  vlc \
  alien \
  xsettings-kde \
- kdebugsettings
+ kdebugsettings \
+ gkdebconf
 
-#$a libmkl-def \
+if lscpu | grep -q Intel ; then $a libmkl-def ; fi
+
 # dpdk
 
 $a dracut
@@ -248,7 +255,11 @@ $a dracut
  partitionmanager \
  qapt-utils \
  plasma-discover-backend-flatpak plasma-discover-backend-fwupd \
- plasma-firewall
+ plasma-firewall \
+ software-properties-kde \
+ kwrite vlc dolphin dolphin-plugins
+
+$a plasma-desktop
 
  
  apt -y install anbox -t unstable
@@ -261,8 +272,8 @@ $a dracut
  #$a qt6ct
  #$a xserver-xorg-input-evdev
 
-$a gcc-$gccver-offload-amdgcn -t experimental
-$a amdgcn-tools -t experimental
+#$a gcc-$gccver-offload-amdgcn -t experimental
+#$a amdgcn-tools -t experimental
 $a gcc-$gccver -t experimental
 $a llvm-$llver 
 
@@ -271,11 +282,19 @@ $a llvm-$llver
  
  #qt6ct 
  
-$rem akonadi-server
-$rem k3b
+ 
+ 
+
+$a sddm x11-utils
 
 
+        if [ $enable_sid = yes ] ; then
+        $s apt dist-upgrade -t sid -y ; else
+        $s apt dist-upgrade -y ; fi
+        $s dpkg --configure -a
 
+$rem k3b \
+imagemagick 
 
 
 

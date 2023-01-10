@@ -46,7 +46,7 @@ fi
       # if you have issues enable this for bootparams only. mainly x86. also overrides LD_PRELOAD libraries
         #safeconfig="no" not used now
         compositor="x11"
-        windowmanager="openbox" # kwin, kwin_gles, openbox etc
+        windowmanager="openbox" # kwin, kwin_gles, kwin_x11, kwin_wayland, openbox etc
 
       ### < MISC >
       # ipv6 "on" to enable
@@ -72,7 +72,7 @@ fi
       # - linux kernel cpu governor
         governor="performance"
 
-      ### < MITIGATIONS > - an easy switch for ppl complaining while running windows... mainly for x86 anyways. hijacking /proc/cmdline doesnt even work lol
+      ### < MITIGATIONS > - expect HIGH!!! performance penalty in favor of security when enabling this. degree of performance degradation relative to the hardware. can leave disabled and run trusted code, use librejs browser plugin 
         mitigations="off"
 
       ### < TCP CONGESTION CONTROL >
@@ -137,13 +137,14 @@ fi
         seccomp="0"
         thp="on"
         vdso="on"
+        maxcstate="0"
         dracut="enabled" # include dracut in mkinitramfs firstrun
 
       ### < FSTAB FLAGS >
       # - /etc/fstab - let fstrim.timer handle discard # https://www.kernel.org/doc/Documentation/filesystems/<ext4.txt><f2fs.txt><xfs.txt>
         if [ ! -e $droidprop ] ; then export errorsmnt=",errors=remount-ro" ; fi
         xfs="defaults,rw,lazytime,noquota,nodiscard,attr2,inode64,logbufs=8,logbsize=256k,allocsize=64m,largeio,swalloc,filestreams,async"
-       ext4="defaults,rw,lazytime,noquota,nodiscard,commit=60,data=writeback,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
+       ext4="defaults,rw,lazytime,noquota,nodiscard,commit=60,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
        f2fs="defaults,rw,lazytime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,ram_thresh=20,cp_interval=120,async"
        vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,mode=1777"
@@ -449,11 +450,11 @@ cpress=50
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # problems never stop.... from the kernel documentation: The number of kernel parameters is not limited, but the length of the complete command line (parameters including spaces etc.) is limited to a fixed number of characters. This limit depends on the architecture and is between 256 and 4096 characters. It is defined in the file ./include/asm/setup.h as COMMAND_LINE_SIZE.
-# if you wonder why your setup doesnt show all parameters in /proc/cmdline.... suddenly chronological order becomes important. fucking bullshit once again. and btw 6.1.1.1~exp2 debian kernel regressed performance 7% lol. so dont think its the parameters
+# if you wonder why your setup doesnt show all parameters in /proc/cmdline.... suddenly chronological order becomes important. 
 
 # mitigations
 if [ $mitigations = off ] ; then
-if [ $(uname -r | cut -c1-1) -ge 5 ] ; then mit1=" mitigations=off noinvpcid" ; fi
+if [ $(uname -r | cut -c1-1) -ge 5 ] ; then mit1=" mitigations=off" ; fi
 if lscpu | grep -q ARM || [ -f $droidprop ] ; then mit2=" nokaslr kpti=0" ; fi
 if lscpu | grep -q PPC ; then mit3=" no_stf_barrier" ; fi
 if lscpu | grep -q Intel ; then mit4=" ibpb=off kvm-intel.vmentry_l1d_flush=never mds=off" ; fi
@@ -490,7 +491,7 @@ xtra0=" libahci.ignore_sss=1 libata.force=udma7,ncq,dma,nodmalog,noiddevlog,nodi
 #
 xtra1=" cpufreq.default_governor=$governor cgroup_no_v1=all cryptomgr.notests nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(ls /sys/block | grep -q nvme) ; then echo " nvme_core.default_ps_max_latency_us=0" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes reboot=force,w processor.ignore_tpc=1 processor.latency_factor=1 noresume hibernate=noresume processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
 #if [ $safeconfig = no ] ; then
-xtra2=" stack_depot_disable=true rfkill.default_state=0$xipv6 rfkill.master_switch_mode=1 io_delay=none pata_legacy.all=0 uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 carrier_timeout=1 ip=:::::::$dns1:$dns2: memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 rootdelay=0 skip_ddc=1 skip_duc=1 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 vt.default_utf8=1 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig parport=0 floppy=0 agp=0 lp=0"
+xtra2=" stack_depot_disable=true rfkill.default_state=0$xipv6 rfkill.master_switch_mode=1 io_delay=none uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 carrier_timeout=1 ip=:::::::$dns1:$dns2: memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 rootdelay=0 skip_ddc=1 skip_duc=1 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig processor.max_cstate=$maxcstate"
 #fi
 # disable radeon and have just amdgpu workaround for performance degradation in some gpus. need to unlock for manual control of voltages, didnt work for me
 #unlockgpu="$(printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))")"
@@ -500,7 +501,7 @@ xtra2=" stack_depot_disable=true rfkill.default_state=0$xipv6 rfkill.master_swit
 #
 #x="$( if dmesg | grep -q i915 ; then echo " i915.modeset=1 i915.enable_ppgtt=3 i915.fastboot=0 i915.enable_fbc=1 i915.enable_guc=3 i915.lvds_downclock=1 i915.semaphores=1 i915.reset=0 i915.enable_dc=2 i915.enable_psr=0 i915.enable_cmd_parser=1 i915.enable_rc6=0 i915.lvds_use_ssc=0 i915.use_mmio_flip=1 i915.disable_power_well=1 i915.powersave=1 i915.enable_execlists=0" ; else echo " i915.enable_rc6=0" ; fi)"
 #
-#swiotlb=force processor.max_cstate=$maxcstate nohz_full=1-$(nproc)
+# nohz_full=1-$(nproc) parport=0 floppy=0 agp=0 lp=0 pata_legacy.all=0
 
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
@@ -536,6 +537,12 @@ $i uhci-hcd debug=0
 $i usb-storage quirks=p
 $i usbcore usbfs_snoop=0
 $i drm_kms_helper poll=0
+$i tcp_bbr2 debug_port_mask=0
+$i tcp_bbr2 debug_ftrace=N
+$i tcp_bbr2 debug_with_printk=N
+$i tcp_bbr2 ecn_enable=Y
+$i tcp_bbr2 fast_path=Y
+$i tcp_bbr2 fast_ack_mode=1
 if dmesg | grep -q radeon ; then
 $i radeon modeset=1
 $i radeon benchmark=0
@@ -705,10 +712,11 @@ done'
     # some additional info and config
      # https://gist.github.com/bebosudo/6f43dc6b4329c197f258f25cc69f0ec0 dont know if this works anymore for amd
 
+        himri=$(getent passwd | grep 1000 | awk -F ':' '{print $1}')
+                if [ $whoami = root ] ; then HOME=/root ; else HOME=/home/$himri ; fi
 
-        # meanwhile serves as list to make me remember how to figure out user. srry ppl with x in name. lazy
        # if $wrt || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x || who -H | awk '{print $1}' | tail -n1 | grep -q x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
-        if [ $(getent passwd | grep 1000 | awk -F ':' '{print $1}') = x ] ; then export country=GR ; fi
+        if grep -q x $himri ; then export country=GR ; fi
 
        if [ ! -e $droidprop ] && $(lscpu | grep -q x86) ; then wg=" --connect-timeout=10 --continue -4 --retry-connrefused" ; elif [ -e $droidprop ] ; then export ifdr="/system" ; fi
 
@@ -719,8 +727,9 @@ done'
         if [ $firstrun = yes ] ; then export DEBIAN_FRONTEND=noninteractive ; DEBIAN_FRONTEND=noninteractive ; fi
 
                if $debian ; then
-      #sed -i 's/ACTIVE_CONSOLES=.*/ACTIVE_CONSOLES="\/dev\/tty[1-6]"/g' /etc/default/console-setup
-      #sed -i 's/#NAutoVTs=.*/#NAutoVTs=0/g' /etc/systemd/logind.conf
+               if $(! grep -q "#ACTIVE_CONSOLES=" /etc/default/console-setup) ; then
+      sed -i 's/ACTIVE_CONSOLES=.*/#ACTIVE_CONSOLES="\/dev\/tty[1-6]"/g' /etc/default/console-setup
+      sed -i 's/#NAutoVTs=.*/NAutoVTs=0/g' /etc/systemd/logind.conf ; fi
       #sed -i 's/#UserStopDelaySec=.*/UserStopDelaySec=1/g' /etc/systemd/logind.conf
       #sed -i 's/#ReserveVT=.*/ReserveVT=1/g' /etc/systemd/logind.conf
       #sed -i 's/#InhibitDelayMaxSec=.*/InhibitDelayMaxSec=1/g' /etc/systemd/logind.conf
@@ -1316,15 +1325,7 @@ fi
   iptables -A INPUT -p tcp --dport 23 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
 
-        # config dracut as well in case of not using initramfs-tools
-                    #if echo "$zswap" | grep -q "zswap.enabled=1" ; then draczswap=" zsmalloc z3fold" ; fi
-          if [ $dracut = enabled ] && [ $firstrun = yes ] ; then
-            dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4"
-        if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then
-        echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
-        if [ $firstrun = yes ] ; then dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f ; fi ; fi
 
-        # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
 
     #scsiblack=$(if [ $scsi = off ] ; then
     #echo 'scsi_mod
@@ -4045,7 +4046,7 @@ echo 40000 > /sys/kernel/debug/sched/latency_ns
 echo 500000 > /sys/kernel/debug/sched/migration_cost_ns
 echo 500000 > /sys/kernel/debug/sched/min_granularity_ns
 echo 500000 > /sys/kernel/debug/sched/wakeup_granularity_ns
-echo 8 > /sys/kernel/debug/sched/nr_migrate
+echo 128 > /sys/kernel/debug/sched/nr_migrate
 
 # different path under 5.10
 sysctl -w kernel.sched_scaling_enable=1
@@ -4066,7 +4067,7 @@ echo '500000' > /sys/kernel/debug/sched/min_granularity_ns
 echo '500000' > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo '40000' > /sys/kernel/debug/sched/latency_ns
 echo 0 > /proc/sys/kernel/debug/sched/min_task_util_for_colocation
-echo 32 > /proc/sys/kernel/debug/sched/nr_migrate
+echo 128 > /proc/sys/kernel/debug/sched/nr_migrate
 echo 0 > /proc/sys/kernel/sched_min_task_util_for_colocation
 echo 128 > /proc/sys/kernel/sched_nr_migrate
 echo off > /proc/sys/kernel/printk_devkmsg
@@ -4135,7 +4136,7 @@ echo 40000 > "$i"latency_ns
 #echo ? > "$i"latency_warn_once
 echo 500000 > "$i"migration_cost_ns
 echo 500000 > "$i"min_granularity_ns
-echo 32 > "$i"nr_migrate
+echo 128 > "$i"nr_migrate
 echo full > "$i"preempt
 echo 0 > "$i"tunable_scaling
 echo N > "$i"verbose
@@ -4573,7 +4574,7 @@ kernel.sched_latency_ns = 40000
 kernel.sched_migration_cost_ns = 250000
 kernel.sched_min_granularity_ns = 40000
 kernel.sched_min_task_util_for_colocation = 0
-kernel.sched_nr_migrate = 32
+kernel.sched_nr_migrate = 128
 kernel.sched_rr_timeslice_ms = -1
 kernel.sched_rt_period_us = -1
 kernel.sched_rt_runtime_us = -1
@@ -5082,23 +5083,23 @@ if $debian ; then
 
 
 
-if [ ! -f /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/brave-flags.conf ] ; then
-echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable --num-raster-threads=$(nproc --all) --enable-zero-copy --disable-partial-raster --enable-features=CanvasOopRasterization,CastStreamingAv1,CastStreamingVp9,EnableDrDc,ForceGpuMainThreadToNormalPriorityDrDc,ParallelDownloading,RawDraw,Vp9kSVCHWDecoding,WindowsScrollingPersonality,enable-pixel-canvas-recording.enable-accelerated-video-encode --ignore-gpu-blacklist --enable-webgl --force-device-scale-factor=1.00 --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-zero-copy --enable-accelerated-mjpeg-decode --enable-accelerated-video --use-gl=egl --disable-gpu-driver-bug-workarounds --enable-features=UseOzonePlatform --ozone-platform=x11 --smooth-scrolling --enable-quic --enable-raw-draw --canvas-oop-rasterization --force-gpu-main-thread-to-normal-priority-drdc --enable-drdc --enable-vp9-kSVC-decode-acceleration --windows-scrolling-personality --back-forward-cache --enable-pixel-canvas-recording --enable-accelerated-video-encode --memlog-sampling-rate=5242880 --enable-parallel-downloading --enable-features=VaapiVideoDecoder --use-gl=desktop" | tee /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/brave-flags.conf /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/chromium-flags.conf ; fi
+if [ ! -f /home/"$himri"/.config/brave-flags.conf ] ; then
+echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable --num-raster-threads=$(nproc --all) --enable-zero-copy --disable-partial-raster --enable-features=CanvasOopRasterization,CastStreamingAv1,CastStreamingVp9,EnableDrDc,ForceGpuMainThreadToNormalPriorityDrDc,ParallelDownloading,RawDraw,Vp9kSVCHWDecoding,WindowsScrollingPersonality,enable-pixel-canvas-recording.enable-accelerated-video-encode --ignore-gpu-blacklist --enable-webgl --force-device-scale-factor=1.00 --enable-gpu-rasterization --enable-native-gpu-memory-buffers --enable-zero-copy --enable-accelerated-mjpeg-decode --enable-accelerated-video --use-gl=egl --disable-gpu-driver-bug-workarounds --enable-features=UseOzonePlatform --ozone-platform=x11 --smooth-scrolling --enable-quic --enable-raw-draw --canvas-oop-rasterization --force-gpu-main-thread-to-normal-priority-drdc --enable-drdc --enable-vp9-kSVC-decode-acceleration --windows-scrolling-personality --back-forward-cache --enable-pixel-canvas-recording --enable-accelerated-video-encode --memlog-sampling-rate=5242880 --enable-parallel-downloading --enable-features=VaapiVideoDecoder --use-gl=desktop" | tee /home/"$himri"/.config/brave-flags.conf /home/"$himri"/.config/chromium-flags.conf ; fi
 
 #if $(! grep -q getent /etc/chromium.d/default-flags) ; then
 #echo 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS $(cat /home/$(getent passwd | grep 1000 | awk -F '\'':'\'' '\''{print $1}'\'')/.config/chromium-flags.conf)"' | tee -a /etc/chromium.d/default-flags ; fi
 
 if [ $firstrun = yes ] ; then
 mkdir -p tmp
-mkdir -p /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/BraveSoftware/Brave-Browser-Nightly/Default
-mkdir -p /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/chromium/Default
+mkdir -p /home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Default
+mkdir -p /home/$himri/.config/chromium/Default
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.mozilla/firefox/.default-release/prefs.js -O tmp/firefox.js ; if [ -e tmp/firefox.js ] ; then cp -f tmp/firefox.js /etc/firefox/firefox.js ; fi
-wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences -O tmp/Preferences ; if [ -e tmp/Preferences ] ; then cp -f tmp/Preferences /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; cp -f Preferences tmp/Local State" "/home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/chromium/Default/Preferences
-wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State -O "tmp/Local State" ; if [ -e "tmp/Local State" ] ; then cp -f "tmp/Local State" "/home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/BraveSoftware/Brave-Browser-Nightly/Local State" ; cp -f "tmp/Local State" "/home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/chromium/Local State" ; fi ; fi ; fi
+wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences -O tmp/Preferences ; if [ -e tmp/Preferences ] ; then cp -f tmp/Preferences /home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; cp -f Preferences tmp/Local State" "/home/$himri/.config/chromium/Default/Preferences
+wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State -O "tmp/Local State" ; if [ -e "tmp/Local State" ] ; then cp -f "tmp/Local State" "/home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Local State" ; cp -f "tmp/Local State" "/home/$himri/.config/chromium/Local State" ; fi ; fi ; fi
 
 
 
-sed -i 's/StartServer=.*/StartServer=false/g' /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/akonadi/akonadiserverrc
+sed -i 's/StartServer=.*/StartServer=false/g' /home/$himri/.config/akonadi/akonadiserverrc
 
 
 
@@ -5108,13 +5109,18 @@ if dmesg | grep -q amdgpu && ! grep -q amdgpu /etc/modules ; then echo 'amdgpu' 
 if [ ! -f /etc/dxvk.conf ] ; then wget https://raw.githubusercontent.com/doitsujin/dxvk/master/dxvk.conf --connect-timeout=10 --continue -4 --retry-connrefused -O /etc/dxvk.conf ; fi
 
 
+echo '[Theme]
+CursorTheme=Vimix-cursors
+Font=Noto Sans,10,-1,5,50,0,0,0,0,0,Condensed
+
+[X11]
+ServerArguments=-nolisten tcp -nolisten udp' | tee /etc/sddm.conf.d/kde_settings.conf
 
 
 
 echo '#!/bin/sh
 
-exec /usr/bin/X -nolisten tcp -nolisten local "$@"' | tee /etc/X11/xinit/xserverrc
-
+exec /usr/bin/X -nolisten tcp -nolisten udp -nolisten local "$@"' | tee /etc/X11/xinit/xserverrc
 
 # pulseaudio
  sed -i 's|load-module module-switch-on-connect|#load-module module-switch-on-connect|g' /etc/pulse/default.pa
@@ -5259,7 +5265,7 @@ echo 'xrandr --auto' | tee -a /etc/X11/xinit/xinitrc ; fi
 
 
 # kde config linux, debian
-$s mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env
+$s mkdir -p /home/"$himri"/.config/plasma-workspace/env
 
 
 
@@ -5276,15 +5282,15 @@ echo 'options drm_kms_helper poll=0' | tee -a /etc/modprobe.d/modprobe.conf ; fi
 
 # enable kde compose cache on disk
 mkdir -p /var/cache/libx11/compose
-mkdir -p /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.compose-cache
-touch /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.XCompose
+mkdir -p /home/"$himri"/.compose-cache
+touch /home/"$himri"/.XCompose
 mkdir -p $HOME/.compose-cache
 touch $HOME/.XCompose
 
 
 
 # stop akonadi-server
-$s sed -i 's/StartServer.*/StartServer=false/' /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/akonadi/akonadiserverrc
+$s sed -i 's/StartServer.*/StartServer=false/' /home/"$himri"/.config/akonadi/akonadiserverrc
 
 #resolution=$(echo $(xrandr --current | head -n 6 | tail -n 1 | awk '{print $1}'))
 #resolution=$(echo $(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//'))
@@ -5402,9 +5408,9 @@ echo 'Section "Extensions"
 EndSection' | tee /etc/X11/xorg.conf.d/1-extensions.conf
 
 echo 'Section "ServerFlags"
-      Option "DontVTSwitch" "off"
+      Option "DontVTSwitch" "true"
       Option "AllowNonLocalXvidtune" "false"
-      #Option "DontZap" "true"
+      Option "DontZap" "true"
       Option "IndirectGLX" "false"
       Option "DRI2" "off"
       Option "DRI3" "on"
@@ -5551,7 +5557,7 @@ ButtonsOnRight=HIAX
 CloseOnDoubleClickOnMenu=false
 ShowToolTips=true
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__Glassy' | $s tee /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/kwinrc
+theme=__aurorae__svg__Glassy' | $s tee /home/"$himri"/.config/kwinrc
 
 
 
@@ -5612,15 +5618,6 @@ fi
 
 
 
-
-if [ $ipv6 = on ]
-then
-sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=1' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-else
-sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh
-sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh ; fi
-
 if [ $ipv6 = on ]
 then
 sed -i 's/user_pref("network.dns.disableIPv6", true);/user_pref("network.dns.disableIPv6", false);/g' /home/*/.mozilla/firefox/*.default-release/prefs.js
@@ -5632,7 +5629,7 @@ sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6
 
 
 if [ $firstrun = yes ] ; then
-sudo apt -y install uuid-gen
+sudo apt -y install uuid-gen # not available in debian repos 
 
 echo '[main]
 plugins=ifupdown,keyfile
@@ -5652,6 +5649,7 @@ managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
         $s chmod 0666 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
 
 
+        uuidgen="$(uuidgen)"
 
 
 
@@ -5755,22 +5753,22 @@ if grep -q preload=yes /etc/bak/dontdelete ; then linker="LD=mold" ; fi
 if $debian ; then
   # ccache & path
     if $(! sudo grep -q "USE_CCACHE=1" $HOME/.zshrc) ; then
-    $s sed -i "\$aUSE_CCACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$aPREBUILT_CACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$aCCACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc
-    $s sed -i "\$accache -M 30G >/dev/null" $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi ; fi
+    $s sed -i "\$aUSE_CCACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    $s sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    $s sed -i "\$aPREBUILT_CACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    $s sed -i "\$aCCACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    $s sed -i "\$accache -M 30G >/dev/null" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi ; fi
     if $(! sudo grep -q 'LD_LIBRARY_PATH' $HOME/.zshrc) ; then
-    #echo "$ld_preload" | tee -a /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc
+    #echo "$ld_preload" | tee -a /home/"$himri"/.xsessionrc /root/.xsessionrc
     clang=$(ls /usr/lib | grep 'llvm-' | tail -n 1 | rev | cut -c-3 | rev)
     echo 'PATH=/usr/lib/ccache/bin/:/lib/x86_64-linux-gnu:/usr/lib/llvm'"$clang"'/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
     LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:/usr/lib/llvm'"$clang"'/lib:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-    '"$ld_preload"'' | tee -a $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment $HOME/.zshrc $HOME/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.profile /root/.profile ; fi
+    '"$ld_preload"'' | tee -a $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc /home/"$himri"/.xsessionrc /root/.xsessionrc /home/"$himri"/.profile /root/.profile ; fi
 ccache --set-config=sloppiness=locale,time_macros
 
-#if $(! grep -q LD_PRELOAD $HOME/.zshrc) ; then echo "$ld_preload" | tee -a /root/.zshrc /root/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi
+#if $(! grep -q LD_PRELOAD $HOME/.zshrc) ; then echo "$ld_preload" | tee -a /root/.zshrc /root/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi
 
-#if $(! grep -q /etc/environment /root/.zshrc) ; then echo '#for i in $(cat /etc/environment | grep -v "-" | grep -v "if" | sed '\''s/\[//g'\'' | sed '\''s/|//g'\'' | awk '\''{print $2}'\'') ; do export $i >/dev/null ; done' | tee -a /root/.zshrc /root/.bashrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.zshrc /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.bashrc ; fi
+#if $(! grep -q /etc/environment /root/.zshrc) ; then echo '#for i in $(cat /etc/environment | grep -v "-" | grep -v "if" | sed '\''s/\[//g'\'' | sed '\''s/|//g'\'' | awk '\''{print $2}'\'') ; do export $i >/dev/null ; done' | tee -a /root/.zshrc /root/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi
 
 # smcr info to check if your hardware is capable
 #ld_preload="export LD_PRELOAD=libtrick.so:libmkl_core.so:libomp"$cclm".so.5:libmkl_def.so:libhugetlbfs.so.0:libmimalloc.so.2:libeatmydata.so:libsmc-preload.so.1:libmkl_vml_avx2.so:libmkl_intel_lp64.so:libmkl_intel_thread.so$(if dmesg | grep -q amdgpu ; then echo ":libomptarget.rtl.amdgpu.so.$cclm" | sed 's/-//g'
@@ -6041,8 +6039,17 @@ __GL_SHADER_DISK_CACHE_SKIP_CLEANUP=1
 __GL_SHADER_DISK_CACHE=1
 __GL_MaxFramesAllowed='"$maxframes"'
 __GL_LOG_MAX_ANISO=0
-__GL_FSAA_MODE=0' | tee /etc/environment /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.profile /root/.profile /etc/environment.d/env.conf /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.xserverrc /root/.xserverrc ; fi
+__GL_FSAA_MODE=0' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
 
+
+
+if [ $ipv6 = on ]
+then
+sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=1' /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc
+else
+sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc
+sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
 
 #LD_DEBUG=0
 #QSG_RHI_BACKEND=vulkan
@@ -6266,8 +6273,7 @@ persist.telephony.support.ipv4=1
 #ACTIVITY_INACTIVITY_RESET_TIME=false
 
 ####
-# deprecated bs that slows down system mostly. part from some that still apply and test very good
-# left all in for you to decide depending on which android version youre in. most dont apply today in latest source and some are device related. left them in unused despite
+# deprecated mostly so disabled
 
 #persist.sys.oem_smooth=1
 #cpu.fps=auto
@@ -7785,16 +7791,16 @@ if [ $firstrun = yes ] && $debian; then
   #aptitude search '~i!~Nlib(~Dqt|~Dkde)'
   mkdir -p tmp
   cd tmp
-  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/kdebugsettings_22.12.0-2.1_amd64.deb ; dpkg -i kdebugsettings*.deb
-  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/mkcomposecache_1.2.2-2.4_amd64.deb ; dpkg -i mkcomposecache*.deb
-  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so
-  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb
-  wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/kscripts.zip ; mkdir -p /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts ; cp -f kscripts.zip /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts ; unzip /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kscripts.zip ; rm -rf /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kscripts.zip ; systemctl enable com.system76.Scheduler.service
-  if [ ! -f /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js ] ; then
-mkdir -p /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code
+  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/kdebugsettings_22.12.0-2.1_amd64.deb ; sudo dpkg -i kdebugsettings*.deb
+  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/mkcomposecache_1.2.2-2.4_amd64.deb ; sudo dpkg -i mkcomposecache*.deb
+  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so
+  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; sudo dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb
+  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/kscripts.zip ; mkdir -p /home/$himri/.local/share/kwin/scripts ; cp -f kscripts.zip /home/$himri/.local/share/kwin/scripts ; unzip /home/$himri/.local/share/kwin/scripts/kscripts.zip ; rm -rf /home/$himri/.local/share/kwin/scripts/kscripts.zip ; sudo systemctl enable com.system76.Scheduler.service
+  if [ ! -f /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js ] ; then
+mkdir -p /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code
 echo 'workspace.clientActivated.connect(function(client) {
     callDBus("com.system76.Scheduler", "/com/system76/Scheduler", "com.system76.Scheduler", "SetForegroundProcess", client.pid);
-})' | tee /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js
+})' | tee /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js
 echo '[Desktop Entry]
 Name=System76 Scheduler Integration
 Comment=Notify System76 Scheduler which app has focus so it can be prioritized
@@ -7809,7 +7815,7 @@ X-KDE-PluginInfo-License=MIT
 Type=Service
 X-KDE-ServiceTypes=KWin/Script
 X-Plasma-API=javascript
-X-Plasma-MainScript=code/main.js' | tee /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.local/share/kwin/scripts/kwin-system76-scheduler-integration/metadata.desktop ; fi
+X-Plasma-MainScript=code/main.js' | tee /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/metadata.desktop ; fi
 
  # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
  # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libsmc-preload32.so -O /usr/lib/libsmc-preload32.so
@@ -7838,7 +7844,7 @@ systemctl mask configure-printer@.service exim4.service quotaon.service rdma-loa
     systemctl mask dm-event.socket mdadm-grow-continue@.service mdadm-last-resort@.service mdadm-last-resort@.timer ; fi
 fi
 
-  rm -rf $HOME/.config/kdeconnect /home/$(getent passwd | grep 1000 | awk -F ':' '{print $1}')/.config/kdeconnect
+  rm -rf $HOME/.config/kdeconnect /home/$himri/.config/kdeconnect
 
  "$bb"sh -x "$ifdr"/etc/update_hosts.sh
 
@@ -7985,7 +7991,25 @@ rmmod efi_pstore cachefiles fscache cec
 
 
 
-if $debian && [ $firstrun = yes ] ; then update-initramfs -c -k all ; mkinitramfs -c lz4 -o /boot/initrd.img-* ; fi
+if $debian && [ $firstrun = yes ] ; then 
+
+if $(apt list | grep initramfs | grep -q installed) ; then 
+update-initramfs -c -k all ; mkinitramfs -c lz4 -o /boot/initrd.img-* 
+        
+else
+
+# config dracut as well in case of not using initramfs-tools
+                    #if echo "$zswap" | grep -q "zswap.enabled=1" ; then draczswap=" zsmalloc z3fold" ; fi
+          if [ $dracut = enabled ] ; then
+            dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4"
+        if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then
+        echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
+        dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f 
+
+        # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
+
+
+ fi ; fi ; fi
 
 
 
@@ -8137,6 +8161,7 @@ cd "$(pwd)" ; rm -rf tmp
     sysctl -w vm.drop_caches=3
     if [ $? = 1 ] ; then echo 3 > /proc/sys/vm/drop_caches ; fi
 rm -rf /~
+rm -rf tmp
 
 #tuned -p network-throughput
 

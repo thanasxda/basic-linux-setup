@@ -28,7 +28,7 @@
     </entry>
     <entry name="SubredditSection" type="String">
       <label>Subreddits section from which to fetch wallpapers</label>
-      <default>hot</default>
+      <default>top</default>
     </entry>
     <entry name="SubredditSectionTime" type="String">
       <label>Timespan to filter wallpapers to</label>

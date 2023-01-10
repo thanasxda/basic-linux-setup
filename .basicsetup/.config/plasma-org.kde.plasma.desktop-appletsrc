@@ -133,7 +133,7 @@ DialogWidth=1920
 PreloadWeight=0
 
 [Containments][127][General]
-AppletOrder=142;129;168;157;144;159;130;131;133;169;134
+AppletOrder=142;129;168;157;144;169;159;130;131;133;134
 
 [Containments][132]
 activityId=
@@ -156,9 +156,6 @@ PreloadWeight=80
 [Containments][132][Applets][135][Configuration][ConfigDialog]
 DialogHeight=540
 DialogWidth=720
-
-[Containments][132][Applets][135][Configuration][General]
-raiseMaximumVolume=true
 
 [Containments][132][Applets][136]
 immutability=1
@@ -240,8 +237,8 @@ plugin=org.kde.plasma.keyboardindicator
 PreloadWeight=0
 
 [Containments][132][General]
-extraItems=org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardlayout,org.kde.plasma.vault,org.kde.plasma.manage-inputmethod,org.kde.kupapplet
-knownItems=org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardlayout,org.kde.plasma.vault,org.kde.plasma.manage-inputmethod,org.kde.kupapplet
+extraItems=org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardlayout,org.kde.plasma.vault,org.kde.plasma.manage-inputmethod,org.kde.kupapplet,org.kde.plasma.nightcolorcontrol,org.kde.plasma.keyboardindicator
+knownItems=org.kde.plasma.networkmanagement,org.kde.plasma.volume,org.kde.plasma.devicenotifier,org.kde.kdeconnect,org.kde.plasma.clipboard,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.notifications,org.kde.plasma.keyboardlayout,org.kde.plasma.vault,org.kde.plasma.manage-inputmethod,org.kde.kupapplet,org.kde.plasma.nightcolorcontrol,org.kde.plasma.keyboardindicator
 
 [Containments][167]
 ItemGeometriesHorizontal=
@@ -253,16 +250,17 @@ location=0
 plugin=org.kde.plasma.folder
 wallpaperplugin=com.kylepaulsen.kderedditwallpaper
 
-[Containments][167][ConfigDialog]
+[Containments][170][ConfigDialog]
 DialogHeight=540
 DialogWidth=720
 
-[Containments][167][General]
+[Containments][170][General]
 ToolBoxButtonState=topcenter
-ToolBoxButtonX=549
+ToolBoxButtonX=600
 
-[Containments][167][Wallpaper][com.kylepaulsen.kderedditwallpaper][General]
+[Containments][170][Wallpaper][com.kylepaulsen.kderedditwallpaper][General]
 FillMode=2
+RefetchSignal=true
 
 [Containments][2][Applets][22][Configuration]
 PreloadWeight=0
