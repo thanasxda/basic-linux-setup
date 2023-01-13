@@ -124,6 +124,7 @@ if lscpu | grep -q Intel ; then $a libmkl-def ; fi
 # dpdk
 
 $a dracut
+$rem initramfs-tools-core
  # choose which of the 2 u want initramfs-tools or dracut
 #$a initramfs-tools
 
