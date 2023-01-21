@@ -6,3 +6,6 @@ backup.sources.list
 backup.kali.sources.list
 backup.ubuntu.sources.list
 backup.debian.sources.list
+sources.list.bak
+extras.list.bak
+preferences.bak

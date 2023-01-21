@@ -155,4 +155,3 @@ if ! shopt -oq posix; then
   fi
 fi
 
-export DRI_PRIME=1

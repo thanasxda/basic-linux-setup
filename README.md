@@ -42,8 +42,8 @@ cd /sdcard && rm -f init.sh
 firstrun=yes "$xbin"sh -x init.sh
 ```
 Also available for installation in the form of a Magisk module which is the recommended installation method: [__Download here__](https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/basic-linux-setup-installer-magisk-module.zip).
-Reboot and connect to internet after flashing the module for it to get activated. You must install the [__Busybox__](https://forum.xda-developers.com/t/tools-zips-scripts-osm0sis-odds-and-ends-multiple-devices-platforms.2239421/) Magisk module which is located in __/system/xbin__ for it to work. Legacy devices especially when using older Busybox binaries.
-After reboot the first run of the setup which happens automatically when connected to the internet might take a bit on older devices, once finished a final reboot is needed for everything to get activated. This is only on the first run, you know its done when the script is placed under _/data/adb/service.d/init.sh_. If it's not done and you reboot too early the Magisk module will rerun the setup in first run mode. Once the first run is complete it will execute normally on every reboot. If youre online it will automatically fetch latests updates from this repo on every reboot and execute them on every next reboot. Otherwise the setup will use local settings and not update anything. Setup will also enable F2FS support on Android.
+Reboot and connect to internet after flashing the module for it to get activated. You must install the [__Busybox__](https://forum.xda-developers.com/t/tools-zips-scripts-osm0sis-odds-and-ends-multiple-devices-platforms.2239421/) Magisk module which is located in `/system/xbin` for it to work. Legacy devices especially when using older Busybox binaries.
+After reboot the first run of the setup which happens automatically when connected to the internet might take a bit on older devices, once finished a final reboot is needed for everything to get activated. This is only on the first run, you know its done when the script is placed under `/data/adb/service.d/init.sh`. If it's not done and you reboot too early the Magisk module will rerun the setup in first run mode. Once the first run is complete it will execute normally on every reboot. If youre online it will automatically fetch latests updates from this repo on every reboot and execute them on every next reboot. Otherwise the setup will use local settings and not update anything. Setup will also enable F2FS support on Android.
 
 _Since script tries to aim for compatibility, if you have troubles booting the script enable [__init.d__](https://forum.xda-developers.com/attachments/update-kernel_init-d_injector-ak2-signed-zip.3761907/)_ _support. This should only be necessary when not being able to run [__Magisk__](https://github.com/topjohnwu/Magisk/releases)_. _All links to the downloads are in this text._
 
@@ -63,8 +63,8 @@ All foreign repositories have been removed.
 Chances are it will keep working despite lack of intensive maintenance.
 If you have issues with this setup it's not me, its Debian repositories.
 My efforts will go in the general parameter script instead which is multi device.
-Setup can be upgraded with dist-upgrade.
-DO NOT use apt upgrade -t unstable etc or any other branch.
+Setup can be upgraded with `dist-upgrade`.
+DO NOT use `apt upgrade -t unstable` etc or any other branch, unless you don't care of dependency issues on rare ocassions.
 Experimental branch is just included for a cronjob fetching mainline kernel and will not be used by default unless specified.
 Worst case it might get included in aptitude when solving dependencies which you do need to be wary of, not otherwise. Hash it out in cases as such.
 
@@ -80,7 +80,7 @@ I don't know if regular installation allows for executing a shell within the set
 The setup, as far as expert install, again don't know if it's in regular install as well... 
 Prompts if the user wants to have a root account to login from or use a standard user account with elevated root permissions.
 DO NOT choose a root account to login from, choose the latter. If fdisk isn't included in shell, the installation menu allows loading modules for it to be selected during installation.
-This can be rectified after however in the /etc/sudoers file.
+This can be rectified after however in the `/etc/sudoers` file.
 You can go back any time to the menu and configure this just by pressing back button.
 Graphical/install, when you reach partitioning go back. Select execute a shell from menu.
 If your partitions aren't setup the way you want them you could do that through the setup's partitioning options as well...
@@ -101,7 +101,7 @@ Btw, if you did not choose mountpoints for a partition you can still do so by do
 ```
 sudo fdisk -l # check partition you want to mount
 ```
-After you have the partition for example /dev/sda3 and its xfs you would do the following to mount it:
+After you have the partition for example `/dev/sda3` and its xfs you would do the following to mount it:
 ```
 sudo mkdir -p /media/mount && echo '/dev/sda3 /media/mount xfs 0 0' | sudo tee -a /etc/fstab
 ```
@@ -117,7 +117,7 @@ deb http://ftp.debian.org/debian testing main contrib non-free
 The setup will replace the repositories anyway, it's just for installing the GPU driver in case of it not coming preinstalled in the testing iso.
 Trying to be very beginner friendly here. As for complete beginners the | just passes on the output to another application, to reduce the confusion.
 You do not need to install Linux this way, nor is console needed after being done with the full setup. It can be compared to Mac os for people having a wrong impression, especially KDE I consider... easier than Windows.
-Besides the point, install the GPU driver:
+Besides the point, install the GPU driver: (Note that underneath method could just as well be replaced by packages: `firmware-linux-nonfree` `firmware-misc-nonfree`. Check what hardware needs nonfree drivers basically.)
 ```
 sudo apt update && sudo apt install firmware-amd-graphics && systemctl reboot # used amd graphics in example here
 # Boot linux. > basic-linux-setup > open terminal > ./1* # hit enter.
@@ -140,8 +140,13 @@ Experimental only used for kernel.
 Setup gives choice for sid/testing.
 
 Depending on if you use mitigations or not you can test your browsers [here](https://webkay.robinlinus.com/).
-The setup has some methods to compensate like host blocklists but javascript filtering addons are not included by default for the browsers.
-For chromium based browsers use [noscript](https://chrome.google.com/webstore/detail/noscript/doojmbjmlfjjnbmnoijecmcbfeoakpjm?hl=en), for firefox based browsers use [librejs](https://addons.mozilla.org/el/firefox/addon/librejs/).
+Keep in mind if sites have trouble loading, because mitigations=off by default the setup uses javascript blockers within browsers. librejs for firefox, noscript for brave.
+Make sure to check 'cat /proc/cmdline' if cmdline parameters are successfully configured.
+Reconfigure your UEFI boot entry if needed from within the bios.
+If you have trouble connecting to the internet manually assign DHCP addresses in networkmanager.
+Since systemd-boot and kexec only warm reboot you have to use `coldreboot` to enter uefi bios.
+For efi systems `Linux Boot Manager` is systemd-boot which skips udev.
+If you end up in busybox when using systemd recheck fstab for faulty entries.
 
 ## Main contents:
 ---
@@ -164,8 +169,9 @@ ___
  Mitigations:
   - [__mitigations=off__](https://www.phoronix.com/review/3-years-specmelt)
 
- Recommendations x86 Intel:
+ Recommendations for bios:
   - [__me_cleaner__](https://github.com/corna/me_cleaner)
+  - [__coreboot__](https://github.com/coreboot/coreboot)
 
  For kernel parameters check:
   - [__linux - kernel parameters__](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
@@ -177,7 +183,7 @@ ___
 
    - Disabling __HPET__ or any timers used in bios.
    - Formatting disk to __blocksize 4096__ on __XFS__ on __GPT__ partitioning table while disabling __MBR__ in bios and choosing __UEFI__ mode only.
-     This can be done prior or during expert installation not sure if with the regular setup, you drop down in shell: _"Execute a shell"_ and for example: _fdisk -l ; mkfs.xfs /dev/sda2 -b size=4096 -f_
+     This can be done prior or during expert installation not sure if with the regular setup, you drop down in shell: _"Execute a shell"_ and for example: `fdisk -l ; mkfs.xfs /dev/sda2 -b size=4096 -f`
    - In case of Intel using [__me_cleaner__](https://github.com/corna/me_cleaner) don't know if AMD has a counterpart fix.
    - Modifying the setup to __your own needs__.
    - If your hardware supports gpu rebar enable it in bios, the setup is configured to enable it.
@@ -192,7 +198,7 @@ ___
 
 ## Command line parameters on Android:
 
-Note that hijacking the kernel command line parameters through userspace was a lazy effort as I am focused solely on userspace configuration through this setup. It is however very easy since chances are slim many devices will support this, doing this on other devices without recompilation. For example on Android the boot.img can be extracted, configured and repacked with kernel command line parameters and changes within the fstab if the fstab happens to be on the ramdisk instead of on a device partition. One of the many methods of achieving this explained underneath by example. Hackbench and other tools are also availabe on Android under Magisk module [benchkit](https://github.com/kdrag0n/benchkit/releases/tag/v2.0.0). It's also possible running Linux in chroot within Android if you need more or if you would like to keep it minimal [termux](https://termux.dev/en/). Most devices will have a kernel which will not read added parameters at boot, mainly for security. However if it does, the kernel can be adjusted either from hijacking /proc/cmdline or from the command line parameters within the boot.img. Same goes to OpenWrt btw. Not to every device however. In case of making your own kernel make sure to check out options such as __CONFIG_CMDLINE_FROM_BOOTLOADER__, __CONFIG_BUSYBOX_DEFAULT_FEATURE_INIT_MODIFY_CMDLINE__ etc. Note that changes should be seen in /proc/cmdline. dmesg | grep "Command line" doesn't show everything even when it's enabled. It is worth if your kernel supports this configuring it from userspace, as compilation takes time and effort and can't apply to multiple devices simoultanious if they differ.
+Note that hijacking the kernel command line parameters through userspace was a lazy effort as I am focused solely on userspace configuration through this setup. It is however very easy since chances are slim many devices will support this, doing this on other devices without recompilation. For example on Android the boot.img can be extracted, configured and repacked with kernel command line parameters and changes within the fstab if the fstab happens to be on the ramdisk instead of on a device partition. One of the many methods of achieving this explained underneath by example. Hackbench and other tools are also availabe on Android under Magisk module [benchkit](https://github.com/kdrag0n/benchkit/releases/tag/v2.0.0). It's also possible running Linux in chroot within Android if you need more or if you would like to keep it minimal [termux](https://termux.dev/en/). Most devices will have a kernel which will not read added parameters at boot, mainly for security. However if it does, the kernel can be adjusted either from hijacking /proc/cmdline or from the command line parameters within the boot.img. Same goes to OpenWrt btw. Not to every device however. In case of making your own kernel make sure to check out options such as `CONFIG_CMDLINE_FROM_BOOTLOADER`, `CONFIG_BUSYBOX_DEFAULT_FEATURE_INIT_MODIFY_CMDLINE` etc. Note that changes should be seen in `cat /proc/cmdline`. `dmesg | grep "Command line"` doesn't show everything even when it's enabled. It is worth if your kernel supports this configuring it from userspace, as compilation takes time and effort and can't apply to multiple devices simoultanious if they differ.
 ```
 git clone -j32 --depth=1 -4 --single-branch https://github.com/thanasxda/AIK
 cd AIK
@@ -221,6 +227,13 @@ adb reboot recovery
 dd if=/sdcard/moddedboot.img of=$(grep /boot /path/to/fstab* | awk '{print $1}') 
 ```
 Note: This way one could also include F2FS support on Android since the drivers are within the kernel by copying the /data and /cache lines from EXT4 and swapping the flags for the filesystem.
+
+## Extras:
+
+List non-free software:
+```
+dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free
+```
 
 ## Bash help:
 

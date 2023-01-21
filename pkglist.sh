@@ -34,7 +34,7 @@ kernelv="6*"
 
 echo -e "${yellow}"
 echo "" && echo "" && echo "" && echo "pkglist starting..." && echo "" && echo "" && echo "" 
-echo "DO NOT INSTALL ALL PACKAGES ITS COMPLETELY UNNECESSARY AND WILL DOUBLE YOUR LATENCY ON SCORES AND OVERALL PERFORMANCE, AS IS IS OPTIMAL. HANDPICK YOURSELF WHAT YOU ABSOLUTELY NEED ONLY. AND DOUBLECHECK IF WHAT YOU INSTALL RUNS 24/7 ON BACKGROUND SERVICES WITHOUT BEING NECESSARY WHATSOVER." && echo "" && echo "" && echo ""
+
 
 
 
@@ -72,10 +72,11 @@ $a linux-xanmod-x64v1 # since setup is highly modified this kernel really perfor
 
 $a flatpak
 
+if [ $nonfree = yes ] ; then
 #flatpak --noninteractive
 $s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 #$fl freetube
-
+fi
 
 
 # remove stuff
@@ -87,7 +88,7 @@ $rem openssh-server openssh-sftp-server \
  bluez \
  firefox-esr
 
-
+$a acpi-fakekey acpi-support-base libx86-1 rfkill vbetool bind9-dnsutils inetutils-telnet libgnutls-dane0 liblockfile1 libunbound8 lsof python3-debconf
 
 $a libdvdcss2 \
 mencoder \
@@ -96,7 +97,9 @@ libvorbisidec1
 $a libavcodec59 
 
 $a libxcb-xf86dri0
- 
+if [ $nonfree = yes ] ; then
+$a firmware-realtek ; fi
+
  $a flatpak \
  fwupd \
  git \
@@ -117,16 +120,18 @@ $a libxcb-xf86dri0
  alien \
  xsettings-kde \
  kdebugsettings \
- gkdebconf
+ gkdebconf \
+ alsa-tools-gui \
+ python-is-python3 \
+ virt-manager
 
-if lscpu | grep -q Intel ; then $a libmkl-def ; fi
+ #if [ $nonfree = yes ] ; then if lscpu | grep -q Intel ; then $a libmkl-def ; fi ; fi
 
 # dpdk
 
-$a dracut
-$rem initramfs-tools-core
+#$a dracut && $rem initramfs-tools-core
  # choose which of the 2 u want initramfs-tools or dracut
-#$a initramfs-tools
+$a initramfs-tools initramfs-tools-core
 
  $a libllvm-$llver-ocaml-dev \
  libllvm$llver \
@@ -157,6 +162,8 @@ $rem initramfs-tools-core
  libomp5-$llver \
  bolt-$llver
  
+ $a xfsprogs f2fs-tools
+ 
  $a atom-beta \
  nmap \
  apparmor \
@@ -165,8 +172,6 @@ $rem initramfs-tools-core
  dkms \
  firmware-linux \
  firmware-linux-free \
- firmware-linux-nonfree \
- firmware-misc-nonfree \
  haveged \
  hdparm \
  jitterentropy-rngd \
@@ -174,7 +179,10 @@ $rem initramfs-tools-core
  net-tools \
  wireless-regdb \
  htop \
- qapt-deb-installer 
+ qapt-deb-installer \
+ psensor
+ 
+ if [ $nonfree = yes ] ; then $a firmware-linux-nonfree firmware-misc-nonfree ; fi
 
  $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
  libosmesa6 \
@@ -199,7 +207,7 @@ $rem initramfs-tools-core
  mesa-utils-bin 
  
  $a x265
- $a w64codecs
+ if [ $nonfree = yes ] ; then $a w64codecs ; fi
  $a ffmpeg
  $a x264
   
@@ -236,7 +244,7 @@ $rem initramfs-tools-core
  sddm \
  kio-fuse kio-extras kio \
  gstreamer1.0-qt5 gstreamer1.0-plugins-bad \
- openssl ufw unattended-upgrades fail2ban \
+ openssl unattended-upgrades fail2ban \
  *qtgstreamer* \
  firewall* \
  xinit \
@@ -246,6 +254,7 @@ $rem initramfs-tools-core
  irqbalance \
  adb fastboot
  
+ #ufw
  
  $a kde-config-systemd \
  kdeconnect \
@@ -256,14 +265,18 @@ $rem initramfs-tools-core
  partitionmanager \
  qapt-utils \
  plasma-discover-backend-flatpak plasma-discover-backend-fwupd \
- plasma-firewall \
  software-properties-kde \
  kwrite vlc dolphin dolphin-plugins
+ 
+#  plasma-firewall 
+
 
 $a plasma-desktop
 
- 
- apt -y install anbox -t unstable
+$a grub2
+if [ -d /sys/firmware/efi ] ; then $a grub-efi-amd64 ; fi
+
+ #apt -y install anbox -t unstable
  
  #plasma-discover-backend-snap
  #$a qdbus-qt6
@@ -278,8 +291,9 @@ $a plasma-desktop
 $a gcc-$gccver -t experimental
 $a llvm-$llver 
 
-#$rem intel-microcode 
-#$rem amd-microcode
+# removing microcode will remove firmware-linux firmware-linux-nonfree
+#if lscpu | $(! grep -q Intel) ; then $rem intel-microcode ; fi
+#if lscpu | $(! grep -q AMD) ; then $rem amd-microcode ; fi
  
  #qt6ct 
  
@@ -297,6 +311,7 @@ $a sddm x11-utils
 $rem k3b \
 imagemagick 
 
+$rem "^liblxc*"
 
 
 	#} 2>&1 | tee -a $(ls -t ~/Desktop/BLS-LOGS/BLS_LOG* | head -1)

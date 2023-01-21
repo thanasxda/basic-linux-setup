@@ -81,13 +81,25 @@ echo "" && echo ""
 	
     ### choice of buildenv
 
-        while true; do read -p "Do you want to use Debian SID or TESTING. TESTING is considered stable. Yes for SID. No for TESTING. Answer Y/N. :  " yn
-        case $yn in  [Yy]* ) export enable_sid="yes" ; break;; [Nn]* ) unset enable_sid ; sed -z -i 's/Package: *\nPin: release n=sid\nPin-Priority: 999/Package: *\nPin: release n=sid\nPin-Priority: -1/g' preferences ; echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        while true; do read -p "Choice of Debian repositories TESTING or SID. If unsure choose YES for Testing, Sid repositories are unstable and can easily break Linux making it unusable even upon fresh install. You can always 'try' using apt upgrade -t sid. YES=Testing, NO=Sid. Answer Y/N. :  " yn
+        case $yn in
+        [Yy]* ) echo " You picked TESTING" ; unset enable_sid ; cp -f preferences.bak preferences ; sed -z -i 's/Package: *\nPin: release n=sid\nPin-Priority: 999/Package: *\nPin: release n=sid\nPin-Priority: -1/g' preferences ; echo 'APT::Default-Release "testing";' | $s tee /etc/apt/apt.conf.d/00debian ; break;;
+        [Nn]* ) echo " You picked SID" ; export enable_sid="yes" ; cp -f preferences preferences.bak ; break;;
+        * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        echo "" && echo ""
+        
+        while true; do read -p "Do you want to include NON-FREE packages and repositories? Only cpu microcode will be enabled otherwise. Note that most gpu drivers are non-free. Note that the non-free repositories will be removed from the setup if this is selected so make sure you do not rely on non-free firmware. YES=Nonfree, NO=Free. Answer Y/N. :  " yn
+        case $yn in
+        [Yy]* ) echo " You have selected NONFREE" ; export nonfree="yes" ; cp -f sources.list.bak sources.list ; cp -f extras.list.bak extras.list ; break;;
+        [Nn]* ) eecho " You have selected only FREE software" ; unset nonfree ; cp -f sources.list sources.list.bak ; cp -f extras.list extras.list.bak ; sed -i 's/non-free //g' sources.list ; sed -i '/dl.google/c\' extras.list ; break;;
+        * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
         echo "" && echo ""
     
        
-        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system. Answer Y/N. :  " yn
-        case $yn in  [Yy]* ) export INSTALLBUILDENV=true ; break;; [Nn]* ) break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system. YES=Devpkgs, NO=No devpkgs. Answer Y/N. :  " yn
+        case $yn in
+        [Yy]* ) echo " You have selected DEV PACKAGES" ; export INSTALLBUILDENV=true ; break;;
+        [Nn]* ) echo " You have NOT selected DEV PACKAGES" ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
         echo "" && echo ""
 
    echo -e "${restore}" 
@@ -121,9 +133,8 @@ cd $source
         $s chmod +x *
         $s rm -rf $tmp
         $s mkdir -p $tmp
-        echo ""
+        $s sh 2* ; echo "" # execute backup sources.list script
         $up ; $a wget unzip dpkg curl git
-        $s sh 2* # execute backup sources.list script
         $s rm -rf /var/lib/dpkg/lock* /var/lib/aptitude/lock* /var/cache/apt/archives/ /var/lib/apt/lists/*
         #$s mv /var/lib/dpkg/info/install-info.postinst /var/lib/dpkg/info/install-info.postinst.bad
         $s fuser -viks /var/cache/debconf/config.dat
@@ -245,9 +256,9 @@ cd $tmp
     ###     <<<< BASIC PKGS >>>> - we just added and updated sources, latest pkgs can be updated >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     $s rm -rf /var/lib/dpkg/lock*
         $a deb-multimedia-keyring \
-            brave-browser-nightly \
-            google-earth-pro-stable \
+            brave-browser-nightly 
             
+            if [ $nonfree = yes ] ; then $a google-earth-pro-stable ; fi
             
             $a -t unstable firefox #chromium
             
@@ -310,8 +321,8 @@ cd $basicsetup
                 $killb && $killf
                     $s rsync -v -K -a --force --include=".*" .hushlogin ~/.hushlogin
                     $s rsync -v -K -a --force --include=".*" .hushlogin /root/.hushlogin
-                    $s rsync -v -K -a --force --include=".*" .bashrc ~/.bashrc
-                    $s rsync -v -K -a --force --include=".*" .bashrc /root/.bashrc
+                    #$s rsync -v -K -a --force --include=".*" .bashrc ~/.bashrc
+                    #$s rsync -v -K -a --force --include=".*" .bashrc /root/.bashrc
                     $s rsync -v -K -a --force --include=".*" .config ~/
                     $s rsync -v -K -a --force --include=".*" .config /root/
                     $s rsync -v -K -a --force --include=".*" .kde ~/
@@ -483,62 +494,55 @@ cd $source
         #$s mv dnscrypt-proxy /usr/sbin/
         #$s mv * /etc/dnscrypt-proxy
         #$s systemctl enable dnscrypt-proxy  && $s systemctl start dnscrypt-proxy   #
-        $s systemctl stop --now NetworkManager NetworkManager-wait-online 
-        sleep 2
+     #   $s systemctl stop --now NetworkManager NetworkManager-wait-online
+     #   sleep 2
         
 
         
-echo '#!/bin/sh
-sudo mkdir -p /run/resolvconf
-sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+#echo '#!/bin/sh
+#sudo mkdir -p /run/resolvconf
+#sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
 
 
-        $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
-        $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
-        $a uuid-runtime
+ #       $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+ #       $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+ #       $a uuid-runtime
         #
-        #/bin/bash -c 'sudo rm -rf "/etc/NetworkManager/system-connections/*'
-        $s rm -rf "/etc/NetworkManager/system-connections/802-11-wireless connection 1" "/etc/NetworkManager/system-connections/Wired connection 1"
-        $s touch "/etc/NetworkManager/system-connections/802-11-wireless connection 1" "/etc/NetworkManager/system-connections/Wired connection 1"
+ #       #/bin/bash -c 'sudo rm -rf "/etc/NetworkManager/system-connections/*'
+ #       $s rm -rf "/etc/NetworkManager/system-connections/802-11-wireless connection 1" "/etc/NetworkManager/system-connections/Wired connection 1"
+ #       $s touch "/etc/NetworkManager/system-connections/802-11-wireless connection 1" "/etc/NetworkManager/system-connections/Wired connection 1"
 
         
         
-        uuidgen="$(uuidgen)"
-        sleep 1
+ #       uuidgen="$(uuidgen)"
+ #       sleep 1
         
         
-echo '[main]
-plugins=ifupdown,keyfile
-dns=none
+#echo '[main]
+#plugins=ifupdown,keyfile
+#dns=none
 #rc-manager=unmanaged
-systemd-resolved=false
+#systemd-resolved=false
 
-[ifupdown]
-managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
+#[ifupdown]
+#managed=false' | $s tee /etc/NetworkManager/NetworkManager.conf
         #
-echo 'nameserver 1.1.1.1
-nameserver 1.0.0.1
-nameserver 127.0.0.1
+#echo 'nameserver 1.1.1.1
+#nameserver 1.0.0.1
+#nameserver 127.0.0.1
 #nameserver ::1
 #nameserver 2606:4700:4700::1111
 #nameserver 2606:4700:4700::1001
-options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 single-request-reopen no-tld-query
-' | $s tee /etc/resolv.conf.override /etc/resolv.conf
+#options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-needed no-dhcp-interface=lo ncache-size=8192 local-ttl=300 neg-ttl=120 edns0 rotate timeout:1 attempts:3 single-request-reopen no-tld-query
+#' | $s tee /etc/resolv.conf.override /etc/resolv.conf
 
 
-        
-        $s mkdir -p /run/resolvconf
-        
-        
 
-        echo '#!/bin/sh
-sudo mkdir -p /run/resolvconf
-sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
 
 
         
-        $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
-        $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+#        $s chown root /etc/NetworkManager/dispatcher.d/20-resolv-conf-override && $s chmod +x /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
+#        $s chmod 0600 /etc/NetworkManager/dispatcher.d/20-resolv-conf-override
 
         
         
@@ -552,7 +556,7 @@ sudo cp -f /etc/resolv.conf.override /run/resolvconf/resolv.conf' | $s tee /etc/
 
     
 
-    $s apt remove -f -y remove resolvconf dnsmasq
+    # $s apt remove -f -y remove resolvconf dnsmasq
     
     
    
@@ -586,12 +590,28 @@ $s systemctl enable --now dbus-broker
         #$s rm -rf $source/tmp
         #git reset --hard    # reset and clean up source
         #git clean -xfd
-        $s passwd -l root # remove root account, use init=/bin/bash instead as parameter in grub
+        #$s passwd -l root # remove root account, use init=/bin/bash instead as parameter in grub
         $s bootctl install && $s bootctl update
         $s rm -rf $tmp
-        
-        echo -e "${magenta}" && echo "Finalizing with fstrim / ... be patient." && echo -e "${yellow}"
-    
+                #if apt search systemd-boot | grep -q installed && [ -d /sys/firmware/efi ] ; then $s apt purge -y grub-common ; fi
+            $s rm -rf /home/"$(getent passwd | grep 1000 | awk -F ':' '{print $1}')"/.config/ccache*
+            $s rm -rf /etc/apt/sources.list.d/google*
+            $s update-initramfs -u
+            $s mkdir -p /tmp
+            $s systemctl daemon-reload
+            $s mount -a
+            
+            $s rm -rf /boot/efi/loader/entries/*
+            $s sh /etc/environment ; $s update-grub ; $s grub-mkconfig ; $s bootctl install ; $s bootctl systemd-efi-options $par ; $s bootctl update ; $s update-initramfs -u -k all ; $s mkinitramfs -c lz4 -o /boot/initrd.img-*
+            
+            
+            
+            
+            
+            
+        echo -e "${magenta}" && echo "Finalizing with fstrim / ... be patient." && echo -e "${yellow}" 
+        echo "non-free packages on this system right now are:"
+        dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free
 
            # $s xfs_repair -f /dev/$hdd
            # $s xfs_fsr -f /dev/$hdd
