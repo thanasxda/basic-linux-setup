@@ -59,7 +59,9 @@ NightTemperature=4000
 [Plugins]
 autocomposerEnabled=true
 blurEnabled=false
-contrastEnabled=true
+contrastEnabled=false
+desktopgridEnabled=false
+forceblurEnabled=false
 kwin-system76-scheduler-integrationEnabled=true
 kwin4_effect_dialogparentEnabled=false
 kwin4_effect_fadingpopupsEnabled=false
@@ -69,10 +71,18 @@ kwin4_effect_loginEnabled=false
 kwin4_effect_logoutEnabled=false
 kwin4_effect_maximizeEnabled=false
 kwin4_effect_morphingpopupsEnabled=false
+kwin4_effect_rubberband_maximizeEnabled=false
+kwin4_effect_scaleEnabled=false
+kwin4_effect_squashEnabled=false
 kwin4_effect_translucencyEnabled=true
+kwin4_effect_windowapertureEnabled=false
+overviewEnabled=false
 screenedgeEnabled=false
+slideEnabled=false
 slidingpopupsEnabled=false
+windowviewEnabled=false
 wobblywindowsEnabled=true
+zoomEnabled=false
 
 [Script-desktopchangeosd]
 TextOnly=true
@@ -97,4 +107,4 @@ ButtonsOnRight=HIAX
 CloseOnDoubleClickOnMenu=false
 ShowToolTips=true
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__Glassy
+theme=__aurorae__svg__ChromeOS-dark

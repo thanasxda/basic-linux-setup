@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name=""/>
+
+  <group name="General">
+    <entry name="Blur" type="bool">
+      <label>Blur background filling</label>
+      <default>false</default>
+    </entry>
+    <entry name="Color" type="Color">
+      <label>Color of the wallpaper</label>
+      <default>#000000</default>
+    </entry>
+    <entry name="FillMode" type="int">
+      <label>Sizing, cropping and positioning of the wallpaper image</label>
+      <default>0</default>
+    </entry>
+    <entry name="TransitionAnimationDuration" type="int">
+      <label>Fade Transition Animation  (ms)</label>
+      <default>10000</default>
+    </entry>
+    <entry name="Subreddit" type="String">
+      <label>Subreddits from which to fetch wallpapers</label>
+      <default>earthporn</default>
+    </entry>
+    <entry name="SubredditSection" type="String">
+      <label>Subreddits section from which to fetch wallpapers</label>
+      <default>top</default>
+    </entry>
+    <entry name="SubredditSectionTime" type="String">
+      <label>Timespan to filter wallpapers to</label>
+      <default>forever</default>
+    </entry>
+    <entry name="PreferOrientation" type="String">
+      <label>Try to get images that are landscape or portrait or any.</label>
+      <default>landscape</default>
+    </entry>
+    <entry name="WallpaperDelay" type="int">
+      <label>How much time in minutes between wallpaper change.</label>
+      <default>30</default>
+    </entry>
+    <entry name="WallpaperLimit" type="int">
+      <label>How many wallpapers to fetch to randomly pick from.</label>
+      <default>1000</default>
+    </entry>
+    <entry name="ShowPostTitle" type="bool">
+      <label>Show the post title in the lower right?</label>
+      <default>true</default>
+    </entry>
+    <entry name="AllowNSFW" type="bool">
+      <label>Should NSFW wallpapers be fetched?</label>
+      <default>false</default>
+    </entry>
+    <entry name="RefetchSignal" type="bool">
+      <label>Need this to enable a refetch button in the config page that bypasses the apply button.</label>
+      <default>true</default>
+    </entry>
+  </group>
+
+</kcfg>

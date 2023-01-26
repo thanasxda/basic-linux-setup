@@ -10,92 +10,125 @@
 ##    https://github.com/thanasxda/basic-linux-setup.git   ##
 #############################################################
 #############################################################
-# setup meant as universal config for x86, android & general
-droidprop="/system/build.prop" ; wrt="grep -q wrt /etc/os-release" ; debian="grep -q debian /etc/os-release" ; #s="sudo"
+# setup meant as universal config for x86, android & general.
+POSIXLY_CORRECT=0 ; droidprop="/system/build.prop" ; wrt="grep -q wrt /etc/os-release" ; # distro="\|your-distro" # unhash if running another distro, but know it has not been tested
+linux=$(grep -q "debian\|arch$distro" /etc/os-release) ; arch="grep -q arch /etc/os-release" ; debian="grep -q debian /etc/os-release" 
      ### script execution delay
+bgmips=$(grep -qi "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)
                 if [ $testing = yes ] ; then echo " skip delay, testing..." ; else
   if [ -f $droidprop ] ; then
-if [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 6000 ] ; then echo " slow device boot delay 200 seconds..." ; sleep 200
+if [ $bgmips -le 6000 ] ; then echo " slow device boot delay 200 seconds..." ; sleep 200
 elif [ "$(grep "ro.build.version.release=" $droidprop | awk -F '=' '{print $2}'  | cut -c 1-2 | sed 's/\.//g')" -le 8 ] ; then echo " less or equal to android 8, sleep 60 seconds..." ; sleep 60
 else echo " android 9 or above found, sleep 30 seconds..." ; sleep 30 ; fi
   fi
-if [ ! -f $droidprop ] && [ "$(grep "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)" -le 6000 ] ; then echo " bogomips less than or equal to 6000, sleep 30 seconds..." ; sleep 30
+if [ ! -f $droidprop ] && [ $bgmips -le 6000 ] ; then echo " bogomips less than or equal to 6000, sleep 30 seconds..." ; sleep 30
 elif [ ! -f $droidprop ] ; then echo " script starting..." ; sleep 5 ; fi
                 fi
-### busybox for android
+      ### busybox for android
 if [ -f $doidprop ] ; then
 if [ -f /sbin/sh ] ; then export bb="/sbin/" ; fi
 if [ -f /bin/sh ] ; then export bb="/bin/" ; fi
 if [ -f /system/bin/sh ] ; then export bb="/system/bin/" ; fi
 if [ -f /system/xbin/sh ] ; then export bb="/system/xbin/" ; fi
-fi
- ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>>
+fi 
+# GITHUB/microsoft
+interjection() {
+if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop ; then cat "$(pwd)"/.blsconfig | tee /data/adb/service.d/.blsconfig ; else cat "$(pwd)"/.blsconfig | tee /etc/.blsconfig ; fi ; if [ -e $PWD/.blsconfig ] ; then for i in $(cat $PWD/.blsconfig) ; do export $i ; done ; fi
+} 
+### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>>
+ # note that some options are related to x86 specific linux distributions only and have no effect on general devices
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
 
-      ### < SCRIPT AUTO-UPDATE >
+      ### < GENERAL SCRIPT CONFIG >
+       # IMPORTANT NOTE: you can also create a .blsconfig within the $PWD this script will run from which in case of x86 GNU/Linux is /etc/rc.local so: /etc/.blsconfig, put the variables you want to override, or even your own $rawlink in case of forking. This is an alternative method to still get updates while overriding setup options. In case you want the setup to be frozen: override variable will stop it from syncing with any repository and keep it strictly local, vars variable will not. choice is yours. keep in mind .blsconfig in case of git is in gitignore.
+      # setup variables you want to override without applying override variable and disabling sync function from repo regardless of what script is configured to. use single quoutes in vars variable. this option will only apply to the setup variables and not to the full config like the override variable, example: you want to autosync but dont want mitigations=off by default. or change rawlink to fork or any other value of the setup variables on top of the script. once the script is overridden by the sync it will create a file if the $vars variable has been even specified once. for x86 it will be located in /etc/.blsconfig. since the script attempts to be compatible in some usecases the kernel cmdline will be packed in ramdisk. for stubborn cases as such run `sudo su ; firstrun=yes sh /path/to/script while having the $vars variable set or having a .blsconfig file in the same $PWD.
+
+########################################################################
+##      ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      ##      
+########################################################################
+        vars=''                                                      
+########################################################################
+
+        #fix_bootpart="no" # fix boot partition systemd-boot efi stub only (do not use otherwise, will wipe boot and efi partition), dont use if dual boot. unhash for usage or call out prior to running script: sudo fix_bootpart=yes sh init.sh
         script_autoupdate="yes"
         sourceslist_update="no"
-      # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
-        clean_sources_list_d="no"
-      # to avoid much maintenance is partial
-        restore_backup="no"
+        clean_sources_list_d="no" # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
+        restore_backup="no" # to avoid much maintenance is partial
         uninstall="no"
-      # due to compatibility reasons script is present over many devices. if choosing to edit the script then enable override variable underneath
-        override="no"
-      # additional first run setup, unlike others hashed out this one is active if you unhash
-      # firstrun="yes"
-      # if you have issues enable this for bootparams only. mainly x86. also overrides LD_PRELOAD libraries
-        #safeconfig="no" # ld_preload and stuff
+        override="no" # due to compatibility reasons script is present over many devices. if choosing to edit the script then enable override variable underneath
+        #firstrun="yes" # additional first run setup, unlike others hashed out this one is active if you unhash
+        #safeconfig="no" # ld_preload and stuff      # if you have issues enable this for bootparams only. mainly x86. also overrides LD_PRELOAD libraries
         unsafesysctl="no" # only contains tcp config, labeled `unsafe` because on some hardware it could cause connection issues
         compositor="x11"
-        #windowmanager="kwin_gles" # kwin, kwin_gles, kwin_x11, kwin_wayland, openbox etc
+        #windowmanager="kwin_x11" # kwin, kwin_gles, kwin_x11, kwin_wayland, openbox etc
+        account=thanasxda # links to use for this setup, in case of forking.
+        repo=basic-linux-setup
+        branch=master
+        git=github
+        #path=/path/to
+        file=init.sh
+        # gitlab/github. if using anything else just override rawlink alltogether
+        interjection ; if [ $git = github ] ; then
+        rawlink=https://raw.${git}usercontent.com/$account/$repo/$branch$path
+        elif [ $git = gitlab ] ; then
+        rawlink=https://${git}.com/$account/$repo/-/raw/$branch$path
+        fi # dont quoute, if not on git replace rawlink instead in $vars
 
       ### < MISC >
-      # ipv6 "on" to enable
-        ipv6="off"
-      # dns servers
-        dns1="1.1.1.1"
+        ipv6="off" # ipv6 "on" to enable
+        dns1="1.1.1.1" # dns servers
         dns2="1.0.0.1"
         dns61="2606:4700:4700::1111"
         dns62="2606:4700:4700::1001"
-      # preferred address to ping
-        pingaddr="1.1.1.1"
+        pingaddr="1.1.1.1" # preferred address to ping
+        bluetooth="off"
 
       ### < I/O SCHEDULER >
       # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme
-        if ls /dev/nvme* ; then sched="none" ; else sched="bfq" ; fi
+        if find /dev/nvme* ; then sched="none" ; else sched="bfq" ; fi
       # - only used when /dev/sd* ssd hdd etc.
-        sdsched="bfq"
+        sdsched="none"
         mtdsched="bfq"
         mmcsched="cfq"
-        if $(! grep -q cfq /sys/block/mmc*/queue/scheduler) ; then mmcsched="bfq" ; fi
+        if $(! grep -q 'cfq' /sys/block/mmc*/queue/scheduler) ; then mmcsched="bfq" ; fi
 
       ### < CPU GOVERNOR >
       # - linux kernel cpu governor
         governor="schedutil"
 
-      ### < MITIGATIONS > - expect HIGH!!! performance penalty in favor of security when enabling this. degree of performance degradation relative to the hardware. can leave disabled and run trusted code, use librejs browser plugin 
-        mitigations="off"
+      ### < MITIGATIONS > - expect HIGH!!! performance penalty in favor of security when enabling this. degree of performance degradation relative to the hardware. can leave disabled and run trusted code, use librejs browser plugin
+      # by default only enabed on v4 capable instruction set and all non x86_64 cpu's. override with $vars, easiest.
+        x86="/lib/ld-linux-x86-64.so.2" ; if [ ! -e $x86 ] ; then     mitigations="on"    # non-x86_64     - enabled
+        elif $x86 --help | grep -q "v4 (supported" ;         then     mitigations="on"    # x86_64_v4      - enabled - modern cpu's not worthwhile
+        elif $x86 --help | grep -q "v3 (supported" ;         then     mitigations="off"   # x86_64_v3      - disabled
+        elif $x86 --help | grep -q "v2 (supported" ;         then     mitigations="off"   # x86_64_v2      - disabled
+        else                                                          mitigations="off"   # x86_64         - disabled
+          fi
 
       ### < TCP CONGESTION CONTROL >
       # - linux kernel tcp congestion algorithm
         tcp_con="bbr"
-        if [ ! -f /proc/sys/net/core/default_qdisc ] ; then if grep -q westwood /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then export tcp_con=westwood ; else export tcp_con="cubic" ; fi ; fi
-        if grep -q bbr2 /proc/sys/net/ipv4/tcp_available_congestion_control ; then export tcp_con=bbr2 ; fi
+        if [ ! -f /proc/sys/net/core/default_qdisc ] ; then if grep -q 'westwood' /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then tcp_con="westwood" ; else tcp_con="cubic" ; fi ; fi
+        if grep -q 'bbr2' /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then tcp_con="bbr2" ; fi
 
       ### < QDISC >
       # - queue managment
         qdisc="fq_codel"
-        #if $wrt ; then export qdisc="cake" ; fi
+        if [ $tcp_con = bbr ] || [ $tcp_con = bbr2 ] ; then qdisc="cake" ; fi
 
       ### < WIRELESS REG-DB >
       # - wireless regulatory settings per country 00 for global
-        country="00"
+      if $(! grep -q country= "$PWD"/.blsconfig) ; then which curl ; if [ $? = 0 ] ; then
+      ctest=$(curl -i ipinfo.io | awk -F ':' '/"country":/{print $2}' | sed -e 's/,\|"\| //g')
+      if [ -z $ctest ] ; then country="00" ; else echo "country=$ctest" | tee -a "$PWD"/.blsconfig ; fi ; fi ; fi
+        #country="00"
 
       ### < WIFI SETTINGS >
       # - basic wifi settings
         beacons="50"
-        frag="2346"
-        rts="2347"
+        frag="4096"
+        rts="4096"
         txpower="auto"
         pwrsave="off"
         distance="10"
@@ -108,9 +141,31 @@ fi
         rx="4096"
         tx="4096"
         fl="on"
-      # -
         duplex="full"
         autoneg="on"
+
+      ### < EXTRAS >
+        idle="nomwait"
+        perfamdgpu="auto" #"performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
+        cpumaxcstate="9"
+        zpool="z3fold" # zram and zswap only autoconfigured for 2gb ram or less in this setup and only of kernel modules are present, so not on routers. only regresses performance if ram is sufficient.
+        zpoolpercent="35"
+        pagec="0"
+        ksm="0"
+        ranvasp="2"
+        kaslr="on"
+        microcode="on"
+        seccomp="1" # only working if systemd is present
+        thp="madvise" # always/madvise/off
+        vdso="on"
+        extras="off"
+        dracut="enabled" # include dracut in mkinitramfs firstrun
+        debloatandroid="yes" # if on android on first run script will debloat android, select no if issues
+        androidfstab="yes" # script will modify android fstab, select no if experiencing bootloop lol. restore defaults with variables or manually `cp -rf/system/etc/bak /` in recovery
+        androidbuildprop="yes" # setup will apply persistent minimal build.prop modifications to android disable if facing any issues
+        rcu="rcu_nocbs=0" # rcu_nocbs=<cpu#>/rcu_nocb_poll
+        inteligpumitigations="auto"
+        areyoustupid="no" # LoL
 
       ### < ADDITIONAL BLOCKLISTS FOR HOSTS FILE > - not on openwrt
         list1=
@@ -123,61 +178,52 @@ fi
         list8=
         list9=
         list10=
-
-      ### < EXTRAS >
-        idle="nomwait"
-        perfamdgpu="auto" #"performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
-        cpumaxcstate="9"
-        zpool="z3fold"
-        zpoolpercent="35"
-        pagec="0"
-        ksm="0"
-        ranvasp="2"
-        kaslr="on"
-        microcode="on"
-        seccomp="0"
-        thp="on"
-        vdso="on"
-        maxcstate="0"
-        dracut="enabled" # include dracut in mkinitramfs firstrun
-
+        
       ### < FSTAB FLAGS >
-      # - /etc/fstab - let fstrim.timer handle discard # https://www.kernel.org/doc/Documentation/filesystems/<ext4.txt><f2fs.txt><xfs.txt>
+      # - /etc/fstab - let fstrim.timer handle discard # https://www.kernel.org/doc/Documentation/filesystems/<ext4.txt><f2fs.txt><xfs.txt> some flags might be incompatible with android, if bootloop check
         if [ ! -e $droidprop ] ; then export errorsmnt=",errors=remount-ro" ; fi
-        xfs="defaults,rw,lazytime,noquota,nodiscard,attr2,inode64,logbufs=8,logbsize=256k,allocsize=64m,largeio,swalloc,filestreams,async"
-       ext4="defaults,rw,lazytime,noquota,nodiscard,commit=60,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
-       f2fs="defaults,rw,lazytime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=posix,async"
-       vfat="defaults,rw,lazytime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
-      tmpfs="defaults,rw,lazytime,mode=1777"
+        if [ $(uname -r | cut -c1-1) -ge 5 ] ; then f2fsmem=",memory=normal,compress_algorithm=lz4:6,compress_chksum" ; fi
+        xfs="defaults,rw,lazytime,noatime,noquota,nodiscard,attr2,inode64,logbufs=8,logbsize=256k,allocsize=64m,largeio,swalloc,filestreams,async"
+       ext4="defaults,rw,lazytime,noatime,noquota,nodiscard,commit=60,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
+       f2fs="defaults,rw,lazytime,noatime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=nobarrier,gc_merge,async$f2fsmem"
+       vfat="defaults,rw,lazytime,noatime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
+      tmpfs="defaults,rw,lazytime,noatime"
 
       ### < STORAGE >
       # - linux storage devices only used for hdparm. wildcard picks up all
         #strg=$(fdisk -l | grep "Linux filesystem" | awk '{print $1}')
         #storage=$(fdisk -l | grep "Disk /dev" | grep -v zram | awk '{print $2}'  | sed 's/://g')
         raid="no"
+        lvm="no"
+        crypt="no"
         ls -f /fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /fstab*) ; fi
         ls -f /etc/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /etc/fstab*) ; fi
         ls -f /vendor/fstab* | grep -q fstab ; if [ $? = 0 ] ; then export fstab=$(ls /vendor/fstab*) ; fi
-        if $debian ; then export fstab=/etc/fstab ; fi
+        if $linux ; then export fstab=/etc/fstab ; fi
 
         # android dirs
-    if [ -f $droidprop ] ; then
-#droidfstab=$(if [ -f $droidprop ] ; then "$bb"find / -name "fstab*" -type f -not -name "*bak" | grep -v "sbin\|storage\|sdcard" | sort -u ; fi)
-droidresolv="/system/etc/resolv.conf"
-droidsysctl="/system/etc/sysctl.conf"
-droidhosts="/system/etc/hosts"
-droidcmdline="/system/etc/root/cmdline"
-droidshell="/system\/xbin\/sh" # only shebang
-#if $(! grep -q lazytime "$fstab") ; then export droidshell="/system\/bin\/sh" ; fi
-#if [ $testing = yes ] ; then export droidshell="/bin\/sh" ; fi
-    #"$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
-    #"$bb"mount -o rw /dev/block/bootdevice/by-name/system /system
-    #"$bb"mount -o rw /dev/block/bootdevice/by-name/data /data
-    "$bb"mount -o remount,rw /system
-    "$bb"mount -o remount,rw /vendor
-    "$bb"mount -o remount,rw /data
-    "$bb"mount -o remount,rw rootfs /
-    fi
+        if [ -f $droidprop ] ; then
+        #droidfstab=$(if [ -f $droidprop ] ; then "$bb"find / -name "fstab*" -type f -not -name "*bak" | grep -v "sbin\|storage\|sdcard" | sort -u ; fi)
+        droidresolv="/system/etc/resolv.conf"
+        droidsysctl="/system/etc/sysctl.conf"
+        droidhosts="/system/etc/hosts"
+        droidcmdline="/system/etc/root/cmdline"
+        droidshell="/system\/xbin\/sh" # only shebang
+        #if $(! grep -q lazytime "$fstab") ; then export droidshell="/system\/bin\/sh" ; fi
+        #if [ $testing = yes ] ; then export droidshell="/bin\/sh" ; fi
+        #"$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
+        #"$bb"mount -o rw /dev/block/bootdevice/by-name/system /system
+        #"$bb"mount -o rw /dev/block/bootdevice/by-name/data /data
+        "$bb"mount -o remount,rw /system
+        "$bb"mount -o remount,rw /vendor
+        "$bb"mount -o remount,rw /data
+        "$bb"mount -o remount,rw rootfs /
+        fi
+        # fix boot partition setup
+        if $linux ; then 
+        if [ -e /efi/ ] ; then systemdb=/efi/loader ; elif [ -e /boot/efi/ ] ; then systemdb=/boot/efi/loader ; elif [ -e /boot/loader/loader.conf ] ; then systemdb=/boot/loader ; fi
+        if [ $fix_bootpart = yes ] ; then if [ ! -z $systemdb ] ; then 
+        if apt-cache search dracut | grep -qi intalled || pacman -Qm dracut | grep -qi dracut ; then yes | rm -rf /boot/* /efi/* ; dracut --regenerate-all --uefi ; bootctl install ; firstrun=yes ; fi ; fi ; fi ; fi
 
       ### < MEMORY ALLOCATION >
       # - if memory under 2gb or swap or zram considered low spec if not high spec
@@ -274,16 +320,30 @@ sudo sed -i '\''s/PERCENT.*/PERCENT='"$zpoolpercent"'/g'\'' /etc/default/zramswa
 
 # if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
+interjection ; if [ $areyoustupid = yes ] ; then for i in export ; do
+if $(! grep -q nokaslr /proc/cmdline) ; then $i firstrun="yes" ; fi
+if $arch && [ -e /etc/firstboot ] ; then
+pacman -Rsn --noconfirm intel-ucode
+pacman -Rsn --noconfirm amd-ucode
+rm -rf /etc/firstboot
+firstrun="yes" ; fi
+$i thp="always" ; done ; fi
+
 hoverc=256
 overcommit=3
 oratio=150
 shmmax=100000000
 shmmni=1600000
 shmall=35000000
+if [ $thp = madvise ] ; then
+echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
+echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+elif [ $thp = always ] ; then
 echo always > /sys/kernel/mm/transparent_hugepage/enabled
 echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-if [ $thp = off ] ; then
+elif [ $thp = off ] ; then
 echo never > /sys/kernel/mm/transparent_hugepage/enabled
 echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
 echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
@@ -291,28 +351,27 @@ echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
 #hugepages="16"
 #hpages=' transparent_hugepage=madvise'
 
-
 # 8gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 7000000 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 6900000 ] ; then
 devshm=",size=2G"
 vmalloc="256"
 #hugepages="512"
 #hugepagesz="2MB"
 #echo 'soft memlock 1024000
 #hard memlock 1024000' | tee -a /etc/security/limits.conf
-shmmax=4000000000
+shmmax=2000000000
 shmmni=64000000
 shmall=100000000
 hoverc=512
-overcommit=2
-oratio=250
+overcommit=1
+oratio=200
 swappiness=0
-cpress=10
+cpress=50
 rm -rf /etc/zram.sh
 sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 16 gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 15000000 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 14000000 ] ; then
 #export XDG_CACHE_HOME="/dev/shm/.cache"
 devshm=",size=3G"
 vmalloc="512"
@@ -320,18 +379,18 @@ vmalloc="512"
 #hugepagesz="2MB"
 #echo 'soft memlock 2048000
 #hard memlock 2048000' | tee -a /etc/security/limits.conf
-shmmax=6000000000
+shmmax=3000000000
 shmmni=64000000
 shmall=100000000
 hoverc=1024
-overcommit=2
-oratio=400
+overcommit=1
+oratio=300
 swappiness=0
-cpress=5
+cpress=40
 sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 32 gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 30000000 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 29000000 ] ; then
 #export XDG_CACHE_HOME="/dev/shm/.cache"
 devshm=",size=6G"
 vmalloc="1024"
@@ -339,55 +398,55 @@ vmalloc="1024"
 #hugepagesz="2MB"
 #echo 'soft memlock 4096000
 #hard memlock 4096000' | tee -a /etc/security/limits.conf
-shmmax=12000000000
+shmmax=6000000000
 shmmni=64000000
 shmall=100000000
 hoverc=2048
-overcommit=2
-oratio=800
+overcommit=1
+oratio=400
 swappiness=0
-cpress=1
+cpress=30
 sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 4gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 3500000 ] ; then
 devshm=",size=1G"
 vmalloc="256"
 #hugepages="256"
 #hugepagesz="2MB"
 #echo 'soft memlock 512000
 #hard memlock 512000' | tee -a /etc/security/limits.conf
-shmmax=2000000000
+shmmax=1000000000
 shmmni=64000000
 shmall=100000000
 hoverc=256
-overcommit=2
-oratio=200
+overcommit=1
+oratio=150
 #hpages=' transparent_hugepage=madvise'
 swappiness=0
-cpress=10
+cpress=60
 rm -rf /etc/zram.sh
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 2300000 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 2200000 ] ; then
 devshm=",size=192m"
 vmalloc="192"
 #hugepages="128"
 #hugepagesz="2MB"
-shmmax=1000000000
+shmmax=200000000
 shmmni=16000000
 shmall=350000000
 #echo 'soft memlock 262144
 #hard memlock 262144' | tee -a /etc/security/limits.conf
 zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4"
 if [ -e $droidprop ] ; then export droidzram="/system" ; fi
-echo 1 > /sys/module/zswap/parameters/enabled ; $s echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | $s tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | $s tee /etc/anacrontabs && $s chmod +x /etc/zram.sh && $s sh /etc/zram.sh ; if [ -e $droidprop ] ; then echo "$zram" | $s tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
+echo 1 > /sys/module/zswap/parameters/enabled ; echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | tee /etc/anacrontabs && chmod +x /etc/zram.sh && sh /etc/zram.sh ; if [ -e $droidprop ] ; then echo "$zram" | tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
 hoverc=128
-overcommit=2
+overcommit=1
 oratio=100
 swappiness=10
-cpress=50
+cpress=70
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
@@ -396,16 +455,16 @@ devshm=",size=64m"
 vmalloc="128"
 #hugepages="64"
 #hugepagesz="2MB"
-shmmax=100000000
+shmmax=10000000
 shmmni=1600000
 shmall=35000000
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
 hoverc=64
-overcommit=2
+overcommit=1
 oratio=80
 swappiness=10
-cpress=50
+cpress=80
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 sysctl -w vm.nr_overcommit_hugepages=$hoverc
@@ -415,33 +474,35 @@ sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
 sysctl -w vm.overcommit_ratio=$oratio
 
-# problems never stop.... from the kernel documentation: The number of kernel parameters is not limited, but the length of the complete command line (parameters including spaces etc.) is limited to a fixed number of characters. This limit depends on the architecture and is between 256 and 4096 characters. It is defined in the file ./include/asm/setup.h as COMMAND_LINE_SIZE.
-# if you wonder why your setup doesnt show all parameters in /proc/cmdline.... suddenly chronological order becomes important. 
-
+# from the kernel documentation: The number of kernel parameters is not limited, but the length of the complete command line (parameters including spaces etc.) is limited to a fixed number of characters. This limit depends on the architecture and is between 256 and 4096 characters. It is defined in the file ./include/asm/setup.h as COMMAND_LINE_SIZE.
+# if you wonder why your setup doesnt show all parameters in /proc/cmdline.... suddenly chronological order becomes important.
+interjection ; if [ $areyoustupid = yes ] ; then for i in export ; do
+if $(! grep -q nokaslr /proc/cmdline) ; then $i firstrun="yes" ; fi
+$i governor="performance" ; $i seccomp="0" ; $i kaslr="off" ; $i ranvasp="0" ; $i extras="on" ; $i cpumaxcstate="0" ; $i idle="poll" ; $i rcu="rcu_nocbs=0 rcu_nocb_poll" ; $i sched="none" ; $i sdsched="none" ; $i microcode="off" ; $i vdso="0" ; $i thp="always" ; done ; fi
 # mitigations
 if [ $mitigations = off ] ; then
 if [ $(uname -r | cut -c1-1) -ge 5 ] ; then mit1=" mitigations=off" ; fi
-if lscpu | grep -q ARM || [ -f $droidprop ] ; then mit2=" nokaslr kpti=0" ; fi
-if lscpu | grep -q PPC ; then mit3=" no_stf_barrier" ; fi
-if lscpu | grep -q Intel ; then mit4=" ibpb=off kvm-intel.vmentry_l1d_flush=never mds=off" ; fi
-if lscpu | grep -q x86 ; then mit5=" noibrs nopti l1tf=off" ; fi
+if lscpu | grep -qi ARM || [ -f $droidprop ] ; then mit2=" nokaslr kpti=0" ; fi
+if lscpu | grep -qi PPC ; then mit3=" no_stf_barrier" ; fi
+if lscpu | grep -qi Intel ; then mit4=" ibpb=off kvm-intel.vmentry_l1d_flush=never mds=off" ; fi
+if lscpu | grep -qi x86 ; then mit5=" noibrs nopti l1tf=off" ; fi
 if [ $(uname -r | cut -c1-1) -lt 5 ] ; then
-if lscpu | grep -q ARM || [ -f $droidprop ] ; then mit6=" ssbd=force-off nospectre_bhb" ; fi
-if lscpu | grep -q PPC ; then mit7=" no_entry_flush no_uaccess_flush" ; fi
-if lscpu | grep -q s390 ; then mit8=" nobp=0" ; fi
-if lscpu | grep -q Intel ; then mit9=" srbds=off" ; fi
-if lscpu | grep -q x86 ; then mit10=" mmio_stale_data=off retbleed=off mds=off tsx_async_abort=off kvm.nx_huge_pages=off l1tf=off spectre_v2_user=off" ; fi
-if lscpu | grep -q "x86\|PPC" ; then mit11=" nospectre_v1 spec_store_bypass_disable=off" ; fi # some kernels support nospec flag instead
-if lscpu | grep -q "x86\|PPC\|s390|\ARM" || [ -f $droidprop ] ; then mit12=" nospectre_v2" ; fi
+if lscpu | grep -qi ARM || [ -f $droidprop ] ; then mit6=" ssbd=force-off nospectre_bhb" ; fi
+if lscpu | grep -qi PPC ; then mit7=" no_entry_flush no_uaccess_flush" ; fi
+if lscpu | grep -qi s390 ; then mit8=" nobp=0" ; fi
+if lscpu | grep -qi Intel ; then mit9=" srbds=off" ; fi
+if lscpu | grep -qi x86 ; then mit10=" mmio_stale_data=off retbleed=off mds=off tsx_async_abort=off kvm.nx_huge_pages=off l1tf=off spectre_v2_user=off" ; fi
+if lscpu | grep -qi "x86\|PPC" ; then mit11=" nospectre_v1 spec_store_bypass_disable=off" ; fi # some kernels support nospec flag instead
+if lscpu | grep -qi "x86\|PPC\|s390|\ARM" || [ -f $droidprop ] ; then mit12=" nospectre_v2" ; fi
 fi
 xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mit13" ; fi
 
 # cpu amd/intel
-xcpu="$(if lscpu | grep -q AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic" ; elif lscpu | grep -q Intel ; then echo " kvm-intel.nested=1 intel_iommu=on tsx=on" ; fi)"
+xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off tsx=on" ; fi)"
 #
-xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grep -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog rcu_nocbs=0 irqaffinity=0 slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=force,pt page_alloc.shuffle=0 init_on_free=0 init_on_alloc=0 acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet schedstats=disable ftrace_enabled=0 gpt slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig irqaffinity=0 slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -q Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages workqueue.power_efficient=0"
+xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grepi -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=force,pt$(if [ $extras = on ] ; then echo " page_alloc.shuffle=0 init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet schedstats=disable ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig irqaffinity=0 slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages workqueue.power_efficient=0 noreplace-smp refscale.loops=$(($(nproc --all)*2))"
 #
-xrflags=$(if [ $(uname -r | cut -c1-1) -ge 4 ] ; then echo " rootflags=lazytime" ; else echo " rootflags=noatime" ; fi)
+xrflags=$(if [ $(uname -r | cut -c1-1) -ge 4 ] && grep -q "/ " /etc/fstab | $(! grep -q "btrfs\|zfs" $fstab) ; then echo " rootflags=lazytime,noatime" ; else echo " rootflags=noatime" ; fi)
 #
 xsched=$(if [ $(uname -r | cut -c1-1) -le 5 ] ; then echo " elevator=$sched" ; fi)
 #
@@ -449,15 +510,15 @@ xipv6="$(if [ ! $ipv6 = on ] || $(! $wrt) ; then echo " ipv6.disable=1" ; fi)"
 #
 xmicrocode="$(if [ $microcode = off ] ; then echo " dis_ucode_ldr" ; fi)"
 #
-xkaslr="$(if [ $kaslr = off ] && [ ! -f $droidprop ] || [ $kaslr = off ] && $(lscpu | $(! grep -q ARM)) ; then echo " nokaslr" ; fi)"
+xkaslr="$(if [ $kaslr = off ] && [ ! -f $droidprop ] || [ $kaslr = off ] && $(lscpu | $(! grep -qi ARM)) ; then echo " nokaslr" ; fi)"
 #
 xzsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0" ; fi)"
 # extras only with kexec
-xtra0=" libahci.ignore_sss=1 libata.force=udma7,ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance pstore.backend=null"
+xtra0=" libahci.ignore_sss=1 libata.force=udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance pstore.backend=null"
 #
-xtra1=" cpufreq.default_governor=$governor cgroup_no_v1=all cryptomgr.notests nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(ls /sys/block | grep -q nvme) ; then echo " nvme_core.default_ps_max_latency_us=0" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes processor.ignore_tpc=1$(if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1" ; fi) noresume hibernate=noresume processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
+xtra1=" cpufreq.default_governor=performance cgroup_no_v1=all cryptomgr.notests stack_depot_disable=true nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(find /sys/block/nvme*) ; then echo " nvme_core.default_ps_max_latency_us=0 nvme_load=YES" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes processor.ignore_tpc=1$(if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1" ; fi) noresume hibernate=noresume no_timer_check processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
 #if [ $safeconfig = no ] ; then
-xtra2=" stack_depot_disable=true reboot=warm io_delay=none uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig processor.max_cstate=$maxcstate rfkill.default_state=0$xipv6 rfkill.master_switch_mode=1 carrier_timeout=1 ip=:::::::$dns1:$dns2:"
+xtra2=" reboot=warm$xipv6 io_delay=none uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig processor.max_cstate=$cpumaxcstate$(if ip -o link | grep -qi wlan ; then echo " rfkill.default_state=0 rfkill.master_switch_mode=1" ; fi) carrier_timeout=1 ip=:::::::$dns1:$dns2: systemd.unified_cgroup_hierarchy=0"
 #fi
 # disable radeon and have just amdgpu workaround for performance degradation in some gpus. need to unlock for manual control of voltages, didnt work for me
 #unlockgpu="$(printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))")"
@@ -469,37 +530,43 @@ xtra2=" stack_depot_disable=true reboot=warm io_delay=none uhci-hcd.debug=0 usb-
 #
 # nohz_full=1-$(nproc) parport=0 floppy=0 agp=0 lp=0 pata_legacy.all=0
 
+# find local config and override above setup variables determined by what is defined with in the persistent config
+interjection
+# first run of script does more
+if [ -f $droidprop ] && [ ! -f /data/adb/service.d/${file} ] || [ ! -f $doidprop ] && $(! grep -q thanas /etc/rc.local) ; then export firstrun=yes ; firstrun=yes ; fi
+
+if echo "$(pwd)" | grep -q basic-linux-setup ; then export firstrun=yes ; firstrun=yes ; fi
+if [ $firstrun = yes ] ; then export DEBIAN_FRONTEND=noninteractive ; DEBIAN_FRONTEND=noninteractive ; fi
+
+# clear linux microcode
+if [ $microcode = on ] && $arch && $(lscpu | grep -q Intel) && [ $firstrun = yes ] ; then if $(pacman -Qm intel-ucode-clear | grep -q intel-ucode-clear) ; then echo " /boot/intel-ucode.cpio" ; cp -f /boot/intel-ucode.cpio /lib/firmware/ ; fi ; fi
+
+
+
                                     ### < LINUX KERNEL BOOT PARAMETERS >
                                         # - /proc/cmdline or /root/cmdline - Ctrl+F & Google are your friends here...
                                         # https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt
-                                          bootargvars="$(echo "$xmitigations$xcpu$xvarious$xmicrocode$xkaslr$xrflags$xsched$xzsw")"
-                                        export par="quiet splash$bootargvars$xtra0$xtra1$xtra2"
-
-                                        if [ $uninstall = yes ] ; then par="quiet splash" ; fi
+                                          bootargvars="$(echo "$xmicrocode$xmitigations$xcpu$xvarious$xkaslr$xrflags$xsched$xzsw")"
+                                        export xpar="quiet splash$bootargvars$xtra0$xtra1$xtra2"
+                                      if lscpu | grep -q x86_64 ; then export par="$(grep '/ ' /etc/fstab | awk '{print "root="$1}') ro $xpar" ; else export par=$xpar ; fi
+                                        if [ $uninstall = yes ] ; then par=$(cat "$ifdr"/etc/bak/root/cmdline) ; fi
 
 # module options
 for i in modprobe ; do
+
+$i usbhid mousepoll=4
 $i ahci mobile_lpm_policy=0
 $i cec debug=0
 $i cpufreq default_governor=$governor
 $i cryptomgr notests
 $i kvm mmu_audit=0
 $i libahci ignore_sss=1
-$i libata force=udma7,ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer
+$i libata force=udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer
 $i nf_conntrack acct=0
 $i nfs enable_ino64=1
-if $(ls /sys/block | grep -q nvme) ; then
-$i nvme_core default_ps_max_latency_us=0 ; fi
-$i pata_legacy all=0
-$i processor bm_check_disable=1
-$i processor ignore_tpc=1
-if [ $cpumaxcstate = 0 ] ; then
-$i processor latency_factor=1 ; fi
-$i processor max_cstate=$maxcstate
 $i pstore backend=null
-$i rfkill default_state=0
-$i rfkill master_switch_mode=1
 $i scsi_mod use_blk_mq=1
+$i scsi_mod scsi_logging_level=0
 $i uhci-hcd debug=0
 $i usb-storage quirks=p
 $i usbcore usbfs_snoop=0
@@ -510,13 +577,51 @@ $i tcp_bbr2 debug_with_printk=N
 $i tcp_bbr2 ecn_enable=Y
 $i tcp_bbr2 fast_path=Y
 $i tcp_bbr2 fast_ack_mode=1
-if glxinfo | grep -q Intel ; then
+$i usbcore autosuspend=5
+$i processor max_cstate=$cpumaxcstate
+$i processor bm_check_disable=1
+$i processor ignore_tpc=1
+#$i processor ignore_ppc=1
+#$i pata_legacy all=0
+#$i snd_ac97_codec power_save=1
+
+if ip -o link | grep -q wlan ; then
+$i rfkill default_state=0
+$i rfkill master_switch_mode=1
+fi
+
+if lscpu | grep -qi intel ; then 
+$i snd_hda_intel power_save=1
+fi
+
+if [ $cpumaxcstate = 0 ] ; then
+$i processor latency_factor=1
+fi
+
+if $(find /sys/block/nvme*) ; then
+$i nvme_core default_ps_max_latency_us=0
+fi
+
+if glxinfo | grep -qi Intel ; then
+$i i915 mitigations=$inteligpumitigations
 $i i915 enable_fbc=1
 $i i915 fastboot=1
-$i i915 modeset=1 
-#$i i915 enable_guc=2 
+$i i915 modeset=1
+$i i915 enable_guc=2
+$i i915 enable_dc=1
+$i i915 mmio_debug=0
+$i i915 guc_log_level=0
+$i i915 enable_dp_mst=1
+$i i915 memtest=0
+$i i915 enable_ips=1
+$i i915 enable_gvt=1
+$i i915 enable_psr=1
+$i i915 psr_safest_params=0
+$i i915 enable_psr2_sel_fetch=1
+$i i915 verbose_state_checks=0
 fi
-if dmesg | grep -q radeon ; then
+
+if glxinfo | grep -qi radeon ; then
 $i radeon modeset=1
 $i radeon benchmark=0
 $i radeon dynclks=1
@@ -535,8 +640,10 @@ $i radeon auxch=1
 $i radeon uvd=1
 $i radeon vce=1
 $i radeon si_support=-1
-$i radeon cik_support=-1 ; fi
-if dmesg | grep -q amdgpu ; then
+$i radeon cik_support=-1
+fi
+
+if glxinfo | grep -qi amdgpu ; then
 $i amdgpu moverate=-1
 $i amdgpu disp_priority=2
 $i amdgpu hw_i2c=1
@@ -574,24 +681,28 @@ $i amdgpu debug_evictions=false
 $i amdgpu no_system_mem_limit=true
 $i amdgpu tmz=1
 $i amdgpu ip_block_mask=0xffffffff
-$i amdgpu vcnfw_log=0 ; fi
+$i amdgpu vcnfw_log=0
+fi
+
 if [ $ipv6 = off ] ; then
 $i ipv6 disable_ipv6=1
 $i ipv6 disable=1
-$i ipv6 autoconf=0 ; elif
-[ $ipv6 = on ] ; then
+$i ipv6 autoconf=0
+elif [ $ipv6 = on ] ; then
 $i ipv6 disable_ipv6=0
 $i ipv6 disable=0
-$i ipv6 autoconf=1 ; fi
+$i ipv6 autoconf=1
+fi
+
 done
 
-
+  ### < BLOCKLISTS >
   ### ping, some devices didnt pickup on it... workaround
     ping=$(echo ''"$pingaddr"'')
-  ### < BLOCKLISTS >
-    # - /etc/hosts & /etc/update_hosts.sh - not on openwrt
+  # - /etc/hosts & /etc/update_hosts.sh - not on openwrt
 blocklist='#!/bin/sh
-### pihole default blocklists & more, "$ifdr"/etc/hosts weekly updated. at least on systems having cronjobs
+### pihole default blocklists & more, /etc/hosts weekly updated. at least on systems having cronjobs
+### no redundancy since awk will filter duplicates prior to adding.
 u1="https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts"
 u2="https://mirror1.malwaredomains.com/files/justdomains"
 u3="http://sysctl.org/cameleon/hosts"
@@ -602,6 +713,7 @@ u7="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/mas
 u8="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts1"
 u9="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts2"
 u10="https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist/raw/master/hosts/hosts3"
+u11="https://www.github.developerdan.com/hosts/lists/tracking-aggressive-extended.txt"
 ping -c3 '"$ping"'
 if [ $? -eq 0 ]; then
 if [ -e /system/build.prop ] ; then '"$bb"'mount -o remount,rw /system ; export ifdr="/system" ; fi
@@ -620,7 +732,8 @@ x7="$('"$bb"'wget $u7 -O "$ifdr"/etc/hosts_temp/u7'"$wg"')"
 x8="$('"$bb"'wget $u8 -O "$ifdr"/etc/hosts_temp/u8'"$wg"')"
 x9="$('"$bb"'wget $u9 -O "$ifdr"/etc/hosts_temp/u9'"$wg"')"
 x10="$('"$bb"'wget $u10 -O "$ifdr"/etc/hosts_temp/u10'"$wg"')"
-$x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || echo fail
+x11="$('"$bb"'wget $u11 -O "$ifdr"/etc/hosts_temp/u11'"$wg"')"
+$x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7 && $x7 || $x8 && $x8 || $x9 && $x9 || $x10 && $x10 || $x11 && $x11 || echo fail
 
               ### yours
               l1='"$list1"'
@@ -645,7 +758,7 @@ $x1 || $x2 && $x2 || $x3 && $x3 || $x4 && $x4 || $x5 && $x5 || $x6 && $x6 || $x7
               c10="$('"$bb"'wget $l10 -O "$ifdr"/etc/hosts_temp/u20'"$wg"')"
             if echo $l1 | grep -q http ; then $c1 || $c2 && $c2 || $c3 && $c3 || $c4 && $c4 || $c5 && $c5 || $c6 && $c6 || $c7 && $c7 || $c8 && $c8 || $c9 && $c9 || $c10 && $c10 || echo fail ; fi
 
-cd "$ifdr"/etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | tee -a "$ifdr"/etc/hosts
+cd "$ifdr"/etc/hosts_temp && grep "127.0.0.1\|0.0.0.0" * | awk '\''{print "0.0.0.0 " $2}'\'' | awk '\''!a[$0]++'\'' | tee -a "$ifdr"/etc/hosts >/dev/null
 cd "$(pwd)" && rm -rf "$ifdr"/etc/hosts_temp
 if [ -e /system/build.prop ] ; then '"$bb"'mount -o remount,ro /system ; fi
 else echo "Offline"; fi'
@@ -654,13 +767,13 @@ else echo "Offline"; fi'
     # - /etc/rc.local & /etc/sysctl.conf, /tmp/init.sh for openwrt
 wrtsh='#!/bin/sh
 ### get script update on reboot on /tmp/init.sh and run...
-link=https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
-while [ ! -f /tmp/init.sh ];
+link='"${rawlink}"'/'"${file}"'
+while [ ! -f /tmp/'"${file}"' ];
 sleep 10
 do ping -c3 '"$ping"'
-if [ $? -eq 0 ]; then wget --continue -4 "$link" -O /tmp/init.sh ; fi
-if grep -q thanas /tmp/init.sh
-then chmod +x /tmp/init.sh && sh /tmp/init.sh && echo "succes"; exit 0; fi
+if [ $? -eq 0 ]; then wget --continue -4 "$link" -O /tmp/'"${file}"' ; fi
+if grep -q thanas /tmp/'"${file}"'
+then chmod +x /tmp/'"${file}"' && sh /tmp/'"${file}"' && echo "succes"; exit 0; fi
 done'
 
 
@@ -684,44 +797,92 @@ done'
 
     # some additional info and config
      # https://gist.github.com/bebosudo/6f43dc6b4329c197f258f25cc69f0ec0 dont know if this works anymore for amd
-               if $wrt ; then himri=/tmp ; else himri=$(getent passwd | grep 1000 | awk -F ':' '{print $1}') ; fi
-       if $debian ; then
-                if [ $whoami = root ] ; then HOME=/root ; else HOME=/home/$himri ; fi
-        fi
-       # if $wrt || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x || who -H | awk '{print $1}' | tail -n1 | grep -q x ; then country="GR" ; fi #$s xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
+               #if $wrt ; then himri=/tmp ; else himri=$(getent passwd | grep 1000 | awk -F ':' '{print $1}') ; fi
+       #if $linux ; then
+         #       if [ $whoami = root ] ; then HOME=/root ; else HOME=/home/$himri ; fi
+        #fi
+        if $(! $wrt) ; then himri=$(who | head -n1 | awk '{print $1}') ; else himri=/tmp ; fi
+       # if $wrt || uname -n | grep -q "x" || ls /home | grep -q "x" || grep -q "x" /etc/hostname /proc/sys/kernel/hostname || "$(getent passwd | grep 1000 | awk -F ':' '{print $1}')" | grep -q "x" || [ $LOGNAME = x ] || $(whoami) | grep -q "x" || [ $USER = x ] || echo $HOME | grep -q x || $SUDO_USER = x || who -H | awk '{print $1}' | tail -n1 | grep -q x ; then country="GR" ; fi #xinput set-button-map 8 1 2 3 0 0 0 0 ; fi # disable my buggy scroll meanwhile
        # if grep -q x $himri ; then export country=GR ; fi
 
        if [ ! -e $droidprop ] && $(lscpu | grep -q x86) ; then wg=" --connect-timeout=10 --continue -4 --retry-connrefused" ; elif [ -e $droidprop ] ; then export ifdr="/system" ; fi
 
-           ### first run of script does more
-        if [ -f $droidprop ] && [ ! -f /data/adb/service.d/init.sh ] || [ ! -f $doidprop ] && $(! grep thanas /etc/rc.local) ; then
-        export firstrun=yes ; firstrun=yes ; fi
-        if echo "$(pwd)" | grep -q basic-linux-setup ; then export firstrun=yes ; firstrun=yes ; fi
-        if [ $firstrun = yes ] ; then export DEBIAN_FRONTEND=noninteractive ; DEBIAN_FRONTEND=noninteractive ; fi
-
-        
-        sudo /usr/sbin/update-ccache-symlinks
-        
-        
 
 
+        /usr/sbin/update-ccache-symlinks
+        ln -sfT $(which dash) $(which sh)
 
-               if $debian ; then
-               if $(! grep -q "#ACTIVE_CONSOLES=" /etc/default/console-setup) ; then
-      #sed -i 's/ACTIVE_CONSOLES=.*/#ACTIVE_CONSOLES="\/dev\/tty[1-6]"/g' /etc/default/console-setup
-      #sed -i 's/#NAutoVTs=.*/NAutoVTs=0/g' /etc/systemd/logind.conf ; fi
+        if $arch && [ $firstrun = yes ] ; then
+# dash hook
+echo '[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = bash
+
+[Action]
+Description = Re-pointing /bin/sh symlink to dash...
+When = PostTransaction
+Exec = /usr/sbin/ln -sfT /usr/sbin/dash /usr/sbin/sh
+Depends = dash' | tee /etc/pacman.d/hooks/dash.hook
+
+# clr header hook
+echo '[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = linux-clear-bin
+
+[Action]
+Description = Symlinking clr-headers
+When = PostTransaction
+Exec = rm -rf /usr/src/linux-clear-headers-*/include ; mkdir -p /usr/src/linux-clear-headers-$(ls /lib/modules | grep native | head -n1)/include ; /usr/sbin/ln -sfT /lib/modules/$(ls /lib/modules | grep native | head -n1)/build/include/linux /usr/src/linux-clear-headers-$(ls /lib/modules | grep native | head -n1)/include
+Depends = linux-clear-headers-bin ' | tee /etc/pacman.d/hooks/linux-clr-headers.hook
+
+# clr kexec hook
+echo '[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = linux-clear-bin
+
+[Action]
+Description = Symlinking clr-headers
+When = PostTransaction
+Exec = /usr/sbin/ln -sfT /boot/vmlinuz-linuz-clear-bin /vmlinuz ; /usr/sbin/ln -sfT /boot/initramfs-linux-clear-bin.img /initrd.img
+Depends = kexec-tools ' | tee /etc/pacman.d/hooks/kexec-clr.hook
+
+sed -i '/#Color/c\Color ' /etc/pacman.conf
+sed -i '/#ParallelDownloads =.*/c\ParallelDownloads = 5\nILoveCandy ' /etc/pacman.conf
+
+fi
+
+
+
+
+               if $linux ; then
+      sed -i 's/ACTIVE_CONSOLES=.*/#ACTIVE_CONSOLES="\/dev\/tty[1-2]"/g' /etc/default/console-setup
+      sed -i 's/#NAutoVTs=.*/NAutoVTs=2/g' /etc/systemd/logind.conf
       #sed -i 's/#UserStopDelaySec=.*/UserStopDelaySec=1/g' /etc/systemd/logind.conf
       #sed -i 's/#ReserveVT=.*/ReserveVT=1/g' /etc/systemd/logind.conf
       #sed -i 's/#InhibitDelayMaxSec=.*/InhibitDelayMaxSec=1/g' /etc/systemd/logind.conf
-      #sed -i 's/#RemoveIPC=.*/RemoveIPC=yes/g' /etc/systemd/logind.conf
+      sed -i 's/#RemoveIPC=.*/RemoveIPC=yes/g' /etc/systemd/logind.conf
       #sed -i 's/#UserStopDelaySec=.*/UserStopDelaySec=1/g' /etc/systemd/logind.conf
       sed -i 's/#HandleRebootKey=.*/HandleRebootKey=reboot/g' /etc/systemd/logind.conf
       sed -i 's/#HandlePowerKey=.*/HandlePowerKey=poweroff/g' /etc/systemd/logind.conf
       #sed -i 's/#HoldoffTimeoutSec=.*/HoldoffTimeoutSec=1/g' /etc/systemd/logind.conf
       #sed -i 's/RESUME=UUID=/#RESUME=UUID=/g' /etc/initramfs-tools/conf.d/resume
-      fi
+      sed -i 's/#Storage=.*/Storage=none/g' /etc/systemd/coredump.conf
+      sed -i 's/#DNSSEC=.*/DNSSEC=yes/g' /etc/systemd/resolved.conf
+      sed -i 's/#DNSOverTLS=.*/DNSOverTLS=yes/g' /etc/systemd/resolved.conf
+      sed -i 's/#Cache=.*/Cache=yes/g' /etc/systemd/resolved.conf
+      sed -i 's/#CacheFromLocalhost=.*/CacheFromLocalhost=yes/g' /etc/systemd/resolved.conf
 
-     sed -i 's/background: Some(.*/background: Some(9),/g' /etc/system76-scheduler/config.ron
+      #if $(! grep -q "#timeout" /boot/EFI/refind/refind.conf) ; then
+      sed -i 's/timeout .*/timeout 1/g' /boot/EFI/refind/refind.conf # ; fi
+
+
+      sed -i 's/background: Some(.*/background: Some(9),/g' /etc/system76-scheduler/config.ron
      sed -i 's/foreground: Some(.*/foreground: Some(-19),/g' /etc/system76-scheduler/config.ron
     #if $(! grep -q pulseaudio /etc/system76-scheduler/assignments/default.ron) ; then
      #sed -i 's/"wireplumber",/"wireplumber",\n"alsa",\n"pulseaudio",/g' /etc/system76-scheduler/assignments/default.ron ; fi
@@ -729,8 +890,8 @@ done'
      #sed -i 's/"Xorg",/"Xorg",\n"kwin_x11",\n"kwin_wayland",\n"openbox",\n"firefox",\n"chromium",\n"brave-browser-nightly",\n"google-earth-pro",\n"gitkraken",\n"github-desktop",\n"konsole",/g' /etc/system76-scheduler/assignments/default.ron ; fi
     #if $(! grep -q dbus-broker /etc/system76-scheduler/assignments/default.ron) ; then
      #sed -i 's/"dbus",/"dbus",\n"dbus-broker",/g' /etc/system76-scheduler/assignments/default.ron ; fi
-    
-    
+
+
     echo '// WARNING: Modifications to this file will not be preserved on upgrade.
 // To configure, make new .ron files under /etc/system76-scheduler/assignments/.
 
@@ -855,13 +1016,13 @@ done'
     "packagekitd",
 ]}
 ' | tee /etc/system76-scheduler/assignments/default.ron
-    
+
     fi
 
 
          if $debian ; then cclm=$(ls /usr/lib | grep 'llvm-' | tail -n 1 | rev | cut -c-3 | rev) ; elif [ $firstrun = yes ] && $debian ; then cclm="$(apt-cache search llvm | awk '{print $1}' | grep "llvm-.*-runtime" | sort -n | tail -n 1 | cut -c5-7)" ; fi
          if $(! $debian) ; then cclm=$(echo "") ; fi
-         if [ ! -f $droidprop ] && $debian ; then export maxframes="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '.' '{print $1}' | awk '{print $2}')" ; fi #ompthreads=$(($(nproc --all)*4)) ; fi
+         if [ ! -f $droidprop ] && $linux ; then export maxframes="$(xrandr --current | tail -n 2 | head -n 1 | awk -F '.' '{print $1}' | awk '{print $2}')" ; fi #ompthreads=$(($(nproc --all)*4)) ; fi
 
 
 
@@ -942,8 +1103,8 @@ if [ ! -f $droidprop ] ; then
   if [ ! -f /etc/bak/root/cmdline ] ; then mkdir -p /etc/bak/root ; cat /proc/cmdline | tee /etc/bak/root/cmdline ; fi
 fi
 
-# debian only
-if $debian ; then
+# linux only
+if $linux ; then
   if [ ! -f /etc/bak/etc/NetworkManager/NetworkManager.conf ] ; then mkdir -p /etc/bak/etc/NetworkManager ; \cp -rf /etc/NetworkManager/NetworkManager.conf /etc/bak/etc/NetworkManager/NetworkManager.conf ; fi
   if [ ! -f /etc/bak/etc/default/grub ] ; then mkdir -p /etc/bak/etc/default ; \cp -rf /etc/default/grub /etc/bak/etc/default/grub ; fi
 fi
@@ -978,8 +1139,9 @@ fi
   ### < BLOCKLISTS >
   ### if NOT wrt, update /etc/hosts weekly - script in /etc/update_hosts.sh & cronjob
     # add script /etc/update_hosts.sh
-    if $(! $wrt) ; then
+    if [ $firstrun = yes ] && $(! $wrt) ; then
     blsync="$(echo "$blocklist" | tee "$ifdr"/etc/update_hosts.sh)"
+    if $arch ; then mkdir -p /etc/cron.d ; echo '@weekly root /bin/bash -c '\''sleep 10 ; sh /etc/update_hosts.sh >/dev/null'\''' | tee /etc/cron.d/@weekly ; fi
     if systemctl list-unit-files | grep -q anacron ; then
     if $(! grep update_hosts.sh "$ifdr"/etc/anacrontabs) ; then echo "@weekly sh /etc/update_hosts.sh >/dev/null" | tee -a "$ifdr"/etc/anacrontabs && "$blsync" ; fi
   elif $(! grep update_hosts.sh "$ifdr"/etc/crontab "$ifdr"/etc/crontab/root) ; then echo "0 0 * * 0 root sh /etc/update_hosts.sh >/dev/null" | tee -a "$ifdr"/etc/crontab "$ifdr"/etc/crontabs/root && "$blsync" ; fi ; fi
@@ -992,11 +1154,15 @@ fi
 
   ### < CRONJOB INIT.SH >
     if systemctl list-unit-files | grep -q anacron ; then
-    if $(! grep rc.local "$ifdr"/etc/anacrontabs) ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/anacrontabs && "$blsync" ; fi
-  elif $(! grep rc.local "$ifdr"/etc/crontabs/root "$ifdr"/etc/crontab) ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/crontabs/root "$ifdr"/etc/crontab ; fi
+    if $(! grep -q rc.local "$ifdr"/etc/anacrontabs) ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/anacrontabs && "$blsync" ; fi
+  elif $(! grep -q rc.local "$ifdr"/etc/crontabs/root "$ifdr"/etc/crontab) ; then echo "@reboot root sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/crontabs/root "$ifdr"/etc/crontab ; fi
+
+    #if $arch ; then if ! grep -q ${file} /etc/anacrontab ; then echo "@reboot sh /etc/rc.local >/dev/null" | tee -a "$ifdr"/etc/anacrontabs && "$blsync" ; fi ; fi
+    if [ $firstrun = yes ] && $arch ; then pacman -S --noconfirm --needed cronie ; echo '@reboot root /bin/bash -c '\''sleep 10 ; sh /etc/rc.local >/dev/null'\''' | tee /etc/cron.d/@reboot ; systemctl enable cronie ; fi
+    #yay -S rc-local ; systemctl enable rc-local ; fi
 
     # cronjob kernel - daily seek for update mainline kernel only from experimental branch. since i dont trust debian experimental repositories no more and am in no mood to fight with the packages and dependencies...
-    if $debian ; then
+    if  [ $firstrun = yes ] && $debian ; then
     if $(! grep -q "linux-image-amd64" "$ifdr"/etc/anacrontabs) ; then
     echo "@daily \sh -c 'apt -f -y install -t experimental linux-image-amd64 && grub-mkconfig'" | tee -a "$ifdr"/etc/anacrontabs ; fi ; fi
 
@@ -1007,10 +1173,10 @@ fi
 
   ### < SOURCES.LIST >
   ### if ID_LIKE=debian sync sources.list on boot
-          if grep -q debian /etc/os-release && [ $sourceslist_update = yes ] ; then
+          if $debian && [ $sourceslist_update = yes ] ; then
           ping -c3 "$ping"
           if [ $? -eq 0 ]; then
-          echo "*BLS*=Syncing sources.list." && "$(wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/sources.list -O /etc/apt/sources.list)" ; fi ; fi
+          echo "*BLS*=Syncing sources.list." && "$(wget --connect-timeout=10 --continue -4 --retry-connrefused ${rawlink}/sources.list -O /etc/apt/sources.list)" ; fi ; fi
 
 
 
@@ -1027,10 +1193,10 @@ fi
       if $wrt ; then echo "$(cat /etc/bak/root/cmdline) $par" | tee /root/cmdline &&
       mount -n --bind -o ro /root/cmdline /proc/cmdline ; fi
   ### android
-      if [ -f $droidprop ] ; then mkdir -p /system/etc/root ; "$bb"echo "$(cat "$ifdr"/etc/bak/system/root/cmdline) '"$par"'" | tee /system/etc/root/cmdline ; "$bb"mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; elif $(! $debian) ; then
+      if [ -f $droidprop ] ; then mkdir -p /system/etc/root ; "$bb"echo "$(cat "$ifdr"/etc/bak/system/root/cmdline) '"$par"'" | tee /system/etc/root/cmdline ; "$bb"mount -n --bind -o ro /system/etc/root/cmdline /proc/cmdline ; elif $(! $linux) ; then
       mkdir -p /etc/root ; echo "$par" | tee /etc/root/cmdline &&
       mount -n --bind -o ro /etc/root/cmdline /proc/cmdline ; fi
-      #if $(! $debian) ; then
+      #if $(! $linux) ; then
       #if $(! grep -q "/proc/cmdline" $fstab) && [ ! -e $droidfstab ] ; then echo "/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; elif $(! grep -q "/proc/cmdline" $fstab) &&  [ -f $droidfstab ] ; then echo "/system/etc/root/cmdline /proc/cmdline ro 0 0" | tee -a $fstab ; fi
       #fi
       # echo "doesnt work anyways" ; else echo "$par" | tee /root/cmdline &&
@@ -1043,24 +1209,34 @@ fi
 
 
   ### < KERNEL PARAMETERS >
-  ### grub 
-      if $debian ; then
+  ### grub
+      if $linux ; then
+        #sed -i '/timeout/c\ ' $systemdb/loader.conf
+        echo "options $par" | tee $systemdb/loader.conf
+             if [ ! -z $systemdb ] ; then defi=" uefi=yes" ; fi
     resolution="$(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//')"
-    $s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub
-    $s sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=""' /etc/default/grub
-    $s sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="'"$par"'"' /etc/default/grub
-    #$s sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="'"$par"'"/g' /etc/default/grub
-    #$s sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="splash quiet'"$x0"'"/g' /etc/default/grub
-    $s sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
-    $s sed -i "/#GRUB_DISABLE_OS_PROBER=false/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
-    #if $(! grep -q "GRUB_GFXPAYLOAD_LINUX" /etc/default/grub) ; then echo "#GRUB_GFXPAYLOAD_LINUX=" | tee -a /etc/default/grub ; fi
-    #$s sed -i 's/#GRUB_GFXPAYLOAD_LINUX=.*/GRUB_GFXPAYLOAD_LINUX="keep"/g' /etc/default/grub
-    $s sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE="'"$resolution"'"/g' /etc/default/grub
+    sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub
+    sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=""' /etc/default/grub
+    sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="'"$par"'"' /etc/default/grub
+    #sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="'"$par"'"/g' /etc/default/grub
+    #sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="splash quiet'"$x0"'"/g' /etc/default/grub
+    sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
+    sed -i "/#GRUB_DISABLE_OS_PROBER=false/c\GRUB_DISABLE_OS_PROBER=false" /etc/default/grub
+    if $(! grep -q "GRUB_GFXPAYLOAD_LINUX" /etc/default/grub) ; then echo "#GRUB_GFXPAYLOAD_LINUX=" | tee -a /etc/default/grub ; fi
+    sed -i 's/#GRUB_GFXPAYLOAD_LINUX=.*/GRUB_GFXPAYLOAD_LINUX="keep"/g' /etc/default/grub
+    sed -i 's/#GRUB_GFXMODE=.*/GRUB_GFXMODE="'"$resolution"'"/g' /etc/default/grub
     # systemd-boot
-    echo "$(grep ' / ' /etc/fstab | awk '{print "root="$1}') ro $par" | tee /etc/kernel/cmdline 
+    echo "$par" | tee /etc/kernel/cmdline
     # dracut
-    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=no early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4"
+    if glxinfo | grep -qi intel ; then dracgpu=" i915" ; elif glxinfo | grep -qi amd ; then dracgpu=" amdgpu" ; elif glxinfo | grep -qi nvidia ; then dracgpu=" nvidia" ; fi
+    if [ $raid = no ] ; then oraid=" dmraid mdraid" ; fi
+    if [ $bluetooth = off ] ; then obt=" bluetooth" ; fi
+    if [ $lvm = no ] ; then olvm=" lvm lvmmerge lvmthinpool-monitor" ; fi
+    if [ $crypt = no ] ; then ocrypt=" crypt" ; fi
+    if [ ! -z $systemdb ] ; then uefilib=" uefi-lib" ; fi
+    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4$dracgpu' omit_dracutmodules+='debug syslog watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
       fi
+        # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
 
 
 
@@ -1070,15 +1246,15 @@ fi
   ### < FSTAB UPDATE >
   ### fstab update
   if [ ! -f $droidprop ] ; then
-    $s sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab #$fstab
-    $s sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab #$fstab
-    $s sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab #$fstab
-    $s sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab #$fstab
+    sed -i 's/xfs .*/xfs     '"$xfs"' 0 0/g' /etc/fstab #$fstab
+    sed -i 's/ext4 .*/ext4     '"$ext4"' 0 0/g' /etc/fstab #$fstab
+    sed -i 's/f2fs .*/f2fs     '"$f2fs"' 0 0/g' /etc/fstab #$fstab
+    sed -i 's/vfat .*/vfat     '"$vfat"' 0 0/g' /etc/fstab #$fstab
   fi
 
 
        # i hope there are no bash fuckups running legacy stuff here. rip
-    if [ -f $droidprop ] ; then
+    if [ -f $droidprop ] && [ $androidfstab = yes ] ; then
       # f2fs droid
       dataf2fsdroid="$(grep /data "$fstab" | grep ext4 | sed 's/ext4/f2fs/g' | awk '{print $1, $2, $3, " '"$f2fs"',nosuid,nodev ", $5}' | sed 's/defaults,rw,//g' | sed 's/\//\\\//g')"
       dataf2fsreplace="$(grep /data "$fstab" | grep f2fs | sed 's/\//\\\//g')"
@@ -1093,7 +1269,7 @@ fi
       systemext4replace="$(grep /system "$fstab" | grep ext4 | sed 's/\//\\\//g')"
       # sdcard
       sdcardreplace="$(grep "external\|sdcard\|storage\|usb" "$fstab" | sed 's/\//\\\//g')"
-      sdcarddroid="$(grep "external\|sdcard\|storage\|usb" "$fstab" | awk '{print $1, $2, $3, $4",lazytime ", $5}' | sed 's/\//\\\//g')"
+      sdcarddroid="$(grep "external\|sdcard\|storage\|usb" "$fstab" | awk '{print $1, $2, $3, $4",lazytime,noatime ", $5}' | sed 's/\//\\\//g')"
 
 
 
@@ -1115,49 +1291,49 @@ fi
 
  ### < FSTAB TMPFS > - AVOID IF ZRAM or SWAP IS FOUND
   ### temporarily enable zram for myself
-  $s sh /etc/zram.sh
+  sh /etc/zram.sh
   if [ ! -e $droidprop ] ; then
   ### fstab tmpfs on ram
     tmpfsadd=$(if grep -q "tmpfs" "$fstab" ; then echo "*BLS*=TMPFS found not applying to /etc/fstab."; else echo "*BLS*=TMPFS added to /etc/fstab." &&
-    $s echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
-    $s echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
-    $s echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
-    $s echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0' | $s tee -a "$fstab"
-    $s echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab"
-    $s echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"'         0 0' | $s tee -a "$fstab" ; fi)
-    #$s echo 'tmpfs    /var/log    tmpfs    '"$tmpfs"',mode=1755,size=10m  0 0' | $s tee -a /etc/fstab
-    #$s echo 'tmpfs    /var/spool  tmpfs    '"$tmpfs"',mode=1750,size=4m   0 0' | $s tee -a /etc/fstab
+    echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"',mode=1777         0 0' | tee -a "$fstab"
+    echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"',mode=1777         0 0' | tee -a "$fstab"
+    echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"',mode=0755         0 0' | tee -a "$fstab"
+    echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"',noexec 0 0' | tee -a "$fstab" #nosuid causes worstening of hackbench
+    echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"',mode=1777         0 0' | tee -a "$fstab"
+    echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"',mode=0755         0 0' | tee -a "$fstab" ; fi)
+    #echo 'tmpfs    /var/log    tmpfs    '"$tmpfs"',mode=1755,size=10m  0 0' | tee -a /etc/fstab
+    #echo 'tmpfs    /var/spool  tmpfs    '"$tmpfs"',mode=1750,size=4m   0 0' | tee -a /etc/fstab
  ### check if zram to avoid tmpfs on ram
- # if [ $s dmesg | grep -q zram ] || [ grep -q swap /etc/fstab ]; then echo "*BLS*=ZRAM and or SWAP found, whatever adding tmpfs on ram despite. Too fast." && $tmpfsadd ; else $tmpfsadd ; fi ### dont add additional flags for tmpfs, will slow it down
+ # if [ dmesg | grep -q zram ] || [ grep -q swap /etc/fstab ]; then echo "*BLS*=ZRAM and or SWAP found, whatever adding tmpfs on ram despite. Too fast." && $tmpfsadd ; else $tmpfsadd ; fi ### dont add additional flags for tmpfs, will slow it down
 
  $tmpfsadd # and then there was tmpfs for all.
-
+  fi
   ### update tmpfs values
-    $s sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
-    $s sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
-    $s sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
-    $s sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"' 0 0/g' "$fstab"
-    $s sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
-    $s sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"'         0 0/g' "$fstab"
+    sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"',mode=1777          0 0/g' "$fstab"
+    sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"',mode=1777          0 0/g' "$fstab"
+    sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"',mode=0755          0 0/g' "$fstab"
+    sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"',noexec     0 0/g' "$fstab"
+    sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"',mode=1777          0 0/g' "$fstab"
+    sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"',mode=0755             0 0/g' "$fstab"
 
     if $(lscpu | grep -q x86) ; then
     if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
-    "$bb"sed -i 's/ defaults / defaults,lazytime /g' "$fstab"
+    "$bb"sed -i 's/ defaults / defaults,lazytime,noatime /g' "$fstab"
     else
     "$bb"sed -i 's/ defaults / defaults,noatime /g' "$fstab"
     fi ; fi
 
-  fi
 
-  "$bb"sed -i 's/ sw / sw,lazytime /g' "$fstab"
+
+  "$bb"sed -i 's/ sw / sw,lazytime,noatime /g' "$fstab"
 
   if [ $(uname -r | cut -c1-1) -gt 3 ] ; then
     mkdir -p /mnt/huge
-  if $(! grep -q hugetlbfs "$fstab") ; then echo 'hugetlbfs    /mnt/huge  hugetlbfs  '"$tmpfs"'         0 0' | tee -a "$fstab" ; fi
-    "$bb"sed -i 's/noatime/lazytime/g' "$fstab"
-    "$bb"sed -i 's/nodiratime/lazytime/g' "$fstab"
-    "$bb"sed -i 's/relatime/lazytime/g' "$fstab"
-    "$bb"sed -i 's/ sw / sw,lazytime /g' "$fstab"
+  if $(! grep -q hugetlbfs "$fstab") ; then echo 'hugetlbfs    /mnt/huge  hugetlbfs  '"$tmpfs"'               0 0' | tee -a "$fstab" ; fi
+    #"$bb"sed -i 's/noatime/lazytime/g' "$fstab"
+    "$bb"sed -i 's/nodiratime/lazytime,noatime/g' "$fstab"
+    "$bb"sed -i 's/relatime/lazytime,noatime/g' "$fstab"
+    "$bb"sed -i 's/ sw / sw,lazytime,noatime /g' "$fstab"
     else
     "$bb"sed -i 's/lazytime/noatime/g' "$fstab"
     "$bb"sed -i 's/nodiratime/noatime/g' "$fstab"
@@ -1172,13 +1348,13 @@ fi
 
   ### < ADDITIONAL LINUX CONFIG >
   # ssh
-      if $s grep -q "Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com," $HOME/.ssh/config ; then
-      $s echo "Flag exists"; else $s echo 'Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
-      Compression yes' | $s tee -a $HOME/.ssh/config /root/.ssh/config ; fi
-      $s sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" "$ifdr"/etc/ssh/sshd_config
-      $s sed -i "/X11Forwarding yes/c\X11Forwarding no" "$ifdr"/etc/ssh/sshd_config
-      $s sed -i "/#AllowTcpForwarding yes/c\AllowTcpForwarding no" "$ifdr"/etc/ssh/sshd_config
-      $s sed -i "/#PermitTTY yes/c\PermitTTY no" "$ifdr"/etc/ssh/sshd_config
+      if grep -q "Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com," $HOME/.ssh/config ; then
+      echo "Flag exists"; else echo 'Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+      Compression yes' | tee -a $HOME/.ssh/config /root/.ssh/config ; fi
+      sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" "$ifdr"/etc/ssh/sshd_config
+      sed -i "/X11Forwarding yes/c\X11Forwarding no" "$ifdr"/etc/ssh/sshd_config
+      sed -i "/#AllowTcpForwarding yes/c\AllowTcpForwarding no" "$ifdr"/etc/ssh/sshd_config
+      sed -i "/#PermitTTY yes/c\PermitTTY no" "$ifdr"/etc/ssh/sshd_config
 
 
       ### amdgpu
@@ -1187,10 +1363,10 @@ fi
 
 
   # samba
-      if $s grep -q "deadtime = 30" "$ifdr"/etc/samba/smb.conf ; then $s echo "Flag exists" ; else $s echo 'deadtime = 30
+      if grep -q "deadtime = 30" "$ifdr"/etc/samba/smb.conf ; then echo "Flag exists" ; else echo 'deadtime = 30
       use sendfile = yes
       min receivefile size = 16384
-      socket options = IPTOS_LOWDELAY TCP_NODELAY IPTOS_THROUGHPUT SO_RCVBUF=131072 SO_SNDBUF=131072' | $s tee "$ifdr"/etc/samba/smb.conf ; fi
+      socket options = IPTOS_LOWDELAY TCP_NODELAY IPTOS_THROUGHPUT SO_RCVBUF=131072 SO_SNDBUF=131072' | tee "$ifdr"/etc/samba/smb.conf ; fi
 
 
   # bluetooth
@@ -1202,7 +1378,7 @@ fi
 
 
   # journaling and more
-      if $s grep -q "Storage=none" /etc/systemd/journald.conf ; then $s echo "Flag exists" ; else $s echo "Storage=none" | $s tee -a /etc/systemd/journald.conf ; fi
+      if grep -q "Storage=none" /etc/systemd/journald.conf ; then echo "Flag exists" ; else echo "Storage=none" | tee -a /etc/systemd/journald.conf ; fi
       sed -i s"/\Storage=.*/Storage=none/"g /etc/systemd/coredump.conf
       sed -i s"/\Seal=.*/Seal=no/"g /etc/systemd/coredump.conf
 
@@ -1218,6 +1394,12 @@ fi
 
 
   # hdparm
+  if [ ! -f "$ifdr"/etc/pdparm.conf ] ; then touch "$ifdr"/etc/hdparm.conf &&
+echo 'apm = 254
+dma = on
+write_cache = on
+keep_settings_over_reset = on
+keep_features_over_reset = on' | tee -a "$ifdr"/etc/hdparm.conf ; fi
       sed -i 's/#apm =.*/apm = 254/g' /etc/hdparm.conf
       sed -i 's/#dma =.*/dma = on/g' /etc/hdparm.conf
       sed -i 's/#keep_settings_over_reset =.*/keep_settings_over_reset = on/g' /etc/hdparm.conf
@@ -1228,41 +1410,42 @@ fi
 
 
   # force apt only to use ipv4
-    if [ ! $ipv6 = on ] ; then echo 'Acquire::ForceIPv4 "true";' | $s tee -a /etc/apt/apt.conf.d/99force-ipv4 ; else echo 'Acquire::ForceIPv4 "false";' | $s tee -a /etc/apt/apt.conf.d/99force-ipv4 ; fi
+    if [ ! $ipv6 = on ] ; then echo 'Acquire::ForceIPv4 "true";' | tee -a /etc/apt/apt.conf.d/99force-ipv4 ; else echo 'Acquire::ForceIPv4 "false";' | tee -a /etc/apt/apt.conf.d/99force-ipv4 ; fi
   # dont aquire translations for apt
-    if $s grep -q 'Acquire::Languages "none";' /etc/apt/apt.conf.d/00aptitude; then $s echo "Flag exists"
-    else $s echo 'Acquire::Languages "none";' | $s tee -a /etc/apt/apt.conf.d/00aptitude ; fi
+    if grep -q 'Acquire::Languages "none";' /etc/apt/apt.conf.d/00aptitude; then echo "Flag exists"
+    else echo 'Acquire::Languages "none";' | tee -a /etc/apt/apt.conf.d/00aptitude ; fi
 
 
 
 
   # selinux - we have apparmor, but leave this in passively config devices who have selinux instead
+ if $droidprop ; then
     sed -i "/SELINUX=permissive/c\SELINUX=enforcing" "$ifdr"/etc/selinux/config
     sed -i "/SELINUXTYPE=/c\SELINUXTYPE=mls" "$ifdr"/etc/selinux/config
-    #echo 1 > /sys/fs/selinux/enforce
-    #setenforce 1
+    echo 1 > /sys/fs/selinux/enforce
+    setenforce 1 ; fi
 
 
 
 
   # firewall
-    $s sed -i "/shields-down/c\shields-down=public" "$ifdr"/etc/firewall/applet.conf
-    $s sed -i "/shields-up/c\shields-up=block" "$ifdr"/etc/firewall/applet.conf
-    $s sed -i "/DefaultZone/c\DefaultZone=block" "$ifdr"/etc/firewalld/firewalld.conf
-    $s ufw deny 22/tcp
-    $s ufw deny 22/udp
-    $s ufw deny 23/tcp
-    $s ufw deny 23/udp
-    #$s ufw deny 53/tcp
-    #$s ufw deny 53/udp
-    #$s ufw deny 80/tcp
-    #$s ufw deny 80/udp
-    #$s ufw deny 443/tcp
-    #$s ufw deny 443/udp
-    #$s ufw default deny incoming
-    #$s ufw default allow outgoing
-    #$s ufw deny in on lo
-    #$s ufw deny out on lo
+    sed -i "/shields-down/c\shields-down=public" "$ifdr"/etc/firewall/applet.conf
+    sed -i "/shields-up/c\shields-up=block" "$ifdr"/etc/firewall/applet.conf
+    sed -i "/DefaultZone/c\DefaultZone=block" "$ifdr"/etc/firewalld/firewalld.conf
+    ufw deny 22/tcp
+    ufw deny 22/udp
+    ufw deny 23/tcp
+    ufw deny 23/udp
+    #ufw deny 53/tcp
+    #ufw deny 53/udp
+    #ufw deny 80/tcp
+    #ufw deny 80/udp
+    #ufw deny 443/tcp
+    #ufw deny 443/udp
+    #ufw default deny incoming
+    #ufw default allow outgoing
+    #ufw deny in on lo
+    #ufw deny out on lo
     sysctl -a --pattern 'net.ipv4.conf.(eth|wlan)0.arp'
 if $(! grep -q 'order bind,hosts' "$ifdr"/etc/host.conf) ; then
 echo 'order bind,hosts
@@ -1310,21 +1493,14 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
 
 
   # dpkg
-    $s dpkg --add-architecture i386
+    dpkg --add-architecture i386
 
   # gpg workaround
-    $s rsync --ignore-existing /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
+    rsync --ignore-existing /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d
 
   # hdd write caching and power management
-    #$s hdparm -W 1 $hdd
-    #$s hdparm -W 1 $ssd
-    #$s hdparm -W 1 $nvme
-    #$s hdparm -B 254 $hdd
-    #$s hdparm -B 254 $ssd
-    #$s hdparm -B 254 $nvme
-
   #for i in $storage ; do
-  for i in $(ls /dev/hd* ; ls /dev/sd* ; ls /dev/nvm*) ; do
+  for i in $(find /dev/sd* ; find /dev/nvm* ; find /dev/hd*) ; do
   blktool $i wcache on
   blktool $i dma on
   blktool $i queue-depth 31
@@ -1335,15 +1511,55 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
   hdparm -d1 $i
   hdparm -W 1 $i
   hdparm -B 254 $i
-  hdparm -Q 31 $i
+  hdparm -Q 32 $i
   hdparm -R0 $i
   hdparm -k1 $i
-  hdparm -K1 $i ; done
+  hdparm -K1 $i
+  smartctl --smart=off $i
+  done
 
 
 
   # more ALL RANDOM STUFF GOES HERE
+  if $linux && [ $country != 00 ] ; then
+  echo 'WIRELESS_REGDOM='"$country"'' | tee /etc/conf.d/wireless-regdom ; fi
+  if $arch ; then
+  sed -i 's/-mtune=generic/-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wno-format-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize/g' /etc/makepkg.conf
+  sed -i 's/!ccache/cache/g' /etc/makepkg.conf
+  sed -i 's/-O2/-O3/g' /etc/makepkg.conf
+  sed -i 's/-O1/-O3/g' /etc/makepkg.conf
+  sed -i 's/-Os/-O3/g' /etc/makepkg.conf
+   if ! grep -q CC=clang /etc/makepkg.conf ; then
+echo 'export CC=clang
+export CXX=clang++
+export CC_LD=lld
+export CXX_LD=lld
+export AR=llvm-ar
+export NM=llvm-nm
+export STRIP=llvm-strip
+export OBJCOPY=llvm-objcopy
+export OBJDUMP=llvm-objdump
+export READELF=llvm-readelf
+export RANLIB=llvm-ranlib
+export HOSTCC=clang
+export HOSTCXX=clang++
+export HOSTAR=llvm-ar
+LDFLAGS_MODULE=--strip-debug
+NINJAFLAGS="-j'"$(nproc --all)"'"' | tee -a /etc/makepkg.conf
+   fi
+  sed -i 's/COMPRESSXZ=.*/COMPRESSXZ=(xz -c -z --threads=0 -)/g' /etc/makepkg.conf
+  sed -i 's/COMPRESSZST=.*/COMPRESSZST=(zstd -c -z -q --threads=0 -)/g' /etc/makepkg.conf
+  sed -i 's/COMPRESSBZ2=.*/COMPRESSBZ2=(pbzip2 -c -f)/g' /etc/makepkg.conf
+  sed -i 's/COMPRESSGZ=.*/COMPRESSGZ=(pigz -c -f -n)/g' /etc/makepkg.conf
+  sed -i 's/COMPERSSLZ=.*/COMPERSSLZ=(plzip -c -f)/g' /etc/makepkg.conf
+  sed -i 's/PKGEXT=.*/PKGEXT=".pkg.tar.lz4"/g' /etc/makepkg.conf
+  sed -i 's/#MAKEFLAGS=.*/MAKEFLAGS="-j'"$(nproc --all)"'"/g' /etc/makepkg.conf
+  sed -i 's/#RUSTFLAGS="-C opt-level=2"/RUSTFLAGS="-C opt-level=3 -C target-cpu=native"/g' /etc/makepkg.conf
+  sed -i 's/LDFLAGS.*/LDFLAGS="-Wl,-O3 -Wl,-z,now -Wl,--as-needed -Wl,--no-copy-dt-needed-entries -Wl,--sort-common -Wl,--hash-style=gnu"/g' /etc/makepkg.conf
+  fi
     systemctl set-default graphical.target
+    if $(! grep -q experimental-features /etc/nix/nix.conf) ; then
+    echo 'experimental-features = nix-command flakes' | tee -a /etc/nix/nix.conf ; fi
     sed -i 's/^#ForwardToSyslog=yes/ForwardToSyslog=no/' /etc/systemd/journald.conf
     sed -i 's/^#ForwardToKMsg=yes/ForwardToKMsg=no/' /etc/systemd/journald.conf
     sed -i 's/^#ForwardToConsole=yes/ForwardToConsole=no/' /etc/systemd/journald.conf
@@ -1427,14 +1643,27 @@ if $(! grep -q lz4_compress /etc/initramfs-tools/modules) ; then
 echo lz4 >> /etc/initramfs-tools/modules
 echo lz4_compress >> /etc/initramfs-tools/modules ; fi
 fi
-        sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' "$ifdr"/etc/init.d/rc
+        #sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' "$ifdr"/etc/init.d/rc
         # prevent bruteforce
  iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
   iptables -A INPUT -p tcp --dport 23 -m recent --update --seconds 60 \
  --hitcount 4 --rttl -j DROP
 
+if $arch ; then
+mkdir -p /etc/pacman.d
+echo '[Trigger]
+Type = Package
+Operation = Upgrade
+Target = systemd
 
+[Action]
+Description = Gracefully upgrading systemd-boot...
+When = PostTransaction
+Exec = /usr/sbin/systemctl restart systemd-boot-update.service' | tee /etc/pacman.d/hooks/95-systemd-boot.hook
+fi
+
+sysctl kernel.split_lock_mitigate=0
 
     #scsiblack=$(if [ $scsi = off ] ; then
     #echo 'scsi_mod
@@ -1444,6 +1673,9 @@ fi
 sed -i 's/user_readenv=0/user_readenv=1/g' /etc/pam.d/polkit-1
 if $(! grep -q /etc/environment /etc/pam.d/sddm) ; then echo exists ; else echo 'session       required   pam_env.so readenv=1 envfile=/etc/environment user_readenv=1' | tee -a /etc/pam.d/sddm ; fi
 
+
+
+#echo 'udev_log="emergency"' /etc/udev/udev.conf
 
     sysctl -w vm.min_free_order_shift=4
     sysctl -w kernel.msgmni=32000
@@ -1692,7 +1924,6 @@ echo 0 > /proc/sys/kernel/sched_tunable_scaling
 #echo 0 > /proc/sys/kernel/sched_boost
 echo 1 > /proc/sys/kernel/sched_child_runs_first
 ##echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
-##echo 2000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
 #echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
 echo 40000 > /proc/sys/kernel/sched_latency_ns
 
@@ -1712,24 +1943,16 @@ echo 1200 > /sys/module/cpu_boost/parameters/powerkey_input_boost_ms
 
 echo "0" > /sys/module/workqueue/parameters/power_efficient
 
-echo "0" > /sys/devices/system/cpu/cpu0/core_ctl/enable
-##echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
+echo "0" > /sys/devices/system/cpu/cpu*/core_ctl/enable
+echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
 #echo "1000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
 #echo "5000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
 ##echo "1324800" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
-#echo "75" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/pl
-echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/iowait_boost_enable
+echo "100" > /sys/devices/system/cpu/cpufreq/policy*/schedutil/hispeed_load
+echo "1" > /sys/devices/system/cpu/cpufreq/policy*/schedutil/pl
+echo "1" > /sys/devices/system/cpu/cpufreq/policy*/schedutil/iowait_boost_enable
 
 
-echo "0" > /sys/devices/system/cpu/cpu4/core_ctl/enable
-##echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
-#echo "1000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/up_rate_limit_us
-#echo "5000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us
-##echo "1574400" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_freq
-#echo "75" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/pl
-echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
 
 echo 0 > /proc/sys/kernel/sched_walt_rotate_big_tasks
 
@@ -1816,7 +2039,6 @@ echo 0 > /proc/sys/kernel/sched_tunable_scaling
 #echo 0 > /proc/sys/kernel/sched_boost
 echo 1 > /proc/sys/kernel/sched_child_runs_first
 #echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
-#echo 2000000 > /proc/sys/kernel/sched_wakeup_granularity_ns
 #echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
 echo 40000 > /proc/sys/kernel/sched_latency_ns
 #echo '0:1324800' > /sys/module/cpu_boost/parameters/input_boost_freq
@@ -1826,24 +2048,6 @@ echo 40000 > /proc/sys/kernel/sched_latency_ns
 echo 40 > /sys/module/cpu_boost/parameters/input_boost_ms
 echo 1200 > /sys/module/cpu_boost/parameters/powerkey_input_boost_ms
 echo "0" > /sys/module/workqueue/parameters/power_efficient
-
-echo "0" > /sys/devices/system/cpu/cpu0/core_ctl/enable
-#echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy0/scaling_governor
-echo "1000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
-echo "5000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
-#echo "1324800" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
-echo "75" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/pl
-echo "1" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/iowait_boost_enable
-
-echo "0" > /sys/devices/system/cpu/cpu4/core_ctl/enable
-#echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor
-echo "1000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/up_rate_limit_us
-echo "5000" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/down_rate_limit_us
-#echo "1574400" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_freq
-echo "75" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/hispeed_load
-echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/pl
-echo "1" > /sys/devices/system/cpu/cpufreq/policy4/schedutil/iowait_boost_enable
 
 
 echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
@@ -2086,7 +2290,7 @@ echo 0 > /sys/module/pvrsrvkm/parameters/gPVRDebugLevel
 echo 0 > /sys/module/scsi_mod/parameters/scsi_logging_level
 echo Y > /sys/module/snd_usb_audio/parameters/ignore_ctl_error
 echo Y > /sys/module/spurious/parameters/noirqdebug
-echo 0 > /sys/module/usbhid/parameters/mousepoll
+#echo 0 > /sys/module/usbhid/parameters/mousepoll
 echo N > /sys/module/usbserial/parameters/debug
 
 
@@ -2097,6 +2301,7 @@ echo N > /sys/module/usbserial/parameters/debug
 # systunedump --all | sed 's/:/ /g' | awk '{print "echo "$2" > "$1}' > text
 # just dumped this still needs editing
 echo 120 > /sys/fs/f2fs/*/cp_interval
+echo 20 > /sys/fs/f2fs/*/ram_thresh
 echo 0 > proc/sys/vm/block_dump
 echo 0 > /sys/module/ext4/parameters/mballoc_debug
 echo 0 > /proc/sys/abi/vsyscall32
@@ -2265,10 +2470,10 @@ echo 8192 > /proc/sys/vm/admin_reserve_kbytes
 echo 1 > /proc/sys/vm/compact_unevictable_allowed
 echo 0 > /proc/sys/vm/compaction_proactiveness
 #echo 0 > /proc/sys/vm/dirty_background_bytes
-echo 90 > /proc/sys/vm/dirty_background_ratio
+echo 50 > /proc/sys/vm/dirty_background_ratio
 #echo 0 > /proc/sys/vm/dirty_bytes
 echo 500 > /proc/sys/vm/dirty_expire_centisecs
-echo 90 > /proc/sys/vm/dirty_ratio
+echo 80 > /proc/sys/vm/dirty_ratio
 echo 1000 > /proc/sys/vm/dirty_writeback_centisecs
 echo 43200 > /proc/sys/vm/dirtytime_expire_seconds
 echo 750 > /proc/sys/vm/extfrag_threshold
@@ -2392,7 +2597,7 @@ echo N > /sys/module/ehci_hcd/parameters/ignore_oc
 echo 0 > /sys/module/ehci_hcd/parameters/log2_irq_thresh
 echo 0 > /sys/module/ehci_hcd/parameters/park
 echo N > /sys/module/fb/parameters/lockless_register_fb
-echo  > /sys/module/firmware_class/parameters/path
+#echo  > /sys/module/firmware_class/parameters/path
 echo 0 > /sys/module/fscache/parameters/debug
 echo 32 > /sys/module/fscrypto/parameters/num_prealloc_crypto_pages
 echo N > /sys/module/fuse/parameters/allow_sys_admin_access
@@ -2456,7 +2661,7 @@ echo 7 > /sys/module/libata/parameters/acpi_gtf_filter
 echo 0 > /sys/module/libata/parameters/allow_tpm
 echo 0 > /sys/module/libata/parameters/atapi_an
 echo 0 > /sys/module/libata/parameters/atapi_dmadir
-echo 1 > /sys/module/libata/parameters/atapi_enabled
+echo 0 > /sys/module/libata/parameters/atapi_enabled
 echo 1 > /sys/module/libata/parameters/atapi_passthru16
 echo 0 > /sys/module/libata/parameters/ata_probe_timeout
 echo 7 > /sys/module/libata/parameters/dma
@@ -2525,6 +2730,7 @@ echo N > /sys/module/printk/parameters/ignore_loglevel
 echo Y > /sys/module/printk/parameters/time
 echo Y > /sys/module/processor/parameters/bm_check_disable
 echo 1 > /sys/module/processor/parameters/ignore_tpc
+#echo 1 > /sys/module/processor/parameters/ignore_ppc
 echo $max_cstate > /sys/module/processor/parameters/max_cstate
 echo N > /sys/module/processor/parameters/nocst
 echo N > /sys/module/psmouse/parameters/a4tech_workaround
@@ -2700,7 +2906,6 @@ echo Y > /sys/module/usbcore/parameters/use_both_schemes
 echo 0 > /sys/module/usbhid/parameters/ignoreled
 echo 0 > /sys/module/usbhid/parameters/jspoll
 echo 0 > /sys/module/usbhid/parameters/kbpoll
-echo 0 > /sys/module/usbhid/parameters/mousepoll
 echo null > /sys/module/usbhid/parameters/quirks
 echo 1 > /sys/module/usb_storage/parameters/delay_use
 echo 1 > /sys/module/usb_storage/parameters/option_zero_cd
@@ -3314,6 +3519,10 @@ for i in $(echo sd*[!0-9] ; echo hd*[!0-9] ; echo nvme*[!0-9]) ; do
 echo 32 | tee /sys/block/$i/queue/iosched/fifo_batch ; done
 
 
+
+
+echo 'options usbhid mousepoll=4' | tee /etc/modprobe.d/usbhid.conf
+
 #if $(! grep -q "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf) ; then
 #echo 'options processor ignore_ppc=1' | tee /etc/modprobe.d/ignore_ppc.conf ; fi
 
@@ -3372,9 +3581,9 @@ echo 1 > /proc/sys/kernel/sched_child_runs_first
 echo 0 > /proc/sys/kernel/sched_autogroup_enabled
 echo 500 > /proc/sys/kernel/sched_cfs_bandwidth_slice_us
 echo 40000 > /sys/kernel/debug/sched/latency_ns
-echo 500000 > /sys/kernel/debug/sched/migration_cost_ns
+echo 5000000 > /sys/kernel/debug/sched/migration_cost_ns
 echo 500000 > /sys/kernel/debug/sched/min_granularity_ns
-echo 500000 > /sys/kernel/debug/sched/wakeup_granularity_ns
+echo 5000000 > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo 128 > /sys/kernel/debug/sched/nr_migrate
 
 # different path under 5.10
@@ -3383,17 +3592,17 @@ sysctl /proc/sys/kernel/sched_scaling_enable=1
 sysctl /proc/sys/kernel/sched_tunable_scaling=0
 sysctl /proc/sys/kernel/sched_child_runs_first=1
 sysctl /proc/sys/kernel/sched_min_granularity_ns=500000
-sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=500000
+sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=5000000
 sysctl /proc/sys/kernel/sched_latency_ns=40000
 sysctl /proc/sys/kernel/debug/sched/scaling_enable=1
 sysctl /proc/sys/kernel/debug/sched/tunable_scaling=0
 sysctl /proc/sys/kernel/debug/sched/child_runs_first=1
 sysctl /proc/sys/kernel/debug/sched/min_granularity_ns=500000
-sysctl /proc/sys/kernel/debug/sched/wakeup_granularity_ns=500000
+sysctl /proc/sys/kernel/debug/sched/wakeup_granularity_ns=5000000
 sysctl /proc/sys/kernel/debug/sched/latency_ns=40000
 echo '0' > /sys/kernel/debug/tunable_scaling
 echo '500000' > /sys/kernel/debug/sched/min_granularity_ns
-echo '500000' > /sys/kernel/debug/sched/wakeup_granularity_ns
+echo '5000000' > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo '40000' > /sys/kernel/debug/sched/latency_ns
 echo 0 > /proc/sys/kernel/debug/sched/min_task_util_for_colocation
 echo 128 > /proc/sys/kernel/debug/sched/nr_migrate
@@ -3417,7 +3626,7 @@ echo 0 > /sys/kernel/debug/tracing/events/block/enable
 # some paths changed since 5.10 so double
 # there are more than listed here though:
 # https://github.com/torvalds/linux/blob/master/kernel/sched/features.h
-for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do
+for i in /sys/kernel/debug/sched/ /sys/kernel/debug/sched_ ; do
 echo START_DEBIT >> "$i"features
 echo LAST_BUDDY >> "$i"features
 echo CACHE_HOT_BUDDY >> "$i"features
@@ -3463,13 +3672,13 @@ echo N > "$i"debug
 echo 40000 > "$i"latency_ns
 #echo ? > "$i"latency_warn_ms
 #echo ? > "$i"latency_warn_once
-echo 500000 > "$i"migration_cost_ns
+echo 5000000 > "$i"migration_cost_ns
 echo 500000 > "$i"min_granularity_ns
 echo 128 > "$i"nr_migrate
 echo full > "$i"preempt
 echo 0 > "$i"tunable_scaling
 echo N > "$i"verbose
-echo 500000 > "$i"wakeup_granularity_ns
+echo 5000000 > "$i"wakeup_granularity_ns
 #echo ? > "$i"cpu*
 #echo ? > "$i"hot_threshold_ms
 #echo ? > "$i"scan_delay_ms
@@ -3479,7 +3688,7 @@ echo 500000 > "$i"wakeup_granularity_ns
 done
 
 if [ -f $droidprop ] && ! grep -q tv $droidprop ; then
-for i in $(echo /sys/kernel/debug/sched/ ; echo /sys/kernel/debug/sched_ ) ; do
+for i in /sys/kernel/debug/sched/ /sys/kernel/debug/sched_ ; do
 echo ENERGY_AWARE >> "$i"features ; done ; fi
 
 echo 3 > /sys/bus/workqueue/devices/writeback/cpumask
@@ -3496,9 +3705,9 @@ echo "1" /proc/sys/fs/leases-enable
 echo "0" > /proc/sys/fs/dir-notify-enable
 echo "20" > /proc/sys/fs/lease-break-time
 echo "1" > /proc/sys/vm/compact_unevictable_allowed
-echo "90" > /proc/sys/vm/dirty_background_ratio
+#echo "90" > /proc/sys/vm/dirty_background_ratio
 echo "500" > /proc/sys/vm/dirty_expire_centisecs
-echo "90" > /proc/sys/vm/dirty_ratio
+#echo "90" > /proc/sys/vm/dirty_ratio
 echo "1000" > /proc/sys/vm/dirty_writeback_centisecs
 echo "1" > /proc/sys/vm/oom_dump_tasks
 echo "1" > /proc/sys/vm/oom_kill_allocating_task
@@ -3556,6 +3765,7 @@ ethtool -K tx-checksum-ipv6 $fl
 iface=$(ip -o link | awk '{print $2}' | sed 's/:\+$//;s/\@.*//')
 for i in $iface ; do
 macchanger -rbe $i
+ethtool -s $i wol d
 ethtool -G $i rx $rx tx $tx
 ethtool -K $i rx $fl tx $fl sg $fl tso $fl ufo $fl gso $fl gro $fl lro $fl rxvlan $fl txvlan $fl rxhash $fl ntuple $fl
 ethtool -s $i duplex $duplex autoneg $autoneg
@@ -3572,12 +3782,12 @@ iwconfig $i commit ; done
 
 
 if ip -o link | grep -q wlan ; then
-for i in $(echo wlan0 ; echo wlan1 ; echo phy0-ap0 ; echo phy0-ap1) ; do
+for i in wlan0 wlan1 phy0-ap0 phy0-ap1 ; do
 iw dev $i set beacon_int $beacons
 iw dev $i set txpwr $txpower
 iw dev $i set power_save $pwrsave ; done
 
-for i in $(echo phy0 ; echo phy1) ; do
+for i in phy0 phy1 ; do
 iw phy $i set beacon_int $beacons
 iw phy $i set txpwr $txpower
 iw phy $i set power_save $pwrsave
@@ -3585,7 +3795,7 @@ iw phy $i set distance $distance
 iw phy $i set rts $rts
 iw phy $i set frag $frag ; done ; fi
 
-if $debian ; then
+if $linux ; then
 ether=$(ip -o link | grep -v ppp | grep ether | awk '{print $2}' |  sed 's/:\+$//;s/\@.*//')
 for i in $ether ; do
 ifconfig $ether mtu $mtu ; done ; fi
@@ -3598,8 +3808,8 @@ wl -i $iface
 ifconfig $iface txqueuelen $txqueuelen
 
 # skip disk defragment & fstrim on every boot
-#$s xfs_fsr $rootfs
-#$s fstrim /
+#xfs_fsr $rootfs
+#fstrim /
 touch /etc/rc.local
 touch /etc/sysctl.conf
 
@@ -3618,21 +3828,26 @@ sysctl -w kernel.sched_schedstats=0
 
 ### SYSCTL.CONF IN SAME FILE
 ### values for sysctl.conf ( /etc/sysctl.conf is a replica of /etc/rc.local and bound to it as well just for convenience)
+if $(! $wrt) ; then
+sysc32="abi.vsyscall32 = 0"
+fi
+
+if [ $cpumaxcstate = 0 ] ; then
+flat='force_latency = 1'
+fi
 
 echo '# sysctl
 
 #
 # more
-
-
+'"$flat"'
+'"$sysc32"'
 kernel.shmall = '"$shmall"'
 kernel.shmmax = '"$shmmax"'
 kernel.shmmni = '"$shmmni"'
 #vm.nr_hugepages = '"$hugepages"'
 vm.nr_hugepages_mempolicy = '"$hugepages"'
-if $(! '"$wrt"') ; then
-abi.vsyscall32 = 0
-fi
+
 crypto.fips_enabled = 1
 debug.exception-trace = 0
 debug.kprobes-optimization = 1
@@ -3642,9 +3857,7 @@ dev.i915.perf_stream_paranoid = 0
 dev.scsi.logging_level = 0
 dev.tty.ldisc_autoload = 1
 energy_perf_bias = performance
-if [ '"$cpumaxcstate"' = 0 ] ; then
-force_latency = 1
-fi
+
 fs.aio-max-nr = 1048576
 fs.binfmt_misc.status = enabled
 fs.dentry-state = 65495 42448   45      0       39102   0
@@ -3792,8 +4005,8 @@ kernel.sched_deadline_period_max_us = 500000
 kernel.sched_deadline_period_min_us = 100
 kernel.sched_energy_aware = 0
 kernel.sched_latency_ns = 40000
-kernel.sched_migration_cost_ns = 250000
-kernel.sched_min_granularity_ns = 40000
+kernel.sched_migration_cost_ns = 5000000
+kernel.sched_min_granularity_ns = 500000
 kernel.sched_min_task_util_for_colocation = 0
 kernel.sched_nr_migrate = 128
 kernel.sched_rr_timeslice_ms = -1
@@ -3802,7 +4015,7 @@ kernel.sched_rt_runtime_us = -1
 kernel.sched_scaling_enable = 1
 kernel.sched_schedstats = 0
 kernel.sched_tunable_scaling = 0
-kernel.sched_wakeup_granularity_ns = 40000
+kernel.sched_wakeup_granularity_ns = 5000000
 kernel.seccomp.actions_avail = NONE
 kernel.seccomp.actions_logged = NONE
 kernel.sem = 32000      1024000000      500     32000
@@ -3850,11 +4063,9 @@ vm.admin_reserve_kbytes = 8192
 vm.block_dump = 0
 vm.compact_unevictable_allowed = 1
 vm.compaction_proactiveness = 0
-#vm.dirty_background_bytes = 4194304
-vm.dirty_background_ratio = 90
-#vm.dirty_bytes = 4194304
+vm.dirty_background_ratio = 50
 vm.dirty_expire_centisecs = 500
-vm.dirty_ratio = 90
+vm.dirty_ratio = 80
 vm.dirty_writeback_centisecs = 1000
 #vm.dirtytime_expire_seconds = 43200
 vm.extfrag_threshold = 750
@@ -3973,6 +4184,12 @@ net.netfilter.nf_log.8 = NONE
 net.netfilter.nf_log.9 = NONE
 
 net.core.enable_tcp_offloading = 1
+
+kernel.split_lock_mitigate = 0
+
+#vm.dirty_background_bytes = 4194
+#vm.dirty_bytes = 4194
+
 ' | tee "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
 
 sysctl net.ipv4.ip_local_port_range=30000 65535
@@ -4387,7 +4604,7 @@ net.ipv4.route.redirect_load = 5
 net.ipv4.route.redirect_number = 9
 net.ipv4.route.redirect_silence = 5120
 #net.ipv4.conf.all.accept_redirects = 0
-net.ipv6.conf.all.accept_redirects = 0' | tee -a "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf 
+net.ipv6.conf.all.accept_redirects = 0' | tee -a "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
 
 
 ### network
@@ -4925,7 +5142,7 @@ echo 8 > /sys/block/md0/md/group_thread_cnt; fi
 #################################################################################################
 
 # debian stuff
-if $debian ; then
+if $linux ; then
 
 
 
@@ -4939,9 +5156,11 @@ if [ $firstrun = yes ] ; then
 mkdir -p tmp
 mkdir -p /home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Default
 mkdir -p /home/$himri/.config/chromium/Default
-wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.mozilla/firefox/.default-release/prefs.js -O tmp/firefox.js ; if [ -e tmp/firefox.js ] ; then cp -f tmp/firefox.js /etc/firefox/firefox.js ; fi
-wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences -O tmp/Preferences ; if [ -e tmp/Preferences ] ; then cp -f tmp/Preferences /home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; cp -f Preferences tmp/Local State" "/home/$himri/.config/chromium/Default/Preferences
-wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State -O "tmp/Local State" ; if [ -e "tmp/Local State" ] ; then cp -f "tmp/Local State" "/home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Local State" ; cp -f "tmp/Local State" "/home/$himri/.config/chromium/Local State" ; fi ; fi ; fi
+su $himri -c "mkcomposecache en_US.UTF-8 /var/tmp/buildroot/usr/share/X11/locale/en_US.UTF-8/Compose /var/tmp/buildroot/var/X11R6/compose_cache /usr/share/X11/locale/en_US.UTF-8/Compose"
+wget https://raw.githubusercontent.com/freedesktop/xorg-mkcomposecache/master/mkallcomposecaches.sh -O tmp/mkcache.sh ; chmod +x tmp/mkcache.sh ; sh tmp/mkcache.sh ; su $himri -c 'sh tmp/mkcache.sh'
+wget ${rawlink}/.basicsetup/.mozilla/firefox/.default-release/prefs.js -O tmp/firefox.js ; if [ -e tmp/firefox.js ] ; then cp -f tmp/firefox.js /etc/firefox/firefox.js ; fi
+wget ${rawlink}/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences -O tmp/Preferences ; if [ -e tmp/Preferences ] ; then cp -f tmp/Preferences /home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; cp -f Preferences tmp/Local State" "/home/$himri/.config/chromium/Default/Preferences
+wget ${rawlink}/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State -O "tmp/Local State" ; if [ -e "tmp/Local State" ] ; then cp -f "tmp/Local State" "/home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Local State" ; cp -f "tmp/Local State" "/home/$himri/.config/chromium/Local State" ; fi ; fi ; fi
 
 
 
@@ -5095,9 +5314,9 @@ btrfs balance start -musage=0 -dusage=50 / ; fi
 
 
 # mpv video player codec stuff
-echo 'vo=vdpau
+echo 'vo=gpu
 profile=opengl-hq
-hwdec=vdpau
+hwdec=auto
 hwdec-codecs=all
 scale=ewa_lanczossharp
 cscale=ewa_lanczossharp
@@ -5110,7 +5329,7 @@ echo 'xrandr --auto' | tee -a /etc/X11/xinit/xinitrc ; fi
 
 
 # kde config linux, debian
-$s mkdir -p /home/"$himri"/.config/plasma-workspace/env
+mkdir -p /home/"$himri"/.config/plasma-workspace/env
 
 
 
@@ -5135,7 +5354,7 @@ touch $HOME/.XCompose
 
 
 # stop akonadi-server
-$s sed -i 's/StartServer.*/StartServer=false/' /home/"$himri"/.config/akonadi/akonadiserverrc
+sed -i 's/StartServer.*/StartServer=false/' /home/"$himri"/.config/akonadi/akonadiserverrc
 
 #resolution=$(echo $(xrandr --current | head -n 6 | tail -n 1 | awk '{print $1}'))
 #resolution=$(echo $(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//'))
@@ -5157,10 +5376,18 @@ echo 'Section "Screen"
        EndSubSection
 EndSection' | tee /etc/X11/xorg.conf.d/10-screen.conf
 
+#echo 'Section "Monitor"
+#    Identifier     "Monitor0"
+#    Option         "DPMS"
+#EndSection' | tee /etc/X11/xorg.conf.d/10-monitor.conf
 
-# enable dri 3 for amdgpu
+
+
+# enable dri 3
 # https://manpages.ubuntu.com/manpages/kinetic/en/man4/intel.4.html
 # https://manpages.ubuntu.com/manpages/kinetic/en/man5/xorg.conf.5.html
+if glxinfo | grep -qi amdgpu ; then
+for i in $( echo *nvidia* ; echo *intel*) ; do rm -rf /usr/share/X11/xorg.conf.d/$i /etc/X11/xorg.conf.d/$i ; done
 #if $(! grep -q 'DDC' /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu)) ; then
 echo 'Section "OutputClass"
   Identifier "AMDgpu"
@@ -5200,48 +5427,8 @@ echo 'Section "OutputClass"
   #Option "CacheLines" "256"
   Option "RenderAccel" "true"
   Option "AllowGLXWithComposite" "true"
-EndSection' | tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) # ; fi
-
-
-echo 'Section "Device"
-  Identifier "Intel Graphics"
-  Driver "intel"
-  Option "DRI2" "0"
-  Option "DRI" "3"
-  Option "DRI3" "1"
-  Option "TearFree" "true"
-  Option "SwapbuffersWait" "true"
-  Option "EnablePageFlip" "on"
-  Option "NoAccel" "false"
-  Option "Accel" "true"
-  Option "TripleBuffer" "true"
-  Option "Present" "true"
-  Option "FallbackDebug" "false"
-  Option "DebugFlushBatches" "false"
-  Option "DebugFlushCaches" "false"
-  Option "DebugWait" "false"
-  Option "HWRotation" "true"
-  Option "PageFlip" "true"
-  Option "Tiling" "true"
-  Option "RelaxedFencing" "true"
-  Option "Throttle" "true"
-  Option "HotPlug" "true"
-  Option "DDC" "true"
-  Option "Dac6Bit" "true"
-  Option "VariableRefresh" "true"
-  Option "ForceCompositionPipeline" "on"
-  Option "AllowIndirectGLXProtocol" "off"
-  Option "SWcursor" "off"
-  Option "HWCursor" "on"
-  Option "FastVram" "on"
-  Option "DPMS" "on"
-  Option "FramebufferCompression" "true"
-  Option "AccelMethod" "glamor"
-  #Option "CacheLines" "256"
-  Option "RenderAccel" "true"
-  Option "AllowGLXWithComposite" "true"
-EndSection' | tee /usr/share/X11/xorg.conf.d/10-intel.conf /etc/X11/xorg.conf.d/10-intel.conf
-
+EndSection' | tee /usr/share/X11/xorg.conf.d/10-amdgpu.conf /etc/X11/xorg.conf.d/10-amdgpu.conf
+#tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) /etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep amdgpu) # ; fi
 
 
 echo 'Section "OutputClass"
@@ -5282,7 +5469,96 @@ echo 'Section "OutputClass"
   #Option "CacheLines" "256"
   Option "RenderAccel" "true"
   Option "AllowGLXWithComposite" "true"
-EndSection' | tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep radeon) $(if $(ls /usr/share/X11/xorg.conf.d | grep -q radeon) ; then echo "/etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep radeon)" ; fi)
+EndSection' | tee /usr/share/X11/xorg.conf.d/10-radeon.conf /etc/X11/xorg.conf.d/10-radeon.conf
+#tee /usr/share/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep radeon) $(if $(ls /usr/share/X11/xorg.conf.d | grep -q radeon) ; then echo "/etc/X11/xorg.conf.d/$(ls /usr/share/X11/xorg.conf.d | grep radeon)" ; fi)
+fi
+
+if glxinfo | grep -qi intel ; then
+for i in $( echo *amdgpu* ; echo *radeon* ; echo *nvidia*) ; do rm -rf /usr/share/X11/xorg.conf.d/$i /etc/X11/xorg.conf.d/$i ; done
+echo 'Section "OutputClass"
+  Identifier "Intel Graphics"
+  MatchDriver "intel"
+  Driver "intel"
+  Option "DRI2" "0"
+  Option "DRI" "3"
+  Option "DRI3" "1"
+  Option "TearFree" "true"
+  Option "SwapbuffersWait" "true"
+  Option "EnablePageFlip" "on"
+  Option "NoAccel" "false"
+  Option "Accel" "true"
+  Option "TripleBuffer" "true"
+  Option "Present" "true"
+  Option "FallbackDebug" "false"
+  Option "DebugFlushBatches" "false"
+  Option "DebugFlushCaches" "false"
+  Option "DebugWait" "false"
+  Option "HWRotation" "true"
+  Option "PageFlip" "true"
+  Option "Tiling" "true"
+  Option "RelaxedFencing" "true"
+  Option "Throttle" "true"
+  Option "HotPlug" "true"
+  Option "DDC" "true"
+  Option "Dac6Bit" "true"
+  Option "VariableRefresh" "true"
+  Option "ForceCompositionPipeline" "on"
+  Option "AllowIndirectGLXProtocol" "off"
+  Option "SWcursor" "off"
+  Option "HWCursor" "on"
+  Option "FastVram" "on"
+  Option "DPMS" "on"
+  Option "FramebufferCompression" "true"
+  Option "AccelMethod" "glamor"
+  #Option "CacheLines" "256"
+  Option "RenderAccel" "true"
+  Option "AllowGLXWithComposite" "true"
+EndSection' | tee /usr/share/X11/xorg.conf.d/10-intel.conf /etc/X11/xorg.conf.d/10-intel.conf
+fi
+
+if glxinfo | grep -qi nvidia ; then
+for i in $( echo *amdgpu* ; echo *radeon* ; echo *intel*) ; do rm -rf /usr/share/X11/xorg.conf.d/$i /etc/X11/xorg.conf.d/$i ; done
+echo 'Section "OutputClass"
+  Identifier "NVIDIA Card"
+  MatchDriver "nvidia"
+  Driver "nvidia"
+  VendorName "NVIDIA Corporation"
+  Option "DRI2" "0"
+  Option "DRI" "3"
+  Option "DRI3" "1"
+  Option "TearFree" "true"
+  Option "SwapbuffersWait" "true"
+  Option "EnablePageFlip" "on"
+  Option "NoAccel" "false"
+  Option "Accel" "true"
+  Option "TripleBuffer" "true"
+  Option "Present" "true"
+  Option "FallbackDebug" "false"
+  Option "DebugFlushBatches" "false"
+  Option "DebugFlushCaches" "false"
+  Option "DebugWait" "false"
+  Option "HWRotation" "true"
+  Option "PageFlip" "true"
+  Option "Tiling" "true"
+  Option "RelaxedFencing" "true"
+  Option "Throttle" "true"
+  Option "HotPlug" "true"
+  Option "DDC" "true"
+  Option "Dac6Bit" "true"
+  Option "VariableRefresh" "true"
+  Option "ForceCompositionPipeline" "on"
+  Option "AllowIndirectGLXProtocol" "off"
+  Option "SWcursor" "off"
+  Option "HWCursor" "on"
+  Option "FastVram" "on"
+  Option "DPMS" "on"
+  Option "FramebufferCompression" "true"
+  Option "AccelMethod" "glamor"
+  #Option "CacheLines" "256"
+  Option "RenderAccel" "true"
+  Option "AllowGLXWithComposite" "true"
+EndSection' | tee /usr/share/X11/xorg.conf.d/10-nvidia.conf /etc/X11/xorg.conf.d/10-nvidia.conf
+fi
 
 echo 'Section "Extensions"
         Option "DPMS" "Enable"
@@ -5316,8 +5592,55 @@ wifi.powersave = 2' | tee /etc/NetworkManager/conf.d/wifi-powersave-off.conf
 
 # also has mitigations=off option for videocard btw... not needed for me
 if glxinfo | grep -q Intel ; then
-echo 'options i915 enable_fbc=1 fastboot=1 modeset=1' | tee /etc/modprobe.d/i915.conf
+echo 'options i915 $mitigations='"$inteligpumitigations"' enable_fbc=1 fastboot=1 modeset=1 enable_guc=2 enable_dc=1 mmio_debug=0 guc_log_level=0 enable_dp_mst=1 memtest=0 enable_ips=1 enable_gvt=1 enable_psr=1 psr_safest_params=0 enable_psr2_sel_fetch=1 verbose_state_checks=0
+options snd_hda_intel power_save=1' | tee /etc/modprobe.d/i915.conf
 fi
+
+echo 'options usbcore autosuspend=5
+#options snd_ac97_codec power_save=1' | tee /etc/modprobe.d/suspend.conf
+
+if ip -o link | grep -q wlan ; then
+echo 'options rfkill default_state=0 master_switch_mode=1' | tee /etc/modprobe.d/wlanextra.conf
+fi
+
+
+
+echo 'options usbhid mousepoll=4
+options ahci mobile_lpm_policy=0
+options cec debug=0
+options cryptomgr notests
+options kvm mmu_audit=0
+options libahci ignore_sss=1
+options libata force=udma'"$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}')"',ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer
+options nf_conntrack acct=0
+options nfs enable_ino64=1
+options pstore backend=null
+options scsi_mod use_blk_mq=1 scsi_logging_level=0
+options uhci-hcd debug=0
+options usb-storage quirks=p
+options usbcore usbfs_snoop=0
+options drm_kms_helper poll=0
+options tcp_bbr2 debug_port_mask=0 debug_ftrace=N debug_with_printk=N ecn_enable=Y fast_path=Y fast_ack_mode=1
+options usbcore autosuspend=5
+options snd_hda_intel power_save=1
+options snd_ac97_codec power_save=1' | tee /etc/modprobe.d/general.conf
+
+
+if $(find /sys/block/nvme*) ; then
+echo 'options nvme_core default_ps_max_latency_us=0' | tee /etc/modprobe.d/nvme.conf
+fi
+
+
+if glxinfo | grep -qi radeon ; then
+echo 'options radeon modeset=1 benchmark=0 dynclks=1 tv=0 test=0 disp_priority=2 hw_i2c=1 pcie_gen2=-1 msi=1 fastfb=1 dpm=1 aspm=1 runpm=1 deep_color=1 auxch=1 uvd=1 vce=1 si_support=-1 cik_support=-1' | tee /etc/modprobe.d/radeon.conf
+fi
+
+if glxinfo | grep -qi amdgpu ; then
+echo ' options amdgpu moverate=-1 disp_priority=2 hw_i2c=1 pcie_gen2=-1 msi=1 dpm=1 aspm=1 runpm=1 bapm=1 sched_jobs=64 deep_color=1 vm_debug=1 exp_hw_support=1 dc=1 ppfeauturemask=0xffffffff cg_mask=0xffffffff pg_mask=0xffffffff lbpw=1 compute_multipipe=1 gpu_recovery=1 ras_enable=1 ras_mask=0xffffffff si_support=-1 cik_support=-1 async_gfx_ring=1 mcbp=1 discovery=1 mes=1 mes_kiq=1 sched_policy=0 cwsr_enable=1 debug_largebar=1 hws_gws_support=1 debug_evictions=false no_system_mem_limit=true tmz=1 ip_block_mask=0xffffffff vcnfw_log=0' | tee /etc/modprobe.d/amdgpu.conf
+fi
+
+
+
 
 
 # xrandr auto scaling
@@ -5410,7 +5733,9 @@ NightTemperature=4000
 [Plugins]
 autocomposerEnabled=true
 blurEnabled=false
-contrastEnabled=true
+contrastEnabled=false
+desktopgridEnabled=false
+forceblurEnabled=false
 kwin-system76-scheduler-integrationEnabled=true
 kwin4_effect_dialogparentEnabled=false
 kwin4_effect_fadingpopupsEnabled=false
@@ -5420,10 +5745,18 @@ kwin4_effect_loginEnabled=false
 kwin4_effect_logoutEnabled=false
 kwin4_effect_maximizeEnabled=false
 kwin4_effect_morphingpopupsEnabled=false
+kwin4_effect_rubberband_maximizeEnabled=false
+kwin4_effect_scaleEnabled=false
+kwin4_effect_squashEnabled=false
 kwin4_effect_translucencyEnabled=true
+kwin4_effect_windowapertureEnabled=false
+overviewEnabled=false
 screenedgeEnabled=false
+slideEnabled=false
 slidingpopupsEnabled=false
+windowviewEnabled=false
 wobblywindowsEnabled=true
+zoomEnabled=false
 
 [Script-desktopchangeosd]
 TextOnly=true
@@ -5448,7 +5781,7 @@ ButtonsOnRight=HIAX
 CloseOnDoubleClickOnMenu=false
 ShowToolTips=true
 library=org.kde.kwin.aurorae
-theme=__aurorae__svg__Glassy' | $s tee /home/"$himri"/.config/kwinrc
+theme=__aurorae__svg__ChromeOS-dark' | tee /home/"$himri"/.config/kwinrc
 
 
 
@@ -5499,8 +5832,12 @@ sed -e s/\#CPU_SCALING_GOVERNOR_ON_AC=.*$/CPU_SCALING_GOVERNOR_ON_AC=performance
 sed -e s/\#CPU_SCALING_GOVERNOR_ON_BAT=.*$/CPU_SCALING_GOVERNOR_ON_BAT=powersave/g -i /etc/default/tlp
 sed -e s/\#CPU_BOOST_ON_AC=.*$/CPU_BOOST_ON_AC=1/g -i /etc/default/tlp
 sed -e s/\#CPU_BOOST_ON_BAT=.*$/CPU_BOOST_ON_BAT=0/g -i /etc/default/tlp
+if [ ! $bluetooth = on ] ; then
 sed -e s/\#DEVICES_TO_DISABLE_ON_STARTUP=.*$/DEVICES_TO_DISABLE_ON_STARTUP=\"bluetooth\"/g -i /etc/default/tlp
-sed -e s/\#DEVICES_TO_ENABLE_ON_STARTUP=.*$/DEVICES_TO_ENABLE_ON_STARTUP=\"wifi\"/g -i /etc/default/tlp
+elif [ $bluetooth = on ] ; then
+sed -e s/\DEVICES_TO_DISABLE_ON_STARTUP=.*$/DEVICES_TO_DISABLE_ON_STARTUP=/g -i /etc/default/tlp
+fi
+#sed -e s/\#DEVICES_TO_ENABLE_ON_STARTUP=.*$/DEVICES_TO_ENABLE_ON_STARTUP=\"wifi\"/g -i /etc/default/tlp
 fi
 
 
@@ -5529,15 +5866,15 @@ sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6
 #systemd-resolved=false
 
 #[ifupdown]
-#managed=true' | $s tee /etc/NetworkManager/NetworkManager.conf
+#managed=true' | tee /etc/NetworkManager/NetworkManager.conf
 
 
 
-#        $s rm -rf "/etc/NetworkManager/system-connections/*"
-#        $s rm -rf '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-#        $s touch '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-#        $s chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-#        $s chmod 0666 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#        rm -rf "/etc/NetworkManager/system-connections/*"
+#        rm -rf '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#        touch '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#        chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#        chmod 0666 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
 
 
 #        uuidgen="$(uuidgen)"
@@ -5566,11 +5903,11 @@ sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6
 #addr-gen-mode=stable-privacy
 #method=disabled
 
-#[proxy]' | $s tee '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#[proxy]' | tee '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
 
 
 
-#        $s sed -i '/uuid/c\uuid='"$uuidgen"'' "/etc/NetworkManager/system-connections/802-11-wireless connection 1"
+#        sed -i '/uuid/c\uuid='"$uuidgen"'' "/etc/NetworkManager/system-connections/802-11-wireless connection 1"
 
 
 
@@ -5596,16 +5933,16 @@ sed -i 's/user_pref("network.notify.IPv6", true);/user_pref("network.notify.IPv6
 #addr-gen-mode=stable-privacy
 #method=disabled
 
-#[proxy]' | $s tee '/etc/NetworkManager/system-connections/Wired connection 1'
+#[proxy]' | tee '/etc/NetworkManager/system-connections/Wired connection 1'
 
 
 
-#        $s sed -i 's/uuid/uuid='"$uuidgen"'/g' '/etc/NetworkManager/system-connections/Wired connection 1'
+#        sed -i 's/uuid/uuid='"$uuidgen"'/g' '/etc/NetworkManager/system-connections/Wired connection 1'
 
 
 
-#        $s chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
-#        $s chmod 0600 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#        chown root '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
+#        chmod 0600 '/etc/NetworkManager/system-connections/Wired connection 1' '/etc/NetworkManager/system-connections/802-11-wireless connection 1'
 
 #fi
 
@@ -5641,18 +5978,18 @@ fi
 if grep -q preload=yes /etc/bak/dontdelete ; then linker="LD=mold" ; fi
 
 
-if $debian ; then
+if $linux ; then
   # ccache & path
     if $(! sudo grep -q "USE_CCACHE=1" $HOME/.zshrc) ; then
-    $s sed -i "\$aUSE_CCACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    $s sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    $s sed -i "\$aPREBUILT_CACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    $s sed -i "\$aCCACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    $s sed -i "\$accache -M 30G >/dev/null" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi ; fi
+    sed -i "\$aUSE_CCACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$aPREBUILT_CACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$aCCACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$accache -M 30G >/dev/null" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi ; fi
     if $(! sudo grep -q 'LD_LIBRARY_PATH' $HOME/.zshrc) ; then
     #echo "$ld_preload" | tee -a /home/"$himri"/.xsessionrc /root/.xsessionrc
     clang=$(ls /usr/lib | grep 'llvm-' | tail -n 1 | rev | cut -c-3 | rev)
-    echo 'PATH=/usr/lib/ccache/bin/:/lib/x86_64-linux-gnu:/usr/lib/llvm'"$clang"'/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
+    echo 'PATH=/usr/lib/ccache/bin:/lib/x86_64-linux-gnu:/usr/lib/llvm'"$clang"'/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
     LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:/usr/lib/llvm'"$clang"'/lib:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
     '"$ld_preload"'' | tee -a $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc /home/"$himri"/.xsessionrc /root/.xsessionrc /home/"$himri"/.profile /root/.profile ; fi
 ccache --set-config=sloppiness=locale,time_macros
@@ -5663,7 +6000,6 @@ ccache --set-config=sloppiness=locale,time_macros
 
 # smcr info to check if your hardware is capable
 #ld_preload="export LD_PRELOAD=libtrick.so:libmkl_core.so:libomp"$cclm".so.5:libmkl_def.so:libhugetlbfs.so.0:libmimalloc.so.2:libeatmydata.so:libsmc-preload.so.1:libmkl_vml_avx2.so:libmkl_intel_lp64.so:libmkl_intel_thread.so$(if dmesg | grep -q amdgpu ; then echo ":libomptarget.rtl.amdgpu.so.$cclm" | sed 's/-//g'
-
 
 
 
@@ -5730,9 +6066,15 @@ mkdir -p /etc/sddm.conf.d
 echo '[General]
 DisplayServer=wayland
 GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
-CompositorCommand=kwin_wayland --no-lockscreen' | $s tee /etc/sddm.conf.d/10-wayland.conf ; fi
+CompositorCommand=kwin_wayland --no-lockscreen' | tee /etc/sddm.conf.d/10-wayland.conf ; fi
 fi
 
+if [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = arch ] || [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = debian ] ; then
+posix='LC_ALL=C
+LANG=C'
+fi
+
+#if $arch && ldconfig -p | grep -q libmimalloc ; then ld_preload="LD_PRELOAD=$(ldconfig -p | grep libmimalloc | head -n1 | awk -F '>' '{print $2}')" ; fi
 
 
 # /etc/environment variables
@@ -5747,9 +6089,10 @@ LDPATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib
 '"$linker"'
 '"$kdeenv"'
 '"$xdgidri"'
+'"$posix"'
 XIM_GLOBAL_CACHE_DIR=/var/cache/libx11/compose
-XCOMPOSEFILE=/home/'"$himri"'/.XCompose
-XCOMPOSECACHE=/home/'"$himri"'/.compose-cache
+XCOMPOSEFILE=~/.XCompose
+XCOMPOSECACHE=~/.compose-cache
 WLR_RENDERER=vulkan
 WLR_DRM_NO_MODIFIERS=1
 WLR_DRM_NO_ATOMIC=1
@@ -5773,11 +6116,11 @@ VKD3D_CONFIG=no_upload_hvv
 VGL_READBACK=pbo
 VDPAU_DRIVER=va_gl
 VAAPI_MPEG4_ENABLED=1
-tlink="https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh"
+tlink="'"${rawlink}"'/'"${file}"'"
 TCMALLOC_MEMFS_MALLOC_PATH=/tmp
 SYSTEMD_SECCOMP='"$seccomp"'
 SYSTEMD_PROC_CMDLINE="'"$par"'"
-SYSTEMD_EFI_OPTIONS"'"$par"'"
+SYSTEMD_EFI_OPTIONS="'"$par"'"
 SYSTEMD_LOG_SECCOMP=0
 SYSTEMD_LIST_NON_UTF8_LOCALES=0
 SYSTEMCTL_SKIP_SYSV=1
@@ -5837,7 +6180,8 @@ POL_IgnoreWineErrors=True
 PIPEWIRE_PROFILE_MODULES=default,rtkit
 PIPEWIRE_LINK_PASSIVE=1
 PIPEWIRE_LATENCY=512/48000
-PAGER=less
+PAGER="less -R --use-color -Dd+r -Du+b"
+MANPAGER="less -R --use-color -Dd+r -Du+b"
 OMP_TARGET_OFFLOAD=MANDATORY
 OMP_NUM_THREADS='"$(nproc)"'
 OMP_DYNAMIC=true
@@ -5882,7 +6226,7 @@ LESSSECURE=1
 LESSHISTSIZE=0
 LESSHISTFILE=-
 LDFLAGS_MODULE=--strip-debug
-#LDFLAGS="-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wnoformat-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize" #-Xclang -plugin /usr/lib/llvm'"$cclm"'/lib/LLVMPolly.so
+#LDFLAGS="-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wno-format-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize -Wl,--hash-style=gnu" #-Xclang -plugin /usr/lib/llvm'"$cclm"'/lib/LLVMPolly.so
 LD_DEBUG_OUTPUT=0
 LD_BIND_NOW=0
 KIRIGAMI_LOWPOWER_HARDWARE=1
@@ -5914,8 +6258,9 @@ DOTNET_CLI_TELEMETRY_OPTOUT=1
 CONFIG_SND_HDA_PREALLOC_SIZE=16
 COMMAND_NOT_FOUND_INSTALL_PROMPT=1
 COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
+CCACHE_SLOPPINESS=locale,time_macros
 #CC=clang'"$cclm"'
-BROWSER=/usr/bin/firefox
+BROWSER='"$(which firefox)"'
 #AR=llvm-ar'"$cclm"'
 ANV_ENABLE_PIPELINE_CACHE=1
 AMD_VULKAN_ICD=amdvlk
@@ -5930,7 +6275,8 @@ __GL_MaxFramesAllowed='"$maxframes"'
 __GL_LOG_MAX_ANISO=0
 __GL_FSAA_MODE=0
 amdgpusi_enable_nir=true
-radeonsi_enable_nir=true' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
+radeonsi_enable_nir=true
+EDITOR='"$(which vim)"'' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
 
 
 
@@ -5941,6 +6287,7 @@ sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=no' /etc/environment /home/"
 else
 sed -i '/export KDE_NO_IPV6=/c\export KDE_NO_IPV6=0' /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc
 sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
+
 
 #MESA_BACK_BUFFER=ximage
 #DRI_PRIME=1
@@ -5995,6 +6342,7 @@ sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/environment /home/
 # wont get applied on newer devices anyway. no harm. these are bullshit though. only the dalvik vm shit probably works. most i will be disabled by default. check what is used for your device
 # leave gpu rendering disabled in developers options
 if [ -f $droidprop ] ; then
+if [ $androidbuildprop = yes ] ; then
 prop='#####################################
 # these are added
 #####################################
@@ -6718,578 +7066,23 @@ killall -9 mediaserver
 settings put global window_animation_scale 0.0
 settings put global transition_animation_scale 0.0
 settings put global animator_duration_scale 0.0
+fi
+if [ $firstrun = yes ] && [ $debloatandroid = yes ] ; then
+for i in android.autoinstalls.config.Xiaomi.pine AR coloros.gamespaceui com.alibaba.aliexpresshd com.allgoritm.youla com.android.apps.tag com.android.bbklog com.android.bbkmusic com.android.bbksoundrecorder com.android.bips com.android.bookmarkprovider com.android.browser com.android.calllogbackup com.android.documentsui com.android.egg com.android.email com.android.exchange com.android.hotwordenrollment.okgoogle com.android.hotwordenrollment.xgoogle com.android.localtransport com.android.location.fused com.android.mms com.android.mms.service com.android.partnerbrowsercustomizations com.android.providers.downloads.ui com.android.providers.partnerbookmarks com.android.providers.userdictionary com.android.sharedstoragebackup com.android.soundrecorder com.android.thememanager com.android.thememanager.module com.app.market com.asurion.android.protech.att com.asurion.android.verizon.vms com.att.android.attsmartwifi com.att.dh com.att.dtv.shaderemote com.att.myWireless com.att.tv com.audible.application com.aura.oobe.samsung com.baidu.duersdk.opensdk com.bbk.account com.bbk.cloud com.bbk.iqoo.logsystem com.bbk.photoframewidget com.bbk.scene.indoor com.bbk.SuperPowerSave com.bbk.theme com.bbk.theme.resources com.bleacherreport.android.teamstream com.booking com.coloros.activation com.coloros.activation.overlay.common com.coloros.aftersalesservice com.coloros.appmanager com.coloros.assistantscreen com.coloros.athena com.coloros.avastofferwall com.coloros.backuprestore com.coloros.backuprestore.remoteservice com.coloros.bootreg com.coloros.childrenspace com.coloros.cloud com.coloros.compass2 com.coloros.encryption com.coloros.floatassistant com.coloros.focusmode com.coloros.gallery3d com.coloros.gamespace com.coloros.healthcheck com.coloros.healthservice com.coloros.music com.coloros.musiclink com.coloros.oppomultiapp com.coloros.oshare com.coloros.phonenoareainquire com.coloros.pictorial com.coloros.resmonitor com.coloros.safesdkproxy com.coloros.sauhelper com.coloros.sceneservice com.coloros.securepay com.coloros.smartdrive com.coloros.smartsidebar com.coloros.soundrecorder com.coloros.speechassist com.coloros.translate.engine com.coloros.video com.coloros.wallet com.coloros.weather.service com.coloros.weather2 com.coloros.widget.smallweather com.coloros.wifibackuprestore com.diotek.sec.lookup.dictionary com.drivemode com.dropboxchmod com.dsi.ant.plugins.antplus com.dsi.ant.sample.acquirechannels com.dsi.ant.server com.dsi.ant.service.socket com.duokan.phone.remotecontroller com.enhance.gameservice com.facemoji.lite.xiaomi com.foxnextgames.m3 com.gameloft.android.GloftANPH com.gameloft.android.GloftDBMF com.gameloft.android.GloftDMKF com.gameloft.android.GloftPDMF com.gameloft.android.GloftSMIF com.google.android.apps.docs com.google.android.apps.docs.editors.docs com.google.android.apps.docs.editors.sheets com.google.android.apps.docs.editors.slides com.google.android.apps.genie.geniewidget com.google.android.apps.maps com.google.android.apps.restore com.google.android.apps.tachyon com.google.android.apps.work.oobconfig com.google.android.feedback com.google.android.gm com.google.android.gms.location.history com.google.android.googlequicksearchbox com.google.android.keep com.google.android.marvin.talkback com.google.android.music com.google.android.partnersetup com.google.android.printservice.recommendation com.google.android.setupwizard com.google.android.syncadapters.calendar com.google.android.syncadapters.contacts com.google.android.talk com.google.android.tts com.google.android.videos com.google.ar.core com.google.audio.hearing.visualization.accessibility.scribe com.google.vr.vrcorr com.greatbigstory.greatbigstory com.gsn.android.tripeaks com.heytap.browser com.heytap.cloud com.heytap.colorfulengine com.heytap.datamigration com.heytap.habit.analysis com.heytap.market com.heytap.mcs com.heytap.openid com.heytap.pictorial com.heytap.themestore com.heytap.usercenter com.heytap.usercenter.overlay com.hiya.star com.honor.global com.huaqin.diaglogger com.huawei.android.thememanager com.huawei.android.tips com.huawei.android.wfdft com.huawei.himovie com.huawei.KoBackup com.hunge.app com.ibimuyu.lockscreen com.innogames.foeandroid com.iqoo.engineermode com.iqoo.secure com.linkedin.android com.mediatek.gnssdebugreport com.mediatek.mdmlsample com.mediatek.mtklogger com.mediatek.omacp com.mi.android.globalminusscreen com.mi.globalbrowser com.mi.globallayout com.mi.globalTrendNews com.mi.webkit.core com.microsoft.appmanager com.microsoft.office.excel com.microsoft.office.officehubrow com.microsoft.office.outlook com.microsoft.office.powerpoint com.microsoft.office.word com.microsoft.skydrive com.milink.service com.mipay.wallet.id com.miui.analytics com.miui.android.fashiongallery com.miui.aod com.miui.audiomonitor com.miui.backup com.miui.bugreport com.miui.cloudbackup com.miui.contentcatcher com.miui.daemon com.miui.enbbs com.miui.extraphoto com.miui.face com.miui.freeform com.miui.global.packageinstaller com.miui.miservice com.miui.mishare.connectivity com.miui.misound com.miui.msa.global com.miui.phrase com.miui.player com.miui.powerkeeper com.miui.providers.weather com.miui.securityadd com.miui.smsextra com.miui.sysopt com.miui.touchassistant com.miui.userguide com.miui.videoplayer com.miui.virtualsim com.miui.vsimcore com.miui.whetstone com.miui.wmsvc com.mobeam.barcodeService com.mobiletools.systemhelper com.motricity.verizon.ssodownloadable com.mygalaxy com.nearme.atlas com.nearme.browser com.nearme.gamecenter com.nearme.statistics.rom com.nearme.themestore com.netflix.mediaclient com.netflix.partner.activation com.opera.browser com.opera.preinstall com.oppo.aod com.oppo.atlas com.oppo.bttestmode com.oppo.criticallog com.oppo.gestureservice com.oppo.gmail.overlay com.oppo.lfeh com.oppo.logkit com.oppo.logkitservice com.oppo.market com.oppo.mimosiso com.oppo.music com.oppo.nw com.oppo.operationmanual com.oppo.ovoicemanager com.oppo.partnerbrowsercustomizations com.oppo.qualityprotect com.oppo.quicksearchbox com.oppo.rftoolkit com.oppo.ScoreAppMonitor com.oppo.sos com.oppo.startlogkit com.oppo.tzupdate com.oppo.usageDump com.oppo.usercenter com.oppo.webview com.oppo.wifirf com.oppoex.afterservice com.osp.app.signin com.pandora.android com.playstudios.popslots com.playwing.acu.huawei com.qti.dpmserviceapp com.qti.qualcomm.datastatusnotification com.qti.qualcomm.deviceinfo com.qti.xdivert com.qualcomm.embms com.qualcomm.location com.qualcomm.qti.autoregistration com.qualcomm.qti.callfeaturessetting com.qualcomm.qti.cne com.qualcomm.qti.dynamicddsservice com.qualcomm.qti.ims com.qualcomm.qti.lpa com.qualcomm.qti.modemtestmode com.qualcomm.qti.performancemode com.qualcomm.qti.poweroffalarm com.qualcomm.qti.qdma com.qualcomm.qti.qmmi com.qualcomm.qti.seccamservice com.qualcomm.qti.uceShimService com.qualcomm.qti.uim com.qualcomm.qti.uimGbaApp com.qualcomm.uimremoteclient com.qualcomm.uimremoteserver com.realme.logtool com.redteamobile.roaming com.redteamobile.roaming.deamon com.samsung.android.allshare.service.mediashare com.samsung.android.app.aodservice com.samsung.android.app.appsedge com.samsung.android.app.camera.sticker.facearavatar.preload com.samsung.android.app.dressroom com.samsung.android.app.galaxyfinder com.samsung.android.app.ledbackcover com.samsung.android.app.omcagent com.samsung.android.app.reminder com.samsung.android.app.routines com.samsung.android.app.sbrowseredge com.samsung.android.app.settings.bixby com.samsung.android.app.simplesharing com.samsung.android.app.social com.samsung.android.app.spage com.samsung.android.app.tips com.samsung.android.app.vrsetupwizardstub com.samsung.android.app.watchmanager com.samsung.android.app.watchmanagerstub com.samsung.android.ardrawing com.samsung.android.aremoji com.samsung.android.aremojieditor com.samsung.android.arzone com.samsung.android.authfw com.samsung.android.beaconmanager com.samsung.android.bixby.agent com.samsung.android.bixby.agent.dummy com.samsung.android.bixby.service com.samsung.android.bixby.wakeup com.samsung.android.bixbyvision.framework com.samsung.android.cameraxservice com.samsung.android.da.daagent com.samsung.android.drivelink.stub com.samsung.android.dsms com.samsung.android.easysetup com.samsung.android.email.provider com.samsung.android.emojiupdater com.samsung.android.forest com.samsung.android.game.gamehome com.samsung.android.game.gametools com.samsung.android.game.gos com.samsung.android.gametuner.thin com.samsung.android.hmt.vrshell com.samsung.android.hmt.vrsvc com.samsung.android.honeyboard com.samsung.android.keyguardmgsupdator com.samsung.android.kidsinstaller com.samsung.android.knox.analytics.uploader com.samsung.android.livestickers com.samsung.android.mateagent com.samsung.android.mfi com.samsung.android.mobileservice com.samsung.android.networkdiagnostic com.samsung.android.oneconnect com.samsung.android.rubin.app com.samsung.android.samsungpass com.samsung.android.samsungpassautofill com.samsung.android.scloud com.samsung.android.sdk.handwriting com.samsung.android.sdk.professionalaudio.utility.jammonitor com.samsung.android.sdm.config com.samsung.android.service.aircommand com.samsung.android.service.livedrawing com.samsung.android.service.peoplestripe com.samsung.android.setupindiaservicestnc com.samsung.android.spay com.samsung.android.spayfw com.samsung.android.spaymini com.samsung.android.spdf com.samsung.android.svcagent com.samsung.android.svoiceime com.samsung.android.themestore com.samsung.android.universalswitch com.samsung.android.visionarapps com.samsung.android.visioncloudagent com.samsung.android.visionintelligence com.samsung.android.voc com.samsung.android.widgetapp.yahooedge.finance com.samsung.android.widgetapp.yahooedge.sport com.samsung.app.highlightplayer com.samsung.attvvm com.samsung.desktopsystemui com.samsung.ecomm.global com.samsung.hiddennetworksetting com.samsung.knox.securefolder com.samsung.safetyinformation com.samsung.sree com.samsung.storyservice com.samsung.systemui.bixby2 com.samsung.vmmhux com.samsung.vvm com.sec.android.app.billing com.sec.android.app.camera com.sec.android.app.clockpackage com.sec.android.app.desktoplauncher com.sec.android.app.dexonpc com.sec.android.app.kidshome com.sec.android.app.popupcalculator com.sec.android.app.samsungapps com.sec.android.app.sbrowser com.sec.android.app.setupwizardlegalprovider com.sec.android.app.shealth com.sec.android.app.voicenote com.sec.android.cover.ledcover com.sec.android.daemonapp com.sec.android.desktopmode.uiservice com.sec.android.easyMover.Agent com.sec.android.easyonehand com.sec.android.gallery3d com.sec.android.mimage.avatarstickers com.sec.android.service.health com.sec.android.splitsound com.sec.android.widgetapp.samsungapps com.sec.android.widgetapp.webmanual com.sec.location.nsflp2 com.sec.penup com.sec.spp.push com.synchronoss.dcs.att.r2g com.ted.number com.tencent.soter.soterserver com.trustonic.teeservice com.vcast.mediamanager com.vivo.appfilter com.vivo.appstore com.vivo.assistant com.vivo.browser com.vivo.carmode com.vivo.collage com.vivo.compass com.vivo.doubleinstance com.vivo.doubletimezoneclock com.vivo.dream.music com.vivo.dream.weather com.vivo.easyshar com.vivo.email com.vivo.ewarranty com.vivo.favorite com.vivo.floatingball com.vivo.fuelsummary com.vivo.gamewatch com.vivo.globalsearch com.vivo.hiboard com.vivo.magazine com.vivo.mediatune com.vivo.minscreen com.vivo.motormode com.vivo.numbermark com.vivo.pushservice com.vivo.setupwizard com.vivo.smartmultiwindow com.vivo.smartshot com.vivo.translator com.vivo.unionpay com.vivo.video.floating com.vivo.videoeditor com.vivo.vivokaraoke com.vivo.weather com.vivo.weather.provider com.vivo.website com.vivo.widget.calendar com.vzw.hs.android.modlite com.vzw.hss.myverizon com.wavemarket.waplauncher com.wb.goog.dcuniverse com.wb.goog.got.conquest com.wsomacp com.xiaomi.ab com.xiaomi.account com.xiaomi.bsp.gps.nps com.xiaomi.discover com.xiaomi.finddevice com.xiaomi.location.fused com.xiaomi.micloud.sdk com.xiaomi.midrop com.xiaomi.miplay_client com.xiaomi.powerchecker com.xiaomi.providers.appindex com.xiaomi.simactivate.service com.xiaomi.upnp com.xiaomi.xmsf com.xiaomi.xmsfkeeper Emoji flipboard.boxer.app jp.gocro.smartnews.android net.aetherpal.device om.oppo.aod org.kman.AquaMail Samsung se.dirac.acs vendor.qti.hardware.cacert.server
+do pm disable-user --user 0 $i ; done
 
-if [ $firstrun = yes ] ; then
-
-     pm disable-user --user 0 com.android.apps.tag
-     pm disable-user --user 0 com.android.bbklog
-     pm disable-user --user 0 com.android.bbkmusic
-     pm disable-user --user 0 com.android.bbksoundrecorder
-     pm disable-user --user 0 com.android.bips
-     pm disable-user --user 0 com.android.bookmarkprovider
-     pm disable-user --user 0 com.android.browser
-     pm disable-user --user 0 com.android.calllogbackup
-     pm disable-user --user 0 com.android.documentsui
-     pm disable-user --user 0 com.android.egg
-     pm disable-user --user 0 com.android.email
-     pm disable-user --user 0 com.android.exchange
-     pm disable-user --user 0 com.android.hotwordenrollment.okgoogle
-     pm disable-user --user 0 com.android.hotwordenrollment.xgoogle
-     pm disable-user --user 0 com.android.localtransport
-     pm disable-user --user 0 com.android.location.fused
-     pm disable-user --user 0 com.android.mms
-     pm disable-user --user 0 com.android.mms.service
-     pm disable-user --user 0 com.android.partnerbrowsercustomizations
-     pm disable-user --user 0 com.android.providers.downloads.ui
-     pm disable-user --user 0 com.android.providers.partnerbookmarks
-     pm disable-user --user 0 com.android.providers.userdictionary
-     pm disable-user --user 0 com.android.sharedstoragebackup
-     pm disable-user --user 0 com.android.soundrecorder
-     pm disable-user --user 0 com.android.thememanager
-     pm disable-user --user 0 com.android.thememanager.module
-     pm disable-user --user 0 android.autoinstalls.config.Xiaomi.pine
-     pm disable-user --user 0 com.alibaba.aliexpresshd
-     pm disable-user --user 0 com.allgoritm.youla
-     pm disable-user --user 0 com.app.market
-     pm disable-user --user 0 com.asurion.android.protech.att
-     pm disable-user --user 0 com.asurion.android.verizon.vms
-     pm disable-user --user 0 com.att.android.attsmartwifi
-     pm disable-user --user 0 com.att.dh
-     pm disable-user --user 0 com.att.dtv.shaderemote
-     pm disable-user --user 0 com.att.myWireless
-     pm disable-user --user 0 com.att.tv
-     pm disable-user --user 0 com.audible.application
-     pm disable-user --user 0 com.aura.oobe.samsung
-     pm disable-user --user 0 com.baidu.duersdk.opensdk
-     pm disable-user --user 0 com.bbk.account
-     pm disable-user --user 0 com.bbk.cloud
-     pm disable-user --user 0 com.bbk.iqoo.logsystem
-     pm disable-user --user 0 com.bbk.photoframewidget
-     pm disable-user --user 0 com.bbk.scene.indoor
-     pm disable-user --user 0 com.bbk.SuperPowerSave
-     pm disable-user --user 0 com.bbk.theme
-     pm disable-user --user 0 com.bbk.theme.resources
-     pm disable-user --user 0 com.bleacherreport.android.teamstream
-     pm disable-user --user 0 com.booking
-     pm disable-user --user 0 coloros.gamespaceui
-     pm disable-user --user 0 com.coloros.activation
-     pm disable-user --user 0 com.coloros.activation.overlay.common
-     pm disable-user --user 0 com.coloros.aftersalesservice
-     pm disable-user --user 0 com.coloros.appmanager
-     pm disable-user --user 0 com.coloros.assistantscreen
-     pm disable-user --user 0 com.coloros.athena
-     pm disable-user --user 0 com.coloros.avastofferwall
-     pm disable-user --user 0 com.coloros.backuprestore
-     pm disable-user --user 0 com.coloros.backuprestore.remoteservice
-     pm disable-user --user 0 com.coloros.bootreg
-     pm disable-user --user 0 com.coloros.childrenspace
-     pm disable-user --user 0 com.coloros.cloud
-     pm disable-user --user 0 com.coloros.compass2
-     pm disable-user --user 0 com.coloros.encryption
-     pm disable-user --user 0 com.coloros.floatassistant
-     pm disable-user --user 0 com.coloros.focusmode
-     pm disable-user --user 0 com.coloros.gallery3d
-     pm disable-user --user 0 com.coloros.gamespace
-     pm disable-user --user 0 com.hunge.app
-     pm disable-user --user 0 com.coloros.healthcheck
-     pm disable-user --user 0 com.coloros.healthservice
-     pm disable-user --user 0 com.coloros.music
-     pm disable-user --user 0 com.coloros.musiclink
-     pm disable-user --user 0 com.coloros.oppomultiapp
-     pm disable-user --user 0 com.coloros.oshare
-     pm disable-user --user 0 com.coloros.phonenoareainquire
-     pm disable-user --user 0 com.coloros.pictorial
-     pm disable-user --user 0 com.coloros.resmonitor
-     pm disable-user --user 0 com.coloros.safesdkproxy
-     pm disable-user --user 0 com.coloros.sauhelper
-     pm disable-user --user 0 com.coloros.sceneservice
-     pm disable-user --user 0 com.coloros.securepay
-     pm disable-user --user 0 com.coloros.smartdrive
-     pm disable-user --user 0 com.coloros.smartsidebar
-     pm disable-user --user 0 com.coloros.soundrecorder
-     pm disable-user --user 0 com.coloros.speechassist
-     pm disable-user --user 0 com.coloros.translate.engine
-     pm disable-user --user 0 com.coloros.video
-     pm disable-user --user 0 com.coloros.wallet
-     pm disable-user --user 0 com.coloros.weather.service
-     pm disable-user --user 0 com.coloros.weather2
-     pm disable-user --user 0 com.coloros.widget.smallweather
-     pm disable-user --user 0 com.coloros.wifibackuprestore
-     pm disable-user --user 0 com.diotek.sec.lookup.dictionary
-     pm disable-user --user 0 com.drivemode
-     pm disable-user --user 0 com.dropboxchmod
-     pm disable-user --user 0 com.dsi.ant.plugins.antplus
-     pm disable-user --user 0 com.dsi.ant.sample.acquirechannels
-     pm disable-user --user 0 com.dsi.ant.server
-     pm disable-user --user 0 com.dsi.ant.service.socket
-     pm disable-user --user 0 com.duokan.phone.remotecontroller
-     pm disable-user --user 0 com.enhance.gameservice
-     pm disable-user --user 0 com.facemoji.lite.xiaomi
-     pm disable-user --user 0 com.foxnextgames.m3
-     pm disable-user --user 0 com.gameloft.android.GloftANPH
-     pm disable-user --user 0 com.gameloft.android.GloftDBMF
-     pm disable-user --user 0 com.gameloft.android.GloftDMKF
-     pm disable-user --user 0 com.gameloft.android.GloftPDMF
-     pm disable-user --user 0 com.gameloft.android.GloftSMIF
-     pm disable-user --user 0 com.google.android.apps.docs
-     pm disable-user --user 0 com.google.android.apps.docs.editors.docs
-     pm disable-user --user 0 com.google.android.apps.docs.editors.sheets
-     pm disable-user --user 0 com.google.android.apps.docs.editors.slides
-     pm disable-user --user 0 com.google.android.apps.genie.geniewidget
-     pm disable-user --user 0 com.google.android.apps.maps
-     pm disable-user --user 0 com.google.android.apps.restore
-     pm disable-user --user 0 com.google.android.apps.tachyon
-     pm disable-user --user 0 com.google.android.apps.work.oobconfig
-     pm disable-user --user 0 com.google.android.feedback
-     pm disable-user --user 0 com.google.android.gm
-     pm disable-user --user 0 com.google.android.gms.location.history
-     pm disable-user --user 0 com.google.android.googlequicksearchbox
-     pm disable-user --user 0 com.google.android.keep
-     pm disable-user --user 0 com.google.android.marvin.talkback
-     pm disable-user --user 0 com.google.android.music
-     pm disable-user --user 0 com.google.android.partnersetup
-     pm disable-user --user 0 com.google.android.printservice.recommendation
-     pm disable-user --user 0 com.google.android.setupwizard
-     pm disable-user --user 0 com.google.android.syncadapters.calendar
-     pm disable-user --user 0 com.google.android.syncadapters.contacts
-     pm disable-user --user 0 com.google.android.talk
-     pm disable-user --user 0 com.google.android.tts
-     pm disable-user --user 0 com.google.android.videos
-     pm disable-user --user 0 com.google.ar.core
-     pm disable-user --user 0 com.google.audio.hearing.visualization.accessibility.scribe
-     pm disable-user --user 0 com.google.vr.vrcorr
-     pm disable-user --user 0 com.greatbigstory.greatbigstory
-     pm disable-user --user 0 com.gsn.android.tripeaks
-     pm disable-user --user 0 com.heytap.browser
-     pm disable-user --user 0 com.heytap.cloud
-     pm disable-user --user 0 com.heytap.colorfulengine
-     pm disable-user --user 0 com.heytap.datamigration
-     pm disable-user --user 0 com.heytap.habit.analysis
-     pm disable-user --user 0 com.heytap.market
-     pm disable-user --user 0 com.heytap.mcs
-     pm disable-user --user 0 com.heytap.openid
-     pm disable-user --user 0 com.heytap.pictorial
-     pm disable-user --user 0 com.heytap.themestore
-     pm disable-user --user 0 com.heytap.usercenter
-     pm disable-user --user 0 com.heytap.usercenter.overlay
-     pm disable-user --user 0 com.hiya.star
-     pm disable-user --user 0 com.honor.global
-     pm disable-user --user 0 com.huaqin.diaglogger
-     pm disable-user --user 0 com.huawei.android.thememanager
-     pm disable-user --user 0 com.huawei.android.tips
-     pm disable-user --user 0 com.huawei.android.wfdft
-     pm disable-user --user 0 com.huawei.himovie
-     pm disable-user --user 0 com.huawei.KoBackup
-     pm disable-user --user 0 com.ibimuyu.lockscreen
-     pm disable-user --user 0 com.innogames.foeandroid
-     pm disable-user --user 0 com.iqoo.engineermode
-     pm disable-user --user 0 com.iqoo.secure
-     pm disable-user --user 0 com.linkedin.android
-     pm disable-user --user 0 com.mediatek.gnssdebugreport
-     pm disable-user --user 0 com.mediatek.mdmlsample
-     pm disable-user --user 0 com.mediatek.mtklogger
-     pm disable-user --user 0 com.mediatek.omacp
-     pm disable-user --user 0 com.mi.android.globalminusscreen
-     pm disable-user --user 0 com.mi.globalbrowser
-     pm disable-user --user 0 com.mi.globallayout
-     pm disable-user --user 0 com.mi.globalTrendNews
-     pm disable-user --user 0 com.mi.webkit.core
-     pm disable-user --user 0 com.microsoft.appmanager
-     pm disable-user --user 0 com.microsoft.office.excel
-     pm disable-user --user 0 com.microsoft.office.officehubrow
-     pm disable-user --user 0 com.microsoft.office.outlook
-     pm disable-user --user 0 com.microsoft.office.powerpoint
-     pm disable-user --user 0 com.microsoft.office.word
-     pm disable-user --user 0 com.microsoft.skydrive
-     pm disable-user --user 0 com.milink.service
-     pm disable-user --user 0 com.mipay.wallet.id
-     pm disable-user --user 0 com.miui.analytics
-     pm disable-user --user 0 com.miui.android.fashiongallery
-     pm disable-user --user 0 com.miui.aod
-     pm disable-user --user 0 com.miui.audiomonitor
-     pm disable-user --user 0 com.miui.backup
-     pm disable-user --user 0 com.miui.bugreport
-     pm disable-user --user 0 com.miui.cloudbackup
-     pm disable-user --user 0 com.miui.contentcatcher
-     pm disable-user --user 0 com.miui.daemon
-     pm disable-user --user 0 com.miui.enbbs
-     pm disable-user --user 0 com.miui.extraphoto
-     pm disable-user --user 0 com.miui.face
-     pm disable-user --user 0 com.miui.freeform
-     pm disable-user --user 0 com.miui.global.packageinstaller
-     pm disable-user --user 0 com.miui.miservice
-     pm disable-user --user 0 com.miui.mishare.connectivity
-     pm disable-user --user 0 com.miui.misound
-     pm disable-user --user 0 com.miui.msa.global
-     pm disable-user --user 0 com.miui.phrase
-     pm disable-user --user 0 com.miui.player
-     pm disable-user --user 0 com.miui.powerkeeper
-     pm disable-user --user 0 com.miui.providers.weather
-     pm disable-user --user 0 com.miui.smsextra
-     pm disable-user --user 0 com.miui.sysopt
-     pm disable-user --user 0 com.miui.touchassistant
-     pm disable-user --user 0 com.miui.userguide
-     pm disable-user --user 0 com.miui.videoplayer
-     pm disable-user --user 0 com.miui.virtualsim
-     pm disable-user --user 0 com.miui.vsimcore
-     pm disable-user --user 0 com.miui.whetstone
-     pm disable-user --user 0 com.miui.wmsvc
-     pm disable-user --user 0 com.miui.securityadd
-     pm disable-user --user 0 com.mobeam.barcodeService
-     pm disable-user --user 0 com.mobiletools.systemhelper
-     pm disable-user --user 0 com.motricity.verizon.ssodownloadable
-     pm disable-user --user 0 com.mygalaxy
-     pm disable-user --user 0 com.nearme.atlas
-     pm disable-user --user 0 com.nearme.browser
-     pm disable-user --user 0 com.nearme.gamecenter
-     pm disable-user --user 0 com.nearme.statistics.rom
-     pm disable-user --user 0 com.nearme.themestore
-     pm disable-user --user 0 com.netflix.mediaclient
-     pm disable-user --user 0 com.netflix.partner.activation
-     pm disable-user --user 0 com.opera.browser
-     pm disable-user --user 0 com.opera.preinstall
-     pm disable-user --user 0 com.oppo.aod
-     pm disable-user --user 0 com.oppo.atlas
-     pm disable-user --user 0 com.oppo.bttestmode
-     pm disable-user --user 0 com.oppo.criticallog
-     pm disable-user --user 0 com.oppo.gestureservice
-     pm disable-user --user 0 com.oppo.gmail.overlay
-     pm disable-user --user 0 com.oppo.lfeh
-     pm disable-user --user 0 com.oppo.logkit
-     pm disable-user --user 0 com.oppo.logkitservice
-     pm disable-user --user 0 com.oppo.market
-     pm disable-user --user 0 com.oppo.mimosiso
-     pm disable-user --user 0 com.oppo.music
-     pm disable-user --user 0 com.oppo.nw
-     pm disable-user --user 0 com.oppo.operationmanual
-     pm disable-user --user 0 com.oppo.ovoicemanager
-     pm disable-user --user 0 com.oppo.partnerbrowsercustomizations
-     pm disable-user --user 0 com.oppo.qualityprotect
-     pm disable-user --user 0 com.oppo.quicksearchbox
-     pm disable-user --user 0 com.oppo.rftoolkit
-     pm disable-user --user 0 com.oppo.ScoreAppMonitor
-     pm disable-user --user 0 com.oppo.sos
-     pm disable-user --user 0 com.oppo.startlogkit
-     pm disable-user --user 0 com.oppo.tzupdate
-     pm disable-user --user 0 com.oppo.usageDump
-     pm disable-user --user 0 com.oppo.usercenter
-     pm disable-user --user 0 com.oppo.webview
-     pm disable-user --user 0 com.oppo.wifirf
-     pm disable-user --user 0 com.oppoex.afterservice
-     pm disable-user --user 0 com.osp.app.signin
-     pm disable-user --user 0 com.pandora.android
-     pm disable-user --user 0 com.playstudios.popslots
-     pm disable-user --user 0 com.playwing.acu.huawei
-     pm disable-user --user 0 com.qti.dpmserviceapp
-     pm disable-user --user 0 com.qti.qualcomm.datastatusnotification
-     pm disable-user --user 0 com.qti.qualcomm.deviceinfo
-     pm disable-user --user 0 com.qti.xdivert
-     pm disable-user --user 0 com.qualcomm.embms
-     pm disable-user --user 0 com.qualcomm.location
-     pm disable-user --user 0 com.qualcomm.qti.autoregistration
-     pm disable-user --user 0 com.qualcomm.qti.callfeaturessetting
-     pm disable-user --user 0 com.qualcomm.qti.cne
-     pm disable-user --user 0 com.qualcomm.qti.dynamicddsservice
-     pm disable-user --user 0 com.qualcomm.qti.ims
-     pm disable-user --user 0 com.qualcomm.qti.lpa
-     pm disable-user --user 0 com.qualcomm.qti.modemtestmode
-     pm disable-user --user 0 com.qualcomm.qti.performancemode
-     pm disable-user --user 0 com.qualcomm.qti.poweroffalarm
-     pm disable-user --user 0 com.qualcomm.qti.qdma
-     pm disable-user --user 0 com.qualcomm.qti.qmmi
-     pm disable-user --user 0 com.qualcomm.qti.seccamservice
-     pm disable-user --user 0 com.qualcomm.qti.uceShimService
-     pm disable-user --user 0 com.qualcomm.qti.uim
-     pm disable-user --user 0 com.qualcomm.qti.uimGbaApp
-     pm disable-user --user 0 com.qualcomm.uimremoteclient
-     pm disable-user --user 0 com.qualcomm.uimremoteserver
-     pm disable-user --user 0 com.realme.logtool
-     pm disable-user --user 0 com.redteamobile.roaming
-     pm disable-user --user 0 com.redteamobile.roaming.deamon
-     pm disable-user --user 0 com.samsung.android.allshare.service.mediashare
-     pm disable-user --user 0 com.samsung.android.app.aodservice
-     pm disable-user --user 0 com.samsung.android.app.appsedge
-     pm disable-user --user 0 com.samsung.android.app.camera.sticker.facearavatar.preload
-     pm disable-user --user 0 com.samsung.android.app.dressroom
-     pm disable-user --user 0 com.samsung.android.app.galaxyfinder
-     pm disable-user --user 0 com.samsung.android.app.ledbackcover
-     pm disable-user --user 0 com.samsung.android.app.omcagent
-     pm disable-user --user 0 com.samsung.android.app.reminder
-     pm disable-user --user 0 com.samsung.android.app.routines
-     pm disable-user --user 0 com.samsung.android.app.sbrowseredge
-     pm disable-user --user 0 com.samsung.android.app.settings.bixby
-     pm disable-user --user 0 com.samsung.android.app.simplesharing
-     pm disable-user --user 0 com.samsung.android.app.social
-     pm disable-user --user 0 com.samsung.android.app.spage
-     pm disable-user --user 0 com.samsung.android.app.tips
-     pm disable-user --user 0 com.samsung.android.app.vrsetupwizardstub
-     pm disable-user --user 0 com.samsung.android.app.watchmanager
-     pm disable-user --user 0 com.samsung.android.app.watchmanagerstub
-     pm disable-user --user 0 com.samsung.android.ardrawing
-     pm disable-user --user 0 com.samsung.android.aremoji
-     pm disable-user --user 0 com.samsung.android.aremojieditor
-     pm disable-user --user 0 com.samsung.android.arzone
-     pm disable-user --user 0 com.samsung.android.authfw
-     pm disable-user --user 0 com.samsung.android.beaconmanager
-     pm disable-user --user 0 com.samsung.android.bixby.agent
-     pm disable-user --user 0 com.samsung.android.bixby.agent.dummy
-     pm disable-user --user 0 com.samsung.android.bixby.service
-     pm disable-user --user 0 com.samsung.android.bixby.wakeup
-     pm disable-user --user 0 com.samsung.android.bixbyvision.framework
-     pm disable-user --user 0 com.samsung.android.cameraxservice
-     pm disable-user --user 0 com.samsung.android.da.daagent
-     pm disable-user --user 0 com.samsung.android.drivelink.stub
-     pm disable-user --user 0 com.samsung.android.dsms
-     pm disable-user --user 0 com.samsung.android.easysetup
-     pm disable-user --user 0 com.samsung.android.email.provider
-     pm disable-user --user 0 com.samsung.android.emojiupdater
-     pm disable-user --user 0 com.samsung.android.forest
-     pm disable-user --user 0 com.samsung.android.game.gamehome
-     pm disable-user --user 0 com.samsung.android.game.gametools
-     pm disable-user --user 0 com.samsung.android.game.gos
-     pm disable-user --user 0 com.samsung.android.gametuner.thin
-     pm disable-user --user 0 com.samsung.android.hmt.vrshell
-     pm disable-user --user 0 com.samsung.android.hmt.vrsvc
-     pm disable-user --user 0 com.samsung.android.honeyboard
-     pm disable-user --user 0 com.samsung.android.keyguardmgsupdator
-     pm disable-user --user 0 com.samsung.android.kidsinstaller
-     pm disable-user --user 0 com.samsung.android.knox.analytics.uploader
-     pm disable-user --user 0 com.samsung.android.livestickers
-     pm disable-user --user 0 com.samsung.android.mateagent
-     pm disable-user --user 0 com.samsung.android.mfi
-     pm disable-user --user 0 com.samsung.android.mobileservice
-     pm disable-user --user 0 com.samsung.android.networkdiagnostic
-     pm disable-user --user 0 com.samsung.android.oneconnect
-     pm disable-user --user 0 com.samsung.android.rubin.app
-     pm disable-user --user 0 com.samsung.android.samsungpass
-     pm disable-user --user 0 com.samsung.android.samsungpassautofill
-     pm disable-user --user 0 com.samsung.android.scloud
-     pm disable-user --user 0 com.samsung.android.sdk.handwriting
-     pm disable-user --user 0 com.samsung.android.sdk.professionalaudio.utility.jammonitor
-     pm disable-user --user 0 com.samsung.android.sdm.config
-     pm disable-user --user 0 com.samsung.android.service.aircommand
-     pm disable-user --user 0 com.samsung.android.service.livedrawing
-     pm disable-user --user 0 com.samsung.android.service.peoplestripe
-     pm disable-user --user 0 com.samsung.android.setupindiaservicestnc
-     pm disable-user --user 0 com.samsung.android.spay
-     pm disable-user --user 0 com.samsung.android.spayfw
-     pm disable-user --user 0 com.samsung.android.spaymini
-     pm disable-user --user 0 com.samsung.android.spdf
-     pm disable-user --user 0 com.samsung.android.svcagent
-     pm disable-user --user 0 com.samsung.android.svoiceime
-     pm disable-user --user 0 com.samsung.android.themestore
-     pm disable-user --user 0 com.samsung.android.universalswitch
-     pm disable-user --user 0 com.samsung.android.visionarapps
-     pm disable-user --user 0 com.samsung.android.visioncloudagent
-     pm disable-user --user 0 com.samsung.android.visionintelligence
-     pm disable-user --user 0 com.samsung.android.voc
-     pm disable-user --user 0 com.samsung.android.widgetapp.yahooedge.finance
-     pm disable-user --user 0 com.samsung.android.widgetapp.yahooedge.sport
-     pm disable-user --user 0 com.samsung.app.highlightplayer
-     pm disable-user --user 0 com.samsung.attvvm
-     pm disable-user --user 0 com.samsung.desktopsystemui
-     pm disable-user --user 0 com.samsung.ecomm.global
-     pm disable-user --user 0 com.samsung.hiddennetworksetting
-     pm disable-user --user 0 com.samsung.knox.securefolder
-     pm disable-user --user 0 com.samsung.safetyinformation
-     pm disable-user --user 0 com.samsung.sree
-     pm disable-user --user 0 com.samsung.storyservice
-     pm disable-user --user 0 com.samsung.systemui.bixby2
-     pm disable-user --user 0 com.samsung.vmmhux
-     pm disable-user --user 0 com.samsung.vvm
-     pm disable-user --user 0 com.sec.android.app.billing
-     pm disable-user --user 0 com.sec.android.app.camera
-     pm disable-user --user 0 com.sec.android.app.clockpackage
-     pm disable-user --user 0 com.sec.android.app.desktoplauncher
-     pm disable-user --user 0 com.sec.android.app.dexonpc
-     pm disable-user --user 0 com.sec.android.app.kidshome
-     pm disable-user --user 0 com.sec.android.app.popupcalculator
-     pm disable-user --user 0 com.sec.android.app.samsungapps
-     pm disable-user --user 0 com.sec.android.app.sbrowser
-     pm disable-user --user 0 com.sec.android.app.setupwizardlegalprovider
-     pm disable-user --user 0 com.sec.android.app.shealth
-     pm disable-user --user 0 com.sec.android.app.voicenote
-     pm disable-user --user 0 com.sec.android.cover.ledcover
-     pm disable-user --user 0 com.sec.android.daemonapp
-     pm disable-user --user 0 com.sec.android.desktopmode.uiservice
-     pm disable-user --user 0 com.sec.android.easyMover.Agent
-     pm disable-user --user 0 com.sec.android.easyonehand
-     pm disable-user --user 0 com.sec.android.gallery3d
-     pm disable-user --user 0 com.sec.android.mimage.avatarstickers
-     pm disable-user --user 0 com.sec.android.service.health
-     pm disable-user --user 0 com.sec.android.splitsound
-     pm disable-user --user 0 com.sec.android.widgetapp.samsungapps
-     pm disable-user --user 0 com.sec.android.widgetapp.webmanual
-     pm disable-user --user 0 com.sec.location.nsflp2
-     pm disable-user --user 0 com.sec.penup
-     pm disable-user --user 0 com.sec.spp.push
-     pm disable-user --user 0 com.synchronoss.dcs.att.r2g
-     pm disable-user --user 0 com.ted.number
-     pm disable-user --user 0 com.tencent.soter.soterserver
-     pm disable-user --user 0 com.trustonic.teeservice
-     pm disable-user --user 0 com.vcast.mediamanager
-     pm disable-user --user 0 com.vivo.appfilter
-     pm disable-user --user 0 com.vivo.appstore
-     pm disable-user --user 0 com.vivo.assistant
-     pm disable-user --user 0 com.vivo.browser
-     pm disable-user --user 0 com.vivo.carmode
-     pm disable-user --user 0 com.vivo.collage
-     pm disable-user --user 0 com.vivo.compass
-     pm disable-user --user 0 com.vivo.doubleinstance
-     pm disable-user --user 0 com.vivo.doubletimezoneclock
-     pm disable-user --user 0 com.vivo.dream.music
-     pm disable-user --user 0 com.vivo.dream.weather
-     pm disable-user --user 0 com.vivo.easyshar
-     pm disable-user --user 0 com.vivo.email
-     pm disable-user --user 0 com.vivo.ewarranty
-     pm disable-user --user 0 com.vivo.favorite
-     pm disable-user --user 0 com.vivo.floatingball
-     pm disable-user --user 0 com.vivo.fuelsummary
-     pm disable-user --user 0 com.vivo.gamewatch
-     pm disable-user --user 0 com.vivo.globalsearch
-     pm disable-user --user 0 com.vivo.hiboard
-     pm disable-user --user 0 com.vivo.magazine
-     pm disable-user --user 0 com.vivo.mediatune
-     pm disable-user --user 0 com.vivo.minscreen
-     pm disable-user --user 0 com.vivo.motormode
-     pm disable-user --user 0 com.vivo.numbermark
-     pm disable-user --user 0 com.vivo.pushservice
-     pm disable-user --user 0 com.vivo.setupwizard
-     pm disable-user --user 0 com.vivo.smartmultiwindow
-     pm disable-user --user 0 com.vivo.smartshot
-     pm disable-user --user 0 com.vivo.translator
-     pm disable-user --user 0 com.vivo.unionpay
-     pm disable-user --user 0 com.vivo.video.floating
-     pm disable-user --user 0 com.vivo.videoeditor
-     pm disable-user --user 0 com.vivo.vivokaraoke
-     pm disable-user --user 0 com.vivo.weather
-     pm disable-user --user 0 com.vivo.weather.provider
-     pm disable-user --user 0 com.vivo.website
-     pm disable-user --user 0 com.vivo.widget.calendar
-     pm disable-user --user 0 com.vzw.hs.android.modlite
-     pm disable-user --user 0 com.vzw.hss.myverizon
-     pm disable-user --user 0 com.wavemarket.waplauncher
-     pm disable-user --user 0 com.wb.goog.dcuniverse
-     pm disable-user --user 0 com.wb.goog.got.conquest
-     pm disable-user --user 0 com.wsomacp
-     pm disable-user --user 0 com.xiaomi.ab
-     pm disable-user --user 0 com.xiaomi.account
-     pm disable-user --user 0 com.xiaomi.bsp.gps.nps
-     pm disable-user --user 0 com.xiaomi.discover
-     pm disable-user --user 0 com.xiaomi.finddevice
-     pm disable-user --user 0 com.xiaomi.location.fused
-     pm disable-user --user 0 com.xiaomi.micloud.sdk
-     pm disable-user --user 0 com.xiaomi.midrop
-     pm disable-user --user 0 com.xiaomi.miplay_client
-     pm disable-user --user 0 com.xiaomi.powerchecker
-     pm disable-user --user 0 com.xiaomi.providers.appindex
-     pm disable-user --user 0 com.xiaomi.simactivate.service
-     pm disable-user --user 0 com.xiaomi.upnp
-     pm disable-user --user 0 com.xiaomi.xmsf
-     pm disable-user --user 0 com.xiaomi.xmsfkeeper
-     pm disable-user --user 0 flipboard.boxer.app
-     pm disable-user --user 0 jp.gocro.smartnews.android
-     pm disable-user --user 0 net.aetherpal.device
-     pm disable-user --user 0 om.oppo.aod
-     pm disable-user --user 0 org.kman.AquaMail
-     pm disable-user --user 0 Samsung AR Emoji
-     pm disable-user --user 0 se.dirac.acs
-     pm disable-user --user 0 vendor.qti.hardware.cacert.server
-     pm uninstall -k --user 0 com.alibaba.aliexpresshd
-     pm uninstall -k --user 0 com.android.galaxy4
-     pm uninstall -k --user 0 com.android.stk
-     pm uninstall -k --user 0 com.android.stk2
-     pm uninstall -k --user 0 com.android.thememanager
-     pm uninstall -k --user 0 com.android.thememanager.module
-     pm uninstall -k --user 0 com.android.traceur
-     pm uninstall -k --user 0 com.autonavi.minimap
-     pm uninstall -k --user 0 com.ebay.carrier
-     pm uninstall -k --user 0 com.ebay.mobile
-     pm uninstall -k --user 0 com.facebook.appmanager
-     pm uninstall -k --user 0 com.facebook.katana
-     pm uninstall -k --user 0 com.facebook.services
-     pm uninstall -k --user 0 com.facebook.system
-     pm uninstall -k --user 0 com.google.android.apps.docs
-     pm uninstall -k --user 0 com.google.android.apps.googleassistant
-     pm uninstall -k --user 0 com.google.android.apps.magazines
-     pm uninstall -k --user 0 com.google.android.apps.maps
-     pm uninstall -k --user 0 com.google.android.apps.podcasts
-     pm uninstall -k --user 0 com.google.android.apps.subscriptions.red
-     pm uninstall -k --user 0 com.google.android.apps.tachyon
-     pm uninstall -k --user 0 com.google.android.apps.wellbeing
-     pm uninstall -k --user 0 com.google.android.apps.youtube.music
-     pm uninstall -k --user 0 com.google.android.googlequicksearchbox
-     pm uninstall -k --user 0 com.google.android.marvin.talkback
-     pm uninstall -k --user 0 com.google.android.music
-     pm uninstall -k --user 0 com.google.android.onetimeinitializer
-     pm uninstall -k --user 0 com.google.android.play.games
-     pm uninstall -k --user 0 com.google.android.projection.gearhead
-     pm uninstall -k --user 0 com.google.android.tts
-     pm uninstall -k --user 0 com.google.android.videos
-     pm uninstall -k --user 0 com.huaqin.wifibtrxtx
-     pm uninstall -k --user 0 com.mfashiongallery.emag
-     pm uninstall -k --user 0 com.mi.android.globalminusscreen
-     pm uninstall -k --user 0 com.mi.android.globalpersonalassistant
-     pm uninstall -k --user 0 com.mi.AutoTest
-     pm uninstall -k --user 0 com.mi.global.bbs
-     pm uninstall -k --user 0 com.mi.global.shop
-     pm uninstall -k --user 0 com.mi.globalbrowser
-     pm uninstall -k --user 0 com.micredit.in
-     pm uninstall -k --user 0 com.mipay.wallet.id
-     pm uninstall -k --user 0 com.mipay.wallet.in
-     pm uninstall -k --user 0 com.miui.cloudservice
-     pm uninstall -k --user 0 com.miui.cloudservice.sysbase
-     pm uninstall -k --user 0 com.miui.compass
-     pm uninstall -k --user 0 com.miui.gallery
-     pm uninstall -k --user 0 com.miui.huanji
-     pm uninstall -k --user 0 com.miui.hybrid
-     pm uninstall -k --user 0 com.miui.hybrid.accessory
-     pm uninstall -k --user 0 com.miui.klo.bugreport
-     pm uninstall -k --user 0 com.miui.micloudsync
-     pm uninstall -k --user 0 com.miui.newmidrive
-     pm uninstall -k --user 0 com.miui.player
-     pm uninstall -k --user 0 com.miui.translation.kingsoft
-     pm uninstall -k --user 0 com.miui.translation.youdao
-     pm uninstall -k --user 0 com.miui.translationservice
-     pm uninstall -k --user 0 com.miui.videoplayer
-     pm uninstall -k --user 0 com.miui.weather2
-     pm uninstall -k --user 0 com.miui.yellowpage
-     pm uninstall -k --user 0 com.monotype.android.font.foundation
-     pm uninstall -k --user 0 com.monotype.android.font.samsungone
-     pm uninstall -k --user 0 com.netflix.mediaclient
-     pm uninstall -k --user 0 com.netflix.partner.activation
-     pm uninstall -k --user 0 com.opera.browser
-     pm uninstall -k --user 0 com.opera.preinstall
-     pm uninstall -k --user 0 com.samsung.android.wellbeing
-     pm uninstall -k --user 0 com.spotify.music
-     pm uninstall -k --user 0 com.swiftkey.swiftkeyconfigurator
-     pm uninstall -k --user 0 com.touchtype.swiftkey
-     pm uninstall -k --user 0 com.xiaomi.glgm
-     pm uninstall -k --user 0 com.xiaomi.joyose
-     pm uninstall -k --user 0 com.xiaomi.mbnloader
-     pm uninstall -k --user 0 com.xiaomi.mi_connect_service
-     pm uninstall -k --user 0 com.xiaomi.midrop
-     pm uninstall -k --user 0 com.xiaomi.mipicks
-     pm uninstall -k --user 0 com.xiaomi.mirecycle
-     pm uninstall -k --user 0 com.xiaomi.oversea.ecom
-     pm uninstall -k --user 0 com.xiaomi.payment
-     pm uninstall -k --user 0 com.yandex.zen
-     pm uninstall -k --user 0 com.yandex.zenkitpartnerconfig
-     pm uninstall -k --user 0 com.zhiliaoapp.musically
-     pm uninstall -k --user 0 in.amazon.mShop.android.shopping
-     pm uninstall -k --user 0 ru.yandex.money
-     pm uninstall -k --user 0 ru.yandex.money.service
-     pm uninstall -k --user 0 ru.yandex.searchplugin
-     pm uninstall -k --user 0 uninstall.voice.activation
+for i in com.alibaba.aliexpresshd com.android.galaxy4 com.android.stk com.android.stk2 com.android.thememanager com.android.thememanager.module com.android.traceur com.autonavi.minimap com.ebay.carrier com.ebay.mobile com.facebook.appmanager com.facebook.katana com.facebook.services com.facebook.system com.google.android.apps.docs com.google.android.apps.googleassistant com.google.android.apps.magazines com.google.android.apps.maps com.google.android.apps.podcasts com.google.android.apps.subscriptions.red com.google.android.apps.tachyon com.google.android.apps.wellbeing com.google.android.apps.youtube.music com.google.android.googlequicksearchbox com.google.android.marvin.talkback com.google.android.music com.google.android.onetimeinitializer com.google.android.play.games com.google.android.projection.gearhead com.google.android.tts com.google.android.videos com.huaqin.wifibtrxtx com.mfashiongallery.emag com.mi.android.globalminusscreen com.mi.android.globalpersonalassistant com.mi.AutoTest com.mi.global.bbs com.mi.global.shop com.mi.globalbrowser com.micredit.in com.mipay.wallet.id com.mipay.wallet.in com.miui.cloudservice com.miui.cloudservice.sysbase com.miui.compass com.miui.gallery com.miui.huanji com.miui.hybrid com.miui.hybrid.accessory com.miui.klo.bugreport com.miui.micloudsync com.miui.newmidrive com.miui.player com.miui.translation.kingsoft com.miui.translation.youdao com.miui.translationservice com.miui.videoplayer com.miui.weather2 com.miui.yellowpage com.monotype.android.font.foundation com.monotype.android.font.samsungone com.netflix.mediaclient com.netflix.partner.activation com.opera.browser com.opera.preinstall com.samsung.android.wellbeing com.spotify.music com.swiftkey.swiftkeyconfigurator com.touchtype.swiftkey com.xiaomi.glgm com.xiaomi.joyose com.xiaomi.mbnloader com.xiaomi.mi_connect_service com.xiaomi.midrop com.xiaomi.mipicks com.xiaomi.mirecycle com.xiaomi.oversea.ecom com.xiaomi.payment com.yandex.zen com.yandex.zenkitpartnerconfig com.zhiliaoapp.musically in.amazon.mShop.android.shopping ru.yandex.money ru.yandex.money.service ru.yandex.searchplugin uninstall.voice.activation
+do pm uninstall -k --user 0 $i ; done
+ 
      cmd shortcut reset-all-throttling
      pm bg-dexopt-job
      pm compile -a -f --check-prof false --compile-layouts
      pm compile -a -f --check-prof false -m speed; fi
  fi
 
+
+
 ### ANDROID SECTION STOPPED HERE
-
-
 
 
 
@@ -7497,6 +7290,9 @@ blacklist sisfb
 blacklist tdfxfb
 blacklist tridentfb
 blacklist vt8623fb
+blacklist sp5100-tco
+blacklist pcmcia
+blacklist yenta_socket
 '"$scsiblack"'
 '"$cecblack"'' | tee /etc/modprobe.d/nomisc.conf # ; fi
 
@@ -7516,8 +7312,7 @@ default-mru
 bsdcomp 15,15
 deflate 15,15
 predictor1
-sync
-' | tee "$ifdr"/etc/ppp/options ; fi
+sync' | tee "$ifdr"/etc/ppp/options ; fi
 
 
 echo '# Defaults for kexec initscript
@@ -7531,19 +7326,19 @@ KERNEL_IMAGE="/vmlinuz"
 INITRD="/initrd.img"
 
 # If empty, use current /proc/cmdline
-APPEND="'"$par"'"
 #APPEND=""
+APPEND="'"$par"'"
 
 # Load the default kernel from grub config (true/false)
 USE_GRUB_CONFIG=true' | tee /etc/default/kexec
 
   #
     systemctl daemon-reload
-    $s pkill -f systemd-corecump
+    pkill -f systemd-corecump
 
 
 # if anacron no cron
-if $(! $debian) && [ $firstrun = yes ] ; then
+if $(! $linux) && [ $firstrun = yes ] ; then
 if systemctl list-unit-files | grep -q anacron ; then systemctl disable cron && systemctl mask cron ; else systemctl start cron && systemctl enable cron && /etc/init.d/cron start && /etc/initd.cron enable; fi ; fi
 
 
@@ -7608,7 +7403,7 @@ scriptdir=$(echo "$( pwd; )/$( basename -- "$0"; )")
 if [ $override = yes ] ; then
 sed 's/script_autoupdate=.*/script_autoupdate=no/g' "$scriptdir"
 if [ -e $droidprop ] ; then \cp -f "$scriptdir" /etc/bak/data/adb/service.d
-if $(! grep -q mitigations /proc/cmdline) ; then ln -s "$scriptdir" /etc/init.d/init.sh ; fi ; fi
+if $(! grep -q mitigations /proc/cmdline) ; then ln -s "$scriptdir" /etc/init.d/${file} ; fi ; fi
 \cp -f "$scriptdir" /etc/rc.local ; fi
 
 
@@ -7629,7 +7424,13 @@ if $(! grep -q mitigations /proc/cmdline) ; then ln -s "$scriptdir" /etc/init.d/
 
 # disable bluetooth for all but android
 if [ $firstrun = yes ] ; then
-if [ ! -f $droidprop ] ; then systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf && echo "blacklist hci_uart" | sudo tee -a /etc/modprobe.d/blacklist-bluetooth.conf ; fi
+if [ ! -f $droidprop ] && [ ! $bluetooth = on ] ; then
+systemctl disable bluetooth && systemctl mask bluetooth ; else echo "blacklist btusb\nblacklist hci_uart" | sudo tee /etc/modprobe.d/blacklist-bluetooth.conf ; fi
+fi
+
+
+if [ $bluetooth = on ] ; then
+rm -f /etc/modprobe.d/blacklist-bluetooth.conf
 fi
 
 
@@ -7640,20 +7441,26 @@ fi
 
 
 
-
-
-
-if [ $firstrun = yes ] && $debian; then
+if [ $firstrun = yes ] && $linux; then
 
   ### some more firstrun stuff
   #aptitude search '~i!~Nlib(~Dqt|~Dkde)'
   mkdir -p tmp
   cd tmp
-  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/kdebugsettings_22.12.0-2.1_amd64.deb ; sudo dpkg -i kdebugsettings*.deb
-  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/mkcomposecache_1.2.2-2.4_amd64.deb ; sudo dpkg -i mkcomposecache*.deb
-  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so
-  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; sudo dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb
-  sudo wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/kscripts.zip ; mkdir -p /home/$himri/.local/share/kwin/scripts ; cp -f kscripts.zip /home/$himri/.local/share/kwin/scripts ; unzip -u /home/$himri/.local/share/kwin/scripts/kscripts.zip ; rm -rf /home/$himri/.local/share/kwin/scripts/kscripts.zip ; sudo systemctl enable com.system76.Scheduler.service
+  if $debian ; then
+  sudo wget ${rawlink}/kdebugsettings_22.12.0-2.1_amd64.deb ; sudo dpkg -i kdebugsettings*.deb
+  sudo wget ${rawlink}/.basicsetup/mkcomposecache_1.2.2-2.4_amd64.deb ; sudo dpkg -i mkcomposecache*.deb
+  sudo wget ${rawlink}/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so
+  sudo wget ${rawlink}/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; sudo dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb
+  fi
+
+  if $arch ; then sudo wget ${rawlink}/.basicsetup/system76-scheduler-1.2.1-1-x86_64.pkg.tar.zst ; sudo pacman -U --noconfirm --needed system76-scheduler-1.2.1-1-x86_64.pkg.tar.zst ; rm -rf system76-scheduler*.pkg.tar.zst
+  fi
+
+  sudo wget ${rawlink}/.basicsetup/kscripts.zip ; mkdir -p /home/$himri/.local/share/kwin/scripts ; cp -f kscripts.zip /home/$himri/.local/share/kwin/scripts ; unzip -u /home/$himri/.local/share/kwin/scripts/kscripts.zip ; rm -rf /home/$himri/.local/share/kwin/scripts/kscripts.zip ; sudo systemctl enable com.system76.Scheduler.service
+
+
+
   if [ ! -f /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code/main.js ] ; then
 mkdir -p /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/contents/code
 echo 'workspace.clientActivated.connect(function(client) {
@@ -7675,31 +7482,32 @@ X-KDE-ServiceTypes=KWin/Script
 X-Plasma-API=javascript
 X-Plasma-MainScript=code/main.js' | tee /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/metadata.desktop ; fi
 
- # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
- # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/libsmc-preload32.so -O /usr/lib/libsmc-preload32.so
+ # wget ${rawlink}/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
+ # wget ${rawlink}/.basicsetup/libsmc-preload32.so -O /usr/lib/libsmc-preload32.so
  if $debian && [ $microcode = off ] ; then apt -f -y remove intel-microcode amd-microcode iucode-tool ; elif $debian && [ microcode = on ] ; then apt -f -y install intel-microcode amd-microcode iucode-tool ; fi
-  if $debian ; then apt -f -y install blktool hdparm lz4 macchanger net-tools wireless-tools iw preload ethtool kexec-tools ; dpkg-reconfigure dash kexec-tools
+  if $debian ; then apt -f -y install blktool hdparm lz4 macchanger net-tools wireless-tools iw preload ethtool kexec-tools ; dpkg-reconfigure dash kexec-tools ; fi
+  if $arch ; then pacman -S --noconfirm --needed hdparm lz4 macchanger net-tools wireless_tools iw dash kexec-tools ; fi
+  
+  if $linux ; then
   if $(grep -q "/usr/bin/sddm" /etc/X11/default-display-manager) ; then
   apt -f -y install kdebugsettings ; fi
-  apt -f -y install mold 
+  apt -f -y install mold
   if [ $? -eq 0 ] ; then preload=yes ; echo "preload=yes" | tee /etc/bak/dontdelete ; fi
                       ### disable and mask unneeded services
-$s systemctl disable plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path
 
-$s systemctl mask plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path
+for i in configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path smartd ; do
+  systemctl disable $i ; systemctl mask $i ; done
 
-systemctl disable configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service
 
-systemctl mask configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service
+systemctl enable reflector.timer
+systemctl enable pacman-filesdb-refresh.timer
 
-    if [ ! $raid = no ] ; then
-    $s systemctl disable --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
+if [ $bluetooth = on ] ; then
+systemctl unmask bluetooth ; systemctl enable bluetooth
+fi
 
-    $s systemctl mask --now mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket
-
-    systemctl disable dm-event.socket mdadm-grow-continue@.service mdadm-last-resort@.service mdadm-last-resort@.timer
-
-    systemctl mask dm-event.socket mdadm-grow-continue@.service mdadm-last-resort@.service mdadm-last-resort@.timer ; fi
+    if [ ! $raid = no ] ; then for i in mdmonitor.service mdmonitor-oneshot.service mdcheck_start.service mdcheck_continue.service mdadm.service mdadm-shutdown.service lvm2-monitor.service lvm2-lvmpolld.service lvm2-lvmpolld.socket dm-event.socket mdadm-grow-continue@.service mdadm-last-resort@.service mdadm-last-resort@.timer ; do
+    systemctl disable $i ; systemctl mask $i ; done ; fi
 fi
 
   rm -rf $HOME/.config/kdeconnect /home/$himri/.config/kdeconnect
@@ -7713,9 +7521,9 @@ fi
       ### services to disable and start. more at end of this script but are device dependent so no need for doubles here. this only disables services it finds active of the list underneath. for the rest manually use 'rcconf'. underneath works with regex too since being grep. careful, add exclusions if necessary.
     disable_services="plymouth-quit-wait.service\|cgroupfs-mount\|cron\|cups\|pulseaudio-enable-autospawn\|rsync\|exim4\|saned\|smartmontools\|speech-dispatcher\|x11-common\|lynis\|wait-online\|printer\|journal\|log\|rpcbind\|remote-fs\|upower\|pstore\|drkonqi-coredump-processor@.service"
 
-    enable_services="firewalld\|apparmor\|run-shm.mount\|snapd.apparmor.service\|fstrim.timer\|dbus-broker\|alsa-utils"
+    enable_services="firewalld\|apparmor\|run-shm.mount\|snapd.apparmor.service\|fstrim.timer\|dbus-broker\|alsa-utils\|cronie\|preload\|thermald\|rngd\|haveged"
     # for accidental protection
-    exclude_from_disabling="sudo\|alsa\|anacron\|apparmor\|firewalld\|ufw\|run-shm.mount\|rtkit\|alsa-utils\|virt"
+    exclude_from_disabling="sudo\|alsa\|anacron\|apparmor\|firewalld\|ufw\|run-shm.mount\|rtkit\|alsa-utils\|virt\|cronie"
 
 disableserv=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
 maskdisable=$(systemctl list-unit-files | grep "$disable_services" | grep enabled | grep -v "mask" | awk -F '.' '{print $1}' | grep -v "$exclude_from_disabling" | awk -v RS=  '{$1=$1}1')
@@ -7730,7 +7538,6 @@ systemctl disable $disableserv
 systemctl mask $maskdisable
 
 systemctl unmask $maskenable
-systemctl start --now $startserv
 systemctl enable $startserv
 fi
 fi
@@ -7778,14 +7585,7 @@ fi
 
 
 
-if [ $uninstall = yes ] ; then
-rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /system/etc/root/cmdline /system/etc/init.d/init.sh /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/post-fs-data.d/init.sh /data/adb/service.d/init.sh ; \cp -rf /etc/bak/* /
-if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi
-if grep -q "cmdline" /etc/fstab "$fstab" ; then sed -i '/cmdline/c\' "$fstab" ; fi
-rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
 
-
-if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE ; fi
 
 
 #rmmod efi_pstore cachefiles fscache cec
@@ -7849,25 +7649,29 @@ if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE
 
 
 
-if $debian && [ $firstrun = yes ] ; then 
-$s update-grub ; $s grub-mkconfig ; $s bootctl install ; $s bootctl systemd-efi-options $par ; $s bootctl update 
+if $linux && [ $firstrun = yes ] ; then
+update-grub ; grub-mkconfig ; bootctl systemd-efi-options ""$par"" 
 
-if $(apt list | grep initramfs | grep -q installed) ; then 
-update-initramfs -c -k all ; mkinitramfs -c lz4 -o /boot/initrd.img-* 
-        
+if $(apt list | grep initramfs | grep -q installed) ; then
+update-initramfs -c -k all ; mkinitramfs -c lz4 -o /boot/initrd.img-*
+
 else
 
 # config dracut as well in case of not using initramfs-tools
                     #if echo "$zswap" | grep -q "zswap.enabled=1" ; then draczswap=" zsmalloc z3fold" ; fi
           if [ $dracut = enabled ] ; then
-        if [ ! "$(cat /etc/dracut.conf.d/*debian.conf)" = "$dracflags" ] ; then
-        echo "$dracflags" | tee /etc/dracut.conf.d/10-debian.conf ; fi
-        dracut --regenerate-all --lz4 --add-fstab /etc/fstab --fstab --aggressive-strip --host-only -f 
+        if [ ! "$(cat /etc/dracut.conf.d/*linux.conf)" = "$dracflags" ] ; then
+        rm -rf /etc/dracut.conf.d/* ; echo "$dracflags" | tee /etc/dracut.conf.d/10-linux.conf ; fi
+        if [ -e $systemdb ] ; then defi2=" --uefi" ; fi
+        dracut --regenerate-all --lz4$defi2 --add-fstab /etc/fstab --fstab --host-only -f --aggresive-strip --hostonly-cmdline --early-microcode
 
-        # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
 
 
- fi ; fi ; fi
+
+ fi ; fi 
+ bootctl install ; bootctl systemd-efi-options ""$par"" ; $s bootctl update
+
+ fi
 
 
 
@@ -7898,11 +7702,11 @@ else export KBUILD_CFLAGS+= -fuse-ld=lld ; fi
 
 export LDFLAGS_MODULE=--strip-debug
 
-export LDFLAGS="-O3 -plugin-opt=-function-sections -plugin-opt=-data-sections -plugin-opt=new-pass-manager -plugin-opt=O3 -plugin-opt=mcpu=$opt -plugin LLVMPolly.so --gc-sections -ffast-math -pipe -fPIE -march=$opt -mtune=$opt --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wnoformat-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize -fforce-addr"
+export LDFLAGS="-O3 -plugin-opt=-function-sections -plugin-opt=-data-sections -plugin-opt=new-pass-manager -plugin-opt=O3 -plugin-opt=mcpu=$opt -plugin LLVMPolly.so --gc-sections -ffast-math -pipe -fPIE -march=$opt -mtune=$opt --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wno-format-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize -fforce-addr -Wl,--hash-style=gnu"
 
 export KBUILD_USERCFLAGS:="-Wall -Wmissing-prototypes \
                            -Wstrict-prototypes \
-                           -O3 -fomit-frame-pointer -std=gnu89"
+                           -O3 -fomit-frame-pointer -std=gnu11"
 
 if [ $CC = llvm ] ; then
 export KBUILD_CFLAGS+="-mllvm -polly \
@@ -8009,7 +7813,7 @@ mv /usr/share/dbus-1/services/org.fedoraproject.Config.Printing.service /usr/sha
 
 sh /etc/environment
 
-setenforce 1
+# setenforce 1
 sysctl -p /etc/sysctl.conf
 kdebugsettings --disable-full-debug
 kdebugsettings --debug-mode Off
@@ -8024,7 +7828,7 @@ rm -rf tmp
 
 echo "script ran from $scriptdir"
 
-su - $(whoami) -c "mkcomposecache en_US.UTF-8 /var/tmp/buildroot/usr/share/X11/locale/en_US.UTF-8/Compose /var/tmp/buildroot/var/X11R6/compose_cache /usr/share/X11/locale/en_US.UTF-8/Compose"
+
 fi
 
 
@@ -8044,8 +7848,8 @@ if [ $script_autoupdate = yes ] && [ ! $override = yes ] ; then
 # if online
 ping -c3 "$ping"
   if [ $? -eq 0 ]; then echo "*BLS*=ONLINE SYNCING SCRIPTS!"
-# if debian
-    if $debian ; then rm -rf tmp/init.sh ; mkdir -p tmp ; wget --connect-timeout=10 --continue -4 --retry-connrefused https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O tmp/init.sh ; if [ -f tmp/init.sh ] ; then rm -rf /etc/rc.local && cp tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local && rm -rf tmp
+# if linux desktop
+    if $linux ; then rm -rf tmp/${file} ; mkdir -p tmp ; wget --connect-timeout=10 --continue -4 --retry-connrefused ${rawlink}/${file} -O tmp/${file} ; if [ -f tmp/${file} ] ; then rm -rf /etc/rc.local && cp tmp/${file} /etc/rc.local && chmod +x /etc/rc.local && rm -rf tmp
     fi ; fi
 # if wrt
       if $wrt ; then echo "*BLS*=OPENWRT found" &&
@@ -8054,17 +7858,29 @@ grep -q "ping -c3 "$ping"" /etc/rc.local
         fi
       fi
 # if android
-          if [ -f $droidprop ] ; then rm -rf init.sh && "$bb"wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' init.sh ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' init.sh ; fi ; "$bb"chmod 755 init.sh ; "$bb"chmod +x init.sh ; "$bb"cp init.sh /data/adb/service.d/init.sh ; if "$(cat /proc/cmdline )" | "$(! grep -q mitigations)" ; then ln -s /data/adb/service.d/init.sh /system/etc/init.d/init.sh ; ln -s /data/adb/service.d/init.sh /system/etc/rc.local ; fi
+          if [ -f $droidprop ] ; then rm -rf ${file} && "$bb"wget ${rawlink}/${file} && if [ -f /system/xbin/sh ] ; then sed -i 's/#!\/bin\/sh/#!\'"$droidshell"'/g' ${file} ; else sed -i 's/#!\/bin\/sh/#!\/system\/bin\/sh/g' ${file} ; fi ; "$bb"chmod 755 ${file} ; "$bb"chmod +x ${file} ; "$bb"cp ${file} /data/adb/service.d/${file} ; if "$(cat /proc/cmdline )" | "$(! grep -q mitigations)" ; then ln -s /data/adb/service.d/${file} /system/etc/init.d/${file} ; ln -s /data/adb/service.d/${file} /system/etc/rc.local ; fi
 ### download browser stuff for android - leave this out for now the setup of flags for x86 doesnt work well on android
 #if $(! grep -q quic /data/data/com.android.chrome/app_chrome/Default/Preferences) ; then wget https://github.com/thanasxda/basic-linux-setup/blob/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Default/Preferences ; "$bb"cp -f Preferences /data/data/com.android.chrome/app_chrome/Default/Preferences ; wget https://github.com/thanasxda/basic-linux-setup/raw/master/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20State ; "$bb"cp -f "Local State" "/data/data/com.android.chrome/app_chrome/Local State" ; fi
           fi
 # general devices and other distros
             elif ping -c3 "$ping"
-[ $? -eq 0 ] && $(! $wrt) ; then -rm -rf /tmp/init.sh ; wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh ; if [ -f tmp/init.sh ] ; then cp /tmp/init.sh /etc/rc.local && chmod +x /etc/rc.local ; fi
+[ $? -eq 0 ] && $(! $wrt) ; then -rm -rf /tmp/${file} ; wget ${rawlink}/${file} -O /tmp/${file} ; if [ -f tmp/${file} ] ; then cp /tmp/${file} /etc/rc.local && chmod +x /etc/rc.local ; fi
   fi
 fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
+if [ -e $PWD/.blsconfig ] ; then echo " local config present, if correct values are specified within $PWD/.blsconfig they will be used.
+current modified config:
+$(cat $PWD/.blsconfig)" ; fi
+
+if [ $uninstall = yes ] ; then
+rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /system/etc/root/cmdline /system/etc/init.d/${file} /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/post-fs-data.d/${file} /data/adb/service.d/${file} ; \cp -rf /etc/bak/* /
+if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi
+if grep -q "cmdline" /etc/fstab "$fstab" ; then sed -i '/cmdline/c\' "$fstab" ; fi
+rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
+
+
+if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE ; fi
 
 ######
 ### still configuring this script, tips are welcome

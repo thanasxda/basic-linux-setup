@@ -1,6 +1,6 @@
 # echo linux version
-echo "\033[1;34m ***  $(uname -a)  *** \033[0m"
-
+#echo "\033[1;34m ***  $(uname -a)  *** \033[0m"
+fastfetch
 
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
@@ -126,4 +126,10 @@ source $ZSH_CUSTOM/themes/powerlevel10k/powerlevel10k.zsh-theme
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-alias ls="logo-ls"
+alias ls='logo-ls'
+alias diff='diff --color=auto'
+alias grep='grep --color=auto'
+alias ip='ip -color=auto'
+alias s='sudo'
+alias su='sudo su'
+

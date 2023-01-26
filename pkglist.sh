@@ -67,7 +67,9 @@ pip install requests
 # kernel
 #$a "$(apt search linux-image-6.*-rt-amd64-unsigned | awk '{print $1}' | grep "linux-image-.*-rt-amd64-unsigned" | tail -n 1 | cut -c1-37)" -t experimental
 #$a linux-image-amd64 -t experimental 
-$a linux-xanmod-x64v1 # since setup is highly modified this kernel really performs well. better than stock. not usually the case when it comes to hackbench at least. also contains clear linux patches 
+if /lib/ld-linux-x86-64.so.2 --help | grep "v3 (supported" ; then
+$a linux-xanmod-x64v3 ; elif /lib/ld-linux-x86-64.so.2 --help | grep "v2 (supported" ; then
+$a linux-xanmod-x64v3 ; else $a linux-xanmod-x64v1 ; fi
 
 
 $a flatpak
@@ -77,6 +79,8 @@ if [ $nonfree = yes ] ; then
 $s flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 #$fl freetube
 fi
+
+if lscpu | grep -q Intel ; then $a thermald ; fi
 
 
 # remove stuff
@@ -123,7 +127,9 @@ $a firmware-realtek ; fi
  gkdebconf \
  alsa-tools-gui \
  python-is-python3 \
- virt-manager
+ virt-manager \
+ neofetch \
+ vim
 
  #if [ $nonfree = yes ] ; then if lscpu | grep -q Intel ; then $a libmkl-def ; fi ; fi
 

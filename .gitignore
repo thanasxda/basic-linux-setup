@@ -2,6 +2,7 @@ tmp
 .basicsetup/tmp
 *test*
 *.log
+.blsconfig
 backup.sources.list
 backup.kali.sources.list
 backup.ubuntu.sources.list

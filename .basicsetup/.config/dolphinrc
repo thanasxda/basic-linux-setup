@@ -12,7 +12,7 @@ ViewPropsTimestamp=2020,5,10,5,36,51
 
 [IconsMode]
 FontWeight=50
-PreviewSize=48
+PreviewSize=32
 
 [KFileDialog Settings]
 Places Icons Auto-resize=false
@@ -21,9 +21,7 @@ Places Icons Static Size=22
 [MainWindow]
 Height 1200=662
 MenuBar=Disabled
-State=AAAA/wAAAAD9AAAAAwAAAAAAAAC4AAACbvwCAAAAAvsAAAAWAGYAbwBsAGQAZQByAHMARABvAGMAawAAAAAA/////wAAAAIA////+wAAABQAcABsAGEAYwBlAHMARABvAGMAawEAAAAoAAACbgAAAFgA////AAAAAQAAAAAAAAAA/AIAAAAB+wAAABAAaQBuAGYAbwBEAG8AYwBrAAAAAAD/////AAAAAgD///8AAAADAAAAAAAAAAD8AQAAAAH7AAAAGAB0AGUAcgBtAGkAbgBhAGwARABvAGMAawAAAAAA/////wAAAAIA////AAACtQAAAm4AAAAEAAAABAAAAAgAAAAI/AAAAAEAAAACAAAAAQAAABYAbQBhAGkAbgBUAG8AbwBsAEIAYQByAQAAAAD/////AAAAAAAAAAA=
 ToolBarsMovable=Disabled
-
 
 [Open-with settings]
 CompletionMode=1
@@ -31,4 +29,3 @@ History=atom,ato,kwri
 
 [PreviewSettings]
 Plugins=audiothumbnail,comicbookthumbnail,djvuthumbnail,ebookthumbnail,exrthumbnail,directorythumbnail,fontthumbnail,imagethumbnail,jpegthumbnail,kraorathumbnail,windowsexethumbnail,windowsimagethumbnail,opendocumentthumbnail,svgthumbnail
-

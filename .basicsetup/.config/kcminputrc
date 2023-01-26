@@ -11,6 +11,7 @@ ScrollFactor=8
 [Mouse]
 X11LibInputXAccelProfileFlat=false
 XLbInptPointerAcceleration=1
+cursorTheme=Adwaita
 
 [Tmp]
 update_info=delete_cursor_old_default_size.upd:DeleteCursorOldDefaultSize

@@ -1,11 +1,17 @@
 # BASIC-LINUX-SETUP
-## DEBIAN SID/TESTING
+### Debian Testing/Sid & Arch/EndeavourOS GNU/Linux scripts
+note: On default setup Debian benches best, with this setup however go with Arch/based btw,
+or Clear Linux if you don't mind using it.
+Put your own persistent config within the $PWD this script will run from to override settings yet keeping sync intact.
+For Android /data/adb/services.d/.blsconfig (example: `debloatandroid=no ; androidfstab=no ; androidbuildprop=no`)
+For Desktop and Openwrt /etc/.blsconfig (example: `mitigations=on`)
+Unfortunately it will be too much effort making the setup compatible with many variants of distributions. Check before you run.
 ![image](bls.jpg)
 
 ## DISCLAIMER:
 
 <sup>**!!!SCRIPTS ARE INTENDED FOR PERSONAL USE ONLY. USE AT OWN RISK!!!**</sup>
-<sup>**I AM NOT RESPONSIBLE IF YOUR SYSTEM GETS MESSED UP OR ANYTHING ELSE THIS SCRIPT MIGHT LEAD TO. ONLY DEFAULT BRANCH MIGHT BE UPDATED. SETUP ALSO DISABLES CRUCIAL SECURITY FUNCTIONS SUCH AS MITIGATIONS SACRIFICING SECURITY IN FAVOR OF PERFORMANCE. I RECOMMEND FORKING AND MODIFYING IT TO YOUR OWN PERSONAL NEEDS. README IS INTENDED FOR INEXPERIENCED USERS UP TO ABSOLUTE BEGINNERS OPTING TO USE THIS SCRIPT. SCRIPTS ARE USER FRIENDLY, PROMOTING CUSTOMIZATION. _NOTE_: README PROBABLY HAS LEAST PRIORITY OF BEING UPDATED. LOTS OF FORCE PUSHING AS WELL.**</sup>
+<sup>**I AM NOT RESPONSIBLE IF YOUR SYSTEM GETS MESSED UP OR ANYTHING ELSE THIS SCRIPT MIGHT LEAD TO. ONLY DEFAULT BRANCH MIGHT BE UPDATED. SETUP ALSO DISABLES CRUCIAL SECURITY FUNCTIONS SUCH AS MITIGATIONS SACRIFICING SECURITY IN FAVOR OF PERFORMANCE. MITIGATIONS=ON ONLY FOR V4 INSTRUCTION CAPABLE AND ALL NON X86_64 CPU'S CAUSE OF NOT BEING WORTHWHILE. I RECOMMEND FORKING AND MODIFYING IT TO YOUR OWN PERSONAL NEEDS. README IS INTENDED FOR INEXPERIENCED USERS UP TO ABSOLUTE BEGINNERS OPTING TO USE THIS SCRIPT. SCRIPTS ARE USER FRIENDLY, PROMOTING CUSTOMIZATION. _NOTE_: README PROBABLY HAS LEAST PRIORITY OF BEING UPDATED. LOTS OF FORCE PUSHING AS WELL.**</sup>
 
 ## Foreword:
 
@@ -13,18 +19,18 @@ I am not a developer nor a professional, just an average Linux user at best case
 
 ## About:
 
-*__Basic-linux-setup__ is a quick script to setup Debian. It is meant to be used with KDE desktop environment. There is a small subsection for OpenWrt and/or any general device running Android or Linux wanting to benefit from kernel parameter configuration. In short this is a multi setup containing everything from full Linux for desktop up to Linux configuration for general devices. Its purpose is basic automatization of a freshly installed system for convenience and optimize Linux devices in general for performance. This is done through configuring userspace and kernel. Additionally also includes drivers, codecs, general packages, zsh shell customization, KDE preconfiguration, browser preconfiguration and extras in case of the full desktop system. The scripts in this newer setup have been slimmed down to function as a base more or less for your own setup.*
+*__Basic-linux-setup__ is a quick script to setup Linux. It is meant to be used with KDE desktop environment. There is a small subsection for OpenWrt and/or any general device running Android or Linux wanting to benefit from kernel parameter configuration. In short this is a multi setup containing everything from full Linux for desktop up to Linux configuration for general devices. Its purpose is basic automatization of a freshly installed system for convenience and optimize Linux devices in general for performance. This is done through configuring userspace and kernel. Additionally also includes drivers, codecs, general packages, zsh shell customization, KDE preconfiguration, browser preconfiguration and extras in case of the full desktop system. The scripts in this newer setup have been slimmed down to function as a base more or less for your own setup.*
 
 ## Troubleshooting & additional information:
 
 For extensive troubleshooting on Linux in general and additional information on this setup refer to the old readme, mainly for beginners: [check here](https://github.com/thanasxda/basic-linux-setup/tree/kali-master).
-
+If you get stupid wallpapers change reddit from `earthporn wallpaper` to `earthporn` or any other reddit.
 ## Instructions for all devices:
 
 **For the full setup of basic-linux-setup on x86 copy paste underneath line in console to start:**
 ```
 sudo apt update && sudo apt -f install -y git && git clone -j32 --depth=1 -4 --single-branch https://github.com/thanasxda/basic-linux-setup.git && cd basic-linux-setup && git checkout master && chmod +x *.sh &&
-firstrun=yes ./1*
+firstrun=yes ./1_debian*/1_arch* (or any other future distro that might be included.)
 ```
 **For parameter configuration only, running any distribution on x86, OpenWrt, Open/Libre-elec & Linux devices in general, copy paste:**
 ```
@@ -54,6 +60,29 @@ sh /tmp/wrt.sh
 ```
 Note: Only been tested by myself personally on x86 and OpenWrt. Not compatible with your device? Leave note and contribute by giving information for me to include it. 
 __DO NOT FORGET IT IS STILL IN EARLY STAGES AND REQUIRES MORE WORK TO BE FLAWLESS WITHOUT BUGS, AT LEAST ON DEVICES IT HAS NOT BEEN TESTED ON YET!__
+
+## Support over distributions:
+
+Currently supports [Debian](https://www.debian.org/) & [Arch](https://archlinux.org/) in the sense of a full-setup script. For debian distributions most likely changing the sources.list will do. As for Arch based distributions most likely it would only support [EndeavourOS](https://endeavouros.com/) because of it being very close to vanilla Arch by sharing the same repositories. The full-setup scripts are post-installation scripts so in the case of Arch does NOT include the full instalation of Arch.
+If you cannot boot to sddm check if everything including is installed, including drivers. Make sure `root=` present in bootparams.
+Systemd-boot is preferable if uefi support is present during installation.
+Since systemd-boot works a bit different than grub, when booting press any unused F keys or arrows to check the setup if needed. `e` to edit entries.
+
+## Quick notes for the full-setup of Arch Linux on x86:
+Unless you have never installed Arch the official way it is nice for educational purposes.
+Else, flash Arch on usb gpt partition table, uefi boot preferably.
+Once booted remove the usb since it will be loaded on ram and the official installer has issues at least for me it won't install when plugged in.
+After run `archinstall`, configure preferably F2FS, install.
+Once booted into KDE run the script.
+Yay is buggy in scripting if it cannot install packages run `./pkglistarch.sh` standalone.
+If you get segmentation faults during any compilation alternative reason might be overclocking, low vcore.
+If you do not see systemd-boot in archinstall while your hardware has support you either have not booted into uefi mode or did not flash the bootable drive correctly.
+ALHP repositories -O3 LTO supporting v2/v3 and cachyos v4 x86 instructions will be automatically enabled if supported.
+The rest might be risky.
+Comes with clear-linux kernel by default.
+If the setup for some reason does not boot after installing the full script probably systemd-boot did not properly update parameters.
+Edit parameters options during systemd boot entry list press `e` and enter `root=/dev/<your rootfs>`. After boot rerun the script with `sudo su ; firstrun=yes sh /path/to/init.sh`.
+All should work after.
 
 ## Quick notes for the full-setup of Debian Testing on x86:
 
@@ -134,7 +163,7 @@ sudo systemctl start firewalld ufw
 ```
 If your benches aren't good rerun the setup: 
 ```
-sudo su ; firstrun=yes sh init.sh ; reboot.
+sudo su ; firstrun=yes sh init.sh ; reboot
 ```
 Experimental only used for kernel.
 Setup gives choice for sid/testing.
@@ -147,17 +176,14 @@ If you have trouble connecting to the internet manually assign DHCP addresses in
 Since systemd-boot and kexec only warm reboot you have to use `coldreboot` to enter uefi bios.
 For efi systems `Linux Boot Manager` is systemd-boot which skips udev.
 If you end up in busybox when using systemd recheck fstab for faulty entries.
+In the past benchmarks would differ a lot accross distribution however since the script configures a lot more than in the past it more or less gets normalized and when the script is present scores are more or less the same in hackbench despite of distribution.
 
 ## Main contents:
 ---
-   - [main setup](https://github.com/thanasxda/basic-linux-setup/blob/master/1_setup.sh)
-***
    - [configuration](https://github.com/thanasxda/basic-linux-setup/blob/master/init.sh)
-___
-   - [general packagelist](https://github.com/thanasxda/basic-linux-setup/blob/master/pkglist.sh)
-- - - -
+***
    - [basic openwrt setup](https://github.com/thanasxda/basic-linux-setup/blob/master/wrt.sh)
-* * * *
+___
 
 ## Additional information:
 
@@ -177,12 +203,12 @@ ___
   - [__linux - kernel parameters__](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
 
  Filesystems:
-  - [__XFS__](https://www.phoronix.com/review/linux-58-filesystems/2)
+  - [__XFS/F2FS__](https://www.phoronix.com/review/linux-58-filesystems/2)
   
 ## Recommendations:
 
    - Disabling __HPET__ or any timers used in bios.
-   - Formatting disk to __blocksize 4096__ on __XFS__ on __GPT__ partitioning table while disabling __MBR__ in bios and choosing __UEFI__ mode only.
+   - Formatting disk to __blocksize 4096__ on __XFS__ on __GPT__ partitioning table while disabling __MBR__ in bios and choosing __UEFI__ mode only. If using anything Arch based pick __F2FS__.
      This can be done prior or during expert installation not sure if with the regular setup, you drop down in shell: _"Execute a shell"_ and for example: `fdisk -l ; mkfs.xfs /dev/sda2 -b size=4096 -f`
    - In case of Intel using [__me_cleaner__](https://github.com/corna/me_cleaner) don't know if AMD has a counterpart fix.
    - Modifying the setup to __your own needs__.
@@ -231,8 +257,13 @@ Note: This way one could also include F2FS support on Android since the drivers 
 ## Extras:
 
 List non-free software:
+Debian:
 ```
 dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free
+```
+Arch:
+```
+absolutely-proprietary
 ```
 
 ## Bash help:
@@ -249,26 +280,9 @@ dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free
 
    - [thanas-x86-kernel](https://github.com/thanasxda/thanas-x86-64-kernel)
    
-   - [debian testing - weekly releases](https://cdimage.debian.org/cdimage/weekly-builds/amd64/iso-dvd/debian-testing-amd64-DVD-1.iso)
-
    - [linux kernel - parameters](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
 
-   - [linux kernel - gpu documentation](https://www.kernel.org/doc/html/v4.20/gpu/drivers.html)
-   
    - [linux kernel - x86 general](https://docs.kernel.org/x86)
 
    - [arch wiki - improving performance](https://wiki.archlinux.org/title/Improving_performance)
 
-   - [debian - wiki](https://wiki.debian.org/)
-   
-   - [gentoo - wiki](https://wiki.gentoo.org/wiki/Main_Page)
-   
-   - [linux gaming wiki](https://linux-gaming.kwindu.eu)
-
-   - [oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh)
-
-   - [ahkilnarang/scripts.git](https://github.com/akhilnarang/scripts.git)
-
-   - [phoronix](https://www.phoronix.com/)
-
-   - [openbenchmarking.org](https://openbenchmarking.org/)

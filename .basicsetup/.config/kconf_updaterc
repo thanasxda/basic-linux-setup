@@ -1,39 +1,58 @@
 updateInfoAdded=true
 
+[ark.upd]
+done=add-hamburgermenu-to-toolbar
+mtime=1672748980
+
+[breezehighcontrasttobreezedark.upd]
+done=BreezeHighContrastToBreezeDark
+mtime=1672775694
+
+[breezetobreezeclassic.upd]
+done=BreezeToBreezeClassic
+mtime=1672775694
+
+[breezetobreezelight.upd]
+done=BreezeToBreezeLight
+mtime=1672775694
+
 [delete_cursor_old_default_size.upd]
 ctime=1593573952
 done=DeleteCursorOldDefaultSize
-mtime=1592914532
+mtime=1673458756
 
 [disable_kmix.upd]
 ctime=1593573964
 done=PlasmaVolume_DisableKMixAutostart
-mtime=1592914705
+mtime=1672778280
+
+[dolphin_detailsmodesettings.upd]
+mtime=1672739731
 
 [filepicker.upd]
 ctime=1593563378
 done=filepicker-remove-old-previews-entry
-mtime=1591554519
+mtime=1673506393
 
 [fonts_akregator.upd]
 ctime=1593573949
 done=Plasma_Fonts_Akregator
-mtime=1592914618
+mtime=1672776231
 
 [fonts_global.upd]
 ctime=1593573949
 done=Fonts_Global
-mtime=1592914618
+mtime=1672776231
 
 [fonts_global_toolbar.upd]
 ctime=1593573949
 done=Fonts_Global_Toolbar
-mtime=1592914618
+mtime=1672776231
 
 [fonts_kate.upd]
 ctime=1593573949
 done=Plasma_Fonts_Kate
-mtime=1592914618
+mtime=1672776231
 
 [gtkbreeze5.5.upd]
 ctime=1589507307
@@ -42,22 +61,36 @@ mtime=1578410302
 
 [gtkconfig.upd]
 ctime=1593573962
-done=gtk_theme
-mtime=1592913906
+done=gtk_theme,dont_use_gtk_css_for_window_decorations,remove_deprecated_gtk4_option
+mtime=1672777323
 
 [gwenview.upd]
 ctime=1593563409
 done=SideBar_StatusBar_Rename,ImageView_AlphaBackgroundMode_Update,DeleteThumbnailSetting_Rename
-mtime=1591638687
+mtime=1672876487
 
 [icons_remove_effects.upd]
 ctime=1593573952
 done=IconsRemoveEffects
-mtime=1592914532
+mtime=1673458756
+
+[katesession_migration.upd]
+done=migrate_kate_sessions_applet_to_kdeplasma-addons
+mtime=1672749080
 
 [kcalcrc.upd]
 ctime=1593561562
-mtime=1591638833
+mtime=1672749258
+
+[kcm_rename_plasma_desktop.upd]
+done=5.24PlasmaDesktopKCMRename
+mtime=1672777682
+
+[kcminputrc_fix_botched_5_21_0.upd]
+mtime=1672777682
+
+[kcminputrc_repeat.upd]
+mtime=1672777682
 
 [kde4breeze.upd]
 ctime=1593573948
@@ -67,6 +100,10 @@ mtime=1592913659
 [kgthemeprovider-migration.upd]
 ctime=1589077696
 mtime=1586161109
+
+[konsole_globalaccel.upd]
+done=konsole_globalaccel
+mtime=1672749594
 
 [konversation.upd]
 ctime=1589077696
@@ -82,6 +119,14 @@ ctime=1593573947
 done=5.17KRunnerGlobalShortcuts
 mtime=1592914875
 
+[krunnerglobalshortcuts2.upd]
+done=5.22KRunnerGlobalShortcuts
+mtime=1673458756
+
+[krunnerhistory.upd]
+done=5.21KRunnerHistory
+mtime=1673458756
+
 [krunnerplugins.upd]
 ctime=1593573947
 done=5.9KRunnerPlugins
@@ -90,37 +135,53 @@ mtime=1592914875
 [kscreenlocker.upd]
 ctime=1593573954
 done=0.1-autolock
-mtime=1592914146
+mtime=1672775560
 
 [ksmserver_update_loginMode_value.upd]
 ctime=1593573952
 done=ksmserver_update_loginMode_value_default_enum
-mtime=1592914532
+mtime=1672777682
 
 [kwin.upd]
 ctime=1593573954
 done=replace-scalein-with-scale,port-minimizeanimation-effect-to-js,port-scale-effect-to-js,port-dimscreen-effect-to-js,auto-bordersize,animation-speed
-mtime=1592914299
+mtime=1672872055
 
 [kwinrules.upd]
 ctime=1593573954
-done=replace-placement-string-to-enum
-mtime=1592914299
+done=replace-placement-string-to-enum,use-virtual-desktop-ids
+mtime=1672872055
+
+[kxkb.upd]
+done=remove-empty-lists,add-back-resetoptions
+mtime=1672777682
+
+[kxkb_variants.upd]
+done=split-variants
+mtime=1672777682
 
 [okular.upd]
 ctime=1593561563
-mtime=1591638796
+mtime=1672876637
+
+[spectacle_clipboard.upd]
+done=clipboard-settings-change
+mtime=1672743903
 
 [spectacle_newConfig.upd]
 ctime=1593563411
 done=spectacle-new-config
-mtime=1591638744
+mtime=1672743903
+
+[spectacle_rememberregion.upd]
+done=spectacle-migrate-rememberregion
+mtime=1672743903
 
 [spectacle_shortcuts.upd]
 ctime=1593563411
 done=spectacle-migrate-shortcuts
-mtime=1591638744
+mtime=1672743903
 
 [style_widgetstyle_default_breeze.upd]
 ctime=1593573952
-mtime=1592914532
+mtime=1673458756

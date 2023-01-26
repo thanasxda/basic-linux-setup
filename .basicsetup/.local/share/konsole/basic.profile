@@ -2,7 +2,7 @@
 ColorScheme=Breeze
 DimmValue=34
 EmojiFont=Noto Color Emoji,14,-1,5,50,0,0,0,0,0
-Font=Hack Nerd Font,9,-1,5,50,0,0,0,0,0
+Font=JetBrains Mono SemiBold,9,-1,5,63,0,0,0,0,0,Regular
 TabColor=42,99,255
 UseFontLineChararacters=true
 WordMode=false
@@ -40,4 +40,5 @@ ReflowLines=true
 
 [Terminal Features]
 BlinkingCursorEnabled=false
+UrlHintsModifiers=0
 VerticalLine=false
