@@ -462,7 +462,7 @@ $s sed -i -z -e 's/#\[chaotic-aur\]\n#Include = \/etc\/pacman.d\/chaotic-mirrorl
  $s pacman -S --noconfirm --needed cw
  $s pacman -S --noconfirm --needed plzip
  $s pacman -S --noconfirm --needed pkg_scripts
- yes | $s pacman -S --needed ffmpeg-git #$(if glxinfo | grep -qi intel ; then echo "libva-git" ; fi)
+ #yes | $s pacman -S --needed ffmpeg-git #$(if glxinfo | grep -qi intel ; then echo "libva-git" ; fi)
  pkg2="alsa-tools dkms debtap linux-clear-bin linux-clear-headers-bin w3m-imgcat clr-power-tweaks"
  $s pacman -S --noconfirm --needed $pkg2
 
@@ -531,6 +531,8 @@ $s sed -i -z -e 's/#\[community-x86-64-v2\]\n#SigLevel = Optional TrustAll\n#Inc
  $s pacman -Rsc --noconfirm go
  $s pacman -S --noconfirm --needed downgrade
  $s pacman -S --noconfirm --needed ttf-jetbrains-mono
+ $s pacman -S --noconfirm --needed modprobed-db
+ $s pacman -S --noconfirm --needed refind-theme-nord
  $s pacman -S --noconfirm --needed zsh powerline zsh-theme-powerlevel10k zsh-autosuggestions zsh-completions zsh-syntax-highlighting
 
  yes | $s pacman -S preload
@@ -584,8 +586,37 @@ if [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = endeav
 $s pacman -S --noconfirm --needed eos-sddm-theme eos-plasma-sddm-config eos-settings-plasma endeavouros-skel-default eos-dracut eos-downgrade eos-hooks ; fi
 #yay -S --noconfirm --needed kernel-install-for-dracut ; fi
 
+
+yay -S --noconfirm spack
+
+
+
+
+
+
+$s pacman -Rscn --noconfirm intel-ucode
+$s pacman -Rscn --noconfirm amd-ucode
+
+
+$s sed -i 's/#SigLevel .*/SigLevel = Never/g' /etc/pacman.conf
+$s sed -i 's/SigLevel .*/SigLevel = Never/g' /etc/pacman.conf
+
+yes | $s pacman -U https://www.parabola.nu/packages/libre/x86_64/parabola-keyring/download
+yes | $s pacman -U https://www.parabola.nu/packages/libre/x86_64/pacman-mirrorlist/download
+
+
+
+
+
+
+
+
+
+
+
  yes | $s pacman -Rs $(pacman -Qdtq)
 
+ $s cp -f $basicsetup/makepkg.conf /etc/makepkg.conf
 
  sudo touch /etc/firstboot
 
@@ -605,16 +636,20 @@ $s pacman -S --noconfirm --needed eos-sddm-theme eos-plasma-sddm-config eos-sett
 
 
 
+$s sed -i 's/#SigLevel .*/SigLevel = Required DatabaseOptional/g' /etc/pacman.conf
+$s sed -i 's/SigLevel .*/SigLevel = Required DatabaseOptional/g' /etc/pacman.conf
 
-
-
+$s mv /etc/pacman.d/mirrorlist.pacnew /etc/pacman.d/parabola-mirrorlist
 
 
 for i in cronie haveged rngd firewalld apparmor dbus-broker irqbalance rtirq preload thermald sddm clr-power ; do
 $s systemctl enable $i 
 done
 
-
+echo " BUILDING AND BRUSHING KERNAL"
+cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-branch --depth=1 -j8
+cd clrxt-x86 
+sudo bls=yes ./build.sh
 
 
 

@@ -19,12 +19,15 @@ I am not a developer nor a professional, just an average Linux user at best case
 
 ## About:
 
-*__Basic-linux-setup__ is a quick script to setup Linux. It is meant to be used with KDE desktop environment. There is a small subsection for OpenWrt and/or any general device running Android or Linux wanting to benefit from kernel parameter configuration. In short this is a multi setup containing everything from full Linux for desktop up to Linux configuration for general devices. Its purpose is basic automatization of a freshly installed system for convenience and optimize Linux devices in general for performance. This is done through configuring userspace and kernel. Additionally also includes drivers, codecs, general packages, zsh shell customization, KDE preconfiguration, browser preconfiguration and extras in case of the full desktop system. The scripts in this newer setup have been slimmed down to function as a base more or less for your own setup.*
+*__Basic-linux-setup__ is a quick script to setup Linux. It is meant to be used with KDE desktop environment. There is a small subsection for OpenWrt and/or any general device running Android or Linux wanting to benefit from kernel parameter configuration. In short this is a multi setup containing everything from full Linux for desktop up to Linux configuration for general devices. Its purpose is basic automatization of a freshly installed system for convenience and optimize Linux devices in general for performance. This is done through configuring userspace and kernel. Additionally also includes drivers, codecs, general packages, zsh shell customization, KDE preconfiguration, browser preconfiguration and extras in case of the full desktop system. The scripts in this newer setup have been slimmed down to function as a base more or less for your own setup.
+Both variants of the full-setup come with a custom kernel which I modified taking from clear-linux and xanmod which will be compiled and installed automatically near the end of the setup using native code optimization.
+ps. The custom kernel will be deblobbed however you can easily merge mainline if needed. In fact next to deblobbing the kernel replacing linux-firmware with linux-firmware-libre there was an even bigger increase in performance in cpu benchmarks, which was my only motivation of not having tried prior.*
 
 ## Troubleshooting & additional information:
 
 For extensive troubleshooting on Linux in general and additional information on this setup refer to the old readme, mainly for beginners: [check here](https://github.com/thanasxda/basic-linux-setup/tree/kali-master).
-If you get stupid wallpapers change reddit from `earthporn wallpaper` to `earthporn` or any other reddit.
+If you get stupid wallpapers change reddit from `earthporn wallpaper` to `earthporn` or any other reddit. If your pc ever crashes it's oh-my-zsh + plugins. Use fish or any other shell, anything written in c or rust as it has some issues with ssh and git. Restoring a deleted config file for example in Arch: `pkg-extract_original /etc/resolv.conf > /etc/resolv.conf`.
+
 ## Instructions for all devices:
 
 **For the full setup of basic-linux-setup on x86 copy paste underneath line in console to start:**
@@ -79,10 +82,13 @@ If you get segmentation faults during any compilation alternative reason might b
 If you do not see systemd-boot in archinstall while your hardware has support you either have not booted into uefi mode or did not flash the bootable drive correctly.
 ALHP repositories -O3 LTO supporting v2/v3 and cachyos v4 x86 instructions will be automatically enabled if supported.
 The rest might be risky.
-Comes with clear-linux kernel by default.
 If the setup for some reason does not boot after installing the full script probably systemd-boot did not properly update parameters.
 Edit parameters options during systemd boot entry list press `e` and enter `root=/dev/<your rootfs>`. After boot rerun the script with `sudo su ; firstrun=yes sh /path/to/init.sh`.
 All should work after.
+ps. For Arch parabola repositories will be included but not enabled by default, in case you want to switch to libre firmware.
+More information: [Parabola](https://wiki.parabola.nu/Migration_from_Arch).
+Since the custom kernel already is deblobbed without any decrease in performance, actually improvement on my hardware, it might be worth just enabling the parabola repositories for libre-firmware. If the system does not have any nonfree firmware and javascript blockers are enabled in the browser and furthermore me_cleaner is used, one could more easily enjoy mitigations=off while still having a bleeding edge Arch system with -O3 lto.
+While checking with `absolutely-proprietary` after replacing linux-firmware with linux-firmware-libre nothing on the system should remain nonfree. The remaining indications are open source software with licensing considerations rather than blobs. The real remainder of nonfree firmware is integrated within hardware such as storage firmware, embedded controllers, bios, uefi and microcode... which would mean special hardware. anyway.
 
 ## Quick notes for the full-setup of Debian Testing on x86:
 
@@ -221,6 +227,7 @@ ___
      Always prefer a swap partition over a __/swapfile__ due to relative performance.
      Mind you Linux in combination with KDE only uses up 400MB/600MB ram max, it's heavy applications that don't.
      [__Swap on vram__](https://wiki.archlinux.org/title/Swap_on_video_RAM) is also possible.
+   - If you need windows for dual boot for any reason, [__ReactOS__](https://reactos.org/) is an opensource reverse engineered version of windows.
 
 ## Command line parameters on Android:
 
@@ -278,7 +285,7 @@ absolutely-proprietary
 
 ## Links:
 
-   - [thanas-x86-kernel](https://github.com/thanasxda/thanas-x86-64-kernel)
+   - [clrxt-x86](https://github.com/thanasxda/clrxt-x86)
    
    - [linux kernel - parameters](https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt)
 

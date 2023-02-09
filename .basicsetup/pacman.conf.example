@@ -92,17 +92,17 @@ LocalFileSigLevel = Optional
 #SigLevel = Optional TrustAll
 #Include = /etc/pacman.d/alhp-mirrorlist
 
-#[core-x86-64-v2]
-#SigLevel = Optional TrustAll
-#Include = /etc/pacman.d/alhp-mirrorlist
+[core-x86-64-v2]
+SigLevel = Optional TrustAll
+Include = /etc/pacman.d/alhp-mirrorlist
 
-#[extra-x86-64-v2]
-#SigLevel = Optional TrustAll
-#Include = /etc/pacman.d/alhp-mirrorlist
+[extra-x86-64-v2]
+SigLevel = Optional TrustAll
+Include = /etc/pacman.d/alhp-mirrorlist
 
-#[community-x86-64-v2]
-#SigLevel = Optional TrustAll
-#Include = /etc/pacman.d/alhp-mirrorlist
+[community-x86-64-v2]
+SigLevel = Optional TrustAll
+Include = /etc/pacman.d/alhp-mirrorlist
 
 #[testing]
 #SigLevel = PackageRequired
@@ -141,11 +141,11 @@ Include = /etc/pacman.d/mirrorlist
 #SigLevel = Optional TrustAll
 #Server = file:///home/custompkgs
 
-#[cachyos]
-#Include = /etc/pacman.d/cachyos-mirrorlist
+[cachyos]
+Include = /etc/pacman.d/cachyos-mirrorlist
 
-#[chaotic-aur]
-#Include = /etc/pacman.d/chaotic-mirrorlist
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist
 
 #[nemesis_repo]
 #SigLevel = Optional TrustedOnly
@@ -193,8 +193,8 @@ Include = /etc/pacman.d/mirrorlist
 #[nonsystemd]
 #Include = /etc/pacman.d/parabola-mirrorlist
 
-#[libre]
-#Include = /etc/pacman.d/parabola-mirrorlist
+[libre]
+Include = /etc/pacman.d/parabola-mirrorlist
 
 #[libre-multilib]
 #Include = /etc/pacman.d/parabola-mirrorlist

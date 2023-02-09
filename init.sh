@@ -50,7 +50,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
         vars=''                                                      
 ########################################################################
 
-        #fix_bootpart="no" # fix boot partition systemd-boot efi stub only (do not use otherwise, will wipe boot and efi partition), dont use if dual boot. unhash for usage or call out prior to running script: sudo fix_bootpart=yes sh init.sh
+        #fix_bootpart="no" # fix boot partition systemd-boot/refind efi stub only (do not use otherwise, will wipe boot and efi partition), dont use if dual boot. unhash for usage or call out prior to running script: sudo fix_bootpart=yes sh init.sh
         script_autoupdate="yes"
         sourceslist_update="no"
         clean_sources_list_d="no" # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
@@ -115,7 +115,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
       ### < QDISC >
       # - queue managment
         qdisc="fq_codel"
-        if [ $tcp_con = bbr ] || [ $tcp_con = bbr2 ] ; then qdisc="cake" ; fi
+        if [ ! $tcp_con = bbr ] || [ ! $tcp_con = bbr2 ] ; then qdisc="cake" ; fi
 
       ### < WIRELESS REG-DB >
       # - wireless regulatory settings per country 00 for global
@@ -154,11 +154,11 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
         ksm="0"
         ranvasp="2"
         kaslr="on"
-        microcode="on"
+        microcode="off"
         seccomp="1" # only working if systemd is present
-        thp="madvise" # always/madvise/off
+        thp="always" # always/madvise/off
         vdso="on"
-        extras="off"
+        extras="on"
         dracut="enabled" # include dracut in mkinitramfs firstrun
         debloatandroid="yes" # if on android on first run script will debloat android, select no if issues
         androidfstab="yes" # script will modify android fstab, select no if experiencing bootloop lol. restore defaults with variables or manually `cp -rf/system/etc/bak /` in recovery
@@ -187,7 +187,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
        ext4="defaults,rw,lazytime,noatime,noquota,nodiscard,commit=60,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
        f2fs="defaults,rw,lazytime,noatime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=nobarrier,gc_merge,async$f2fsmem"
        vfat="defaults,rw,lazytime,noatime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
-      tmpfs="defaults,rw,lazytime,noatime"
+      tmpfs="defaults,rw,lazytime,noatime,nr_inodes=1M,auto"
 
       ### < STORAGE >
       # - linux storage devices only used for hdparm. wildcard picks up all
@@ -223,7 +223,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
         if $linux ; then 
         if [ -e /efi/ ] ; then systemdb=/efi/loader ; elif [ -e /boot/efi/ ] ; then systemdb=/boot/efi/loader ; elif [ -e /boot/loader/loader.conf ] ; then systemdb=/boot/loader ; fi
         if [ $fix_bootpart = yes ] ; then if [ ! -z $systemdb ] ; then 
-        if apt-cache search dracut | grep -qi intalled || pacman -Qm dracut | grep -qi dracut ; then yes | rm -rf /boot/* /efi/* ; dracut --regenerate-all --uefi ; bootctl install ; firstrun=yes ; fi ; fi ; fi ; fi
+        if apt-cache search dracut | grep -qi intalled || pacman -Qm dracut | grep -qi dracut ; then yes | rm -rf /boot/* /efi/* ; dracut --regenerate-all --uefi ; bootctl install ; refind-install ; refind-mkdefault ; firstrun=yes ; fi ; fi ; fi ; fi
 
       ### < MEMORY ALLOCATION >
       # - if memory under 2gb or swap or zram considered low spec if not high spec
@@ -329,7 +329,7 @@ rm -rf /etc/firstboot
 firstrun="yes" ; fi
 $i thp="always" ; done ; fi
 
-hoverc=256
+hoverc=32
 overcommit=3
 oratio=150
 shmmax=100000000
@@ -352,66 +352,69 @@ echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
 #hpages=' transparent_hugepage=madvise'
 
 # 8gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 6900000 ] ; then
-devshm=",size=2G"
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 6500000 ] ; then
+devshm=",size=1G"
 vmalloc="256"
 #hugepages="512"
 #hugepagesz="2MB"
 #echo 'soft memlock 1024000
 #hard memlock 1024000' | tee -a /etc/security/limits.conf
-shmmax=2000000000
+shmmax=1000000000
 shmmni=64000000
 shmall=100000000
-hoverc=512
+hoverc=256
 overcommit=1
-oratio=200
-swappiness=0
-cpress=50
+oratio=110
+swappiness=1
+cpress=30
+thp=madvise
 rm -rf /etc/zram.sh
 sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 16 gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 14000000 ] ; then
 #export XDG_CACHE_HOME="/dev/shm/.cache"
-devshm=",size=3G"
+devshm=",size=2G"
 vmalloc="512"
 #hugepages="1024"
 #hugepagesz="2MB"
 #echo 'soft memlock 2048000
 #hard memlock 2048000' | tee -a /etc/security/limits.conf
-shmmax=3000000000
+shmmax=2000000000
 shmmni=64000000
 shmall=100000000
-hoverc=1024
+hoverc=512
 overcommit=1
-oratio=300
+oratio=140
 swappiness=0
-cpress=40
+cpress=50
+thp=always
 sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # 32 gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 29000000 ] ; then
 #export XDG_CACHE_HOME="/dev/shm/.cache"
-devshm=",size=6G"
+devshm=",size=3G"
 vmalloc="1024"
 #hugepages="2048"
 #hugepagesz="2MB"
 #echo 'soft memlock 4096000
 #hard memlock 4096000' | tee -a /etc/security/limits.conf
-shmmax=6000000000
+shmmax=3000000000
 shmmni=64000000
 shmall=100000000
-hoverc=2048
+hoverc=1024
 overcommit=1
-oratio=400
+oratio=180
 swappiness=0
-cpress=30
+cpress=90
+thp=always
 sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 4gb
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 3500000 ] ; then
-devshm=",size=1G"
-vmalloc="256"
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 4400000 ] ; then
+devshm=",size=512m"
+vmalloc="192"
 #hugepages="256"
 #hugepagesz="2MB"
 #echo 'soft memlock 512000
@@ -419,19 +422,20 @@ vmalloc="256"
 shmmax=1000000000
 shmmni=64000000
 shmall=100000000
-hoverc=256
+hoverc=192
 overcommit=1
-oratio=150
+oratio=110
 #hpages=' transparent_hugepage=madvise'
-swappiness=0
-cpress=60
+swappiness=10
+cpress=10
+thp=madvise
 rm -rf /etc/zram.sh
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 2gb
 if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 2200000 ] ; then
 devshm=",size=192m"
-vmalloc="192"
+vmalloc="128"
 #hugepages="128"
 #hugepagesz="2MB"
 shmmax=200000000
@@ -442,11 +446,12 @@ shmall=350000000
 zswap=" zswap.enabled=1 zswap.max_pool_percent=$zpoolpercent zswap.zpool=$zpool zswap.compressor=lz4"
 if [ -e $droidprop ] ; then export droidzram="/system" ; fi
 echo 1 > /sys/module/zswap/parameters/enabled ; echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | tee /etc/anacrontabs && chmod +x /etc/zram.sh && sh /etc/zram.sh ; if [ -e $droidprop ] ; then echo "$zram" | tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
-hoverc=128
+hoverc=64
 overcommit=1
 oratio=100
 swappiness=10
-cpress=70
+cpress=10
+thp=madvise
 sed -i 's/RUNSIZE=.*/RUNSIZE=15%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 # less than 1gb
@@ -460,11 +465,12 @@ shmmni=1600000
 shmall=35000000
 #echo 'soft memlock 102400
 #hard memlock 102400' | tee /etc/security/limits.conf
-hoverc=64
+hoverc=32
 overcommit=1
 oratio=80
 swappiness=10
-cpress=80
+cpress=10
+thp=madvise
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
 sysctl -w vm.nr_overcommit_hugepages=$hoverc
@@ -500,7 +506,7 @@ xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mi
 # cpu amd/intel
 xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off tsx=on" ; fi)"
 #
-xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grepi -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=force,pt$(if [ $extras = on ] ; then echo " page_alloc.shuffle=0 init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet schedstats=disable ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig irqaffinity=0 slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages workqueue.power_efficient=0 noreplace-smp refscale.loops=$(($(nproc --all)*2))"
+xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grepi -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=force,pt $(if [ $extras = on ] ; then echo " init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages workqueue.power_efficient=0 noreplace-smp refscale.loops=$(($(nproc --all)*2))"
 #
 xrflags=$(if [ $(uname -r | cut -c1-1) -ge 4 ] && grep -q "/ " /etc/fstab | $(! grep -q "btrfs\|zfs" $fstab) ; then echo " rootflags=lazytime,noatime" ; else echo " rootflags=noatime" ; fi)
 #
@@ -513,8 +519,8 @@ xmicrocode="$(if [ $microcode = off ] ; then echo " dis_ucode_ldr" ; fi)"
 xkaslr="$(if [ $kaslr = off ] && [ ! -f $droidprop ] || [ $kaslr = off ] && $(lscpu | $(! grep -qi ARM)) ; then echo " nokaslr" ; fi)"
 #
 xzsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0" ; fi)"
-# extras only with kexec
-xtra0=" libahci.ignore_sss=1 libata.force=udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance pstore.backend=null"
+# extras only with kexec # udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),
+xtra0=" libahci.ignore_sss=1 libata.force=ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance pstore.backend=null"
 #
 xtra1=" cpufreq.default_governor=performance cgroup_no_v1=all cryptomgr.notests stack_depot_disable=true nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(find /sys/block/nvme*) ; then echo " nvme_core.default_ps_max_latency_us=0 nvme_load=YES" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes processor.ignore_tpc=1$(if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1" ; fi) noresume hibernate=noresume no_timer_check processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
 #if [ $safeconfig = no ] ; then
@@ -548,7 +554,7 @@ if [ $microcode = on ] && $arch && $(lscpu | grep -q Intel) && [ $firstrun = yes
                                         # https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt
                                           bootargvars="$(echo "$xmicrocode$xmitigations$xcpu$xvarious$xkaslr$xrflags$xsched$xzsw")"
                                         export xpar="quiet splash$bootargvars$xtra0$xtra1$xtra2"
-                                      if lscpu | grep -q x86_64 ; then export par="$(grep '/ ' /etc/fstab | awk '{print "root="$1}') ro $xpar" ; else export par=$xpar ; fi
+                                      if lscpu | grep -q x86_64 ; then export par="$(grep '/ ' /etc/fstab | awk '{print "root="$1}') rw $xpar" ; else export par=$xpar ; fi
                                         if [ $uninstall = yes ] ; then par=$(cat "$ifdr"/etc/bak/root/cmdline) ; fi
 
 # module options
@@ -827,30 +833,30 @@ Exec = /usr/sbin/ln -sfT /usr/sbin/dash /usr/sbin/sh
 Depends = dash' | tee /etc/pacman.d/hooks/dash.hook
 
 # clr header hook
-echo '[Trigger]
-Type = Package
-Operation = Install
-Operation = Upgrade
-Target = linux-clear-bin
+#echo '[Trigger]
+#Type = Package
+#Operation = Install
+#Operation = Upgrade
+#Target = linux-clear-bin
 
-[Action]
-Description = Symlinking clr-headers
-When = PostTransaction
-Exec = rm -rf /usr/src/linux-clear-headers-*/include ; mkdir -p /usr/src/linux-clear-headers-$(ls /lib/modules | grep native | head -n1)/include ; /usr/sbin/ln -sfT /lib/modules/$(ls /lib/modules | grep native | head -n1)/build/include/linux /usr/src/linux-clear-headers-$(ls /lib/modules | grep native | head -n1)/include
-Depends = linux-clear-headers-bin ' | tee /etc/pacman.d/hooks/linux-clr-headers.hook
+#[Action]
+#Description = Symlinking clr-headers
+#When = PostTransaction
+#Exec = rm -rf /usr/src/linux-clear-headers-*/include ; mkdir -p /usr/src/linux-clear-headers-$(ls /lib/modules | grep native | head -n1)/include ; /usr/sbin/ln -sfT /lib/modules/$(ls /lib/modules | grep native | head -n1)/build/include/linux /usr/src/linux-#clear-headers-$(ls /lib/modules | grep native | head -n1)/include
+#Depends = linux-clear-headers-bin ' | tee /etc/pacman.d/hooks/linux-clr-headers.hook
 
-# clr kexec hook
-echo '[Trigger]
-Type = Package
-Operation = Install
-Operation = Upgrade
-Target = linux-clear-bin
+## clr kexec hook
+#echo '[Trigger]
+#Type = Package
+#Operation = Install
+#Operation = Upgrade
+#Target = linux-clear-bin
 
-[Action]
-Description = Symlinking clr-headers
-When = PostTransaction
-Exec = /usr/sbin/ln -sfT /boot/vmlinuz-linuz-clear-bin /vmlinuz ; /usr/sbin/ln -sfT /boot/initramfs-linux-clear-bin.img /initrd.img
-Depends = kexec-tools ' | tee /etc/pacman.d/hooks/kexec-clr.hook
+#[Action]
+#Description = Symlinking clr-headers
+#When = PostTransaction
+#Exec = /usr/sbin/ln -sfT /boot/vmlinuz-linuz-clear-bin /vmlinuz ; /usr/sbin/ln -sfT /boot/initramfs-linux-clear-bin.img /initrd.img
+#Depends = kexec-tools ' | tee /etc/pacman.d/hooks/kexec-clr.hook
 
 sed -i '/#Color/c\Color ' /etc/pacman.conf
 sed -i '/#ParallelDownloads =.*/c\ParallelDownloads = 5\nILoveCandy ' /etc/pacman.conf
@@ -1234,7 +1240,7 @@ fi
     if [ $lvm = no ] ; then olvm=" lvm lvmmerge lvmthinpool-monitor" ; fi
     if [ $crypt = no ] ; then ocrypt=" crypt" ; fi
     if [ ! -z $systemdb ] ; then uefilib=" uefi-lib" ; fi
-    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm early_microcode=yes stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4$dracgpu' omit_dracutmodules+='debug syslog watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
+    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm$(if [ $microcode = on ] ; then echo " early_microcode=yes" ; fi) stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4$dracgpu' omit_dracutmodules+='debug syslog watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
       fi
         # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
 
@@ -1524,16 +1530,23 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
   if $linux && [ $country != 00 ] ; then
   echo 'WIRELESS_REGDOM='"$country"'' | tee /etc/conf.d/wireless-regdom ; fi
   if $arch ; then
-  sed -i 's/-mtune=generic/-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wno-format-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize/g' /etc/makepkg.conf
-  sed -i 's/!ccache/cache/g' /etc/makepkg.conf
+  sed -i 's/-mtune=generic/-fasynchronous-unwind-tables -feliminate-unused-debug-types -ffast-math -fforce-addr -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -fopenmp -funsafe-math-optimizations -fwrapv -lcrypt -ldl -lhmmer -lm -lncurses -lpgcommon -lpgport -lpq -lpthread -lrt -lsquid -m64 -march=native -mcpu=native -mtune=native -pipe -pthread -g0 -fuse-linker-plugin -Wl,--as-needed -Wl,--sort-common -Wl,norelro -Wl,-mcpu=native -Wl,--strip-debug -falign-functions=32 -O3 -fassociative-math -Wno-frame-address -Wno-trigraphs -Wundef -ffat-lto-objects -Wl,-O3 -fuse-ld=lld -fvpt -fpeel-loops -finline-functions -funswitch-loops -fgcse-after-reload -ftree-loop-distribute-patterns -fgraphite-identity -floop-block -floop-interchange -floop-nest-optimize -floop-optimize -floop-parallelize-all -floop-strip-mine -ftree-loop-vectorize -ftree-loop-distribution -fprefetch-loop-arrays -fomit-frame-pointer -fno-stack-protector -Wno-format-security -Wl,--hash-style-gnu -Ofast /g' /etc/makepkg.conf
+  sed -i 's/!ccache/ccache/g' /etc/makepkg.conf
   sed -i 's/-O2/-O3/g' /etc/makepkg.conf
   sed -i 's/-O1/-O3/g' /etc/makepkg.conf
   sed -i 's/-Os/-O3/g' /etc/makepkg.conf
+  sed -i 's/x86-64/native/g' /etc/makepkg.conf
+  sed -i 's/DEBUG_CFLAGS=.*/DEBUG_CFLAGS="-g0"/g' /etc/makepkg.conf
+  sed -i 's/ -fno-plt -fexceptions//g' /etc/makepkg.conf
+  sed -i 's/-Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security/-Ofast/g' /etc/makepkg.conf
+  sed -z -i -e 's/-fstack-clash-protection -fcf-protection/\n/g' /etc/makepkg.conf
+
    if ! grep -q CC=clang /etc/makepkg.conf ; then
-echo 'export CC=clang
-export CXX=clang++
+echo '#export CC=clang
+#export CXX=clang++
 export CC_LD=lld
 export CXX_LD=lld
+export LD=ld.lld
 export AR=llvm-ar
 export NM=llvm-nm
 export STRIP=llvm-strip
@@ -1541,10 +1554,9 @@ export OBJCOPY=llvm-objcopy
 export OBJDUMP=llvm-objdump
 export READELF=llvm-readelf
 export RANLIB=llvm-ranlib
-export HOSTCC=clang
-export HOSTCXX=clang++
+#export HOSTCC=clang
+#export HOSTCXX=clang++
 export HOSTAR=llvm-ar
-LDFLAGS_MODULE=--strip-debug
 NINJAFLAGS="-j'"$(nproc --all)"'"' | tee -a /etc/makepkg.conf
    fi
   sed -i 's/COMPRESSXZ=.*/COMPRESSXZ=(xz -c -z --threads=0 -)/g' /etc/makepkg.conf
@@ -1554,8 +1566,8 @@ NINJAFLAGS="-j'"$(nproc --all)"'"' | tee -a /etc/makepkg.conf
   sed -i 's/COMPERSSLZ=.*/COMPERSSLZ=(plzip -c -f)/g' /etc/makepkg.conf
   sed -i 's/PKGEXT=.*/PKGEXT=".pkg.tar.lz4"/g' /etc/makepkg.conf
   sed -i 's/#MAKEFLAGS=.*/MAKEFLAGS="-j'"$(nproc --all)"'"/g' /etc/makepkg.conf
-  sed -i 's/#RUSTFLAGS="-C opt-level=2"/RUSTFLAGS="-C opt-level=3 -C target-cpu=native"/g' /etc/makepkg.conf
-  sed -i 's/LDFLAGS.*/LDFLAGS="-Wl,-O3 -Wl,-z,now -Wl,--as-needed -Wl,--no-copy-dt-needed-entries -Wl,--sort-common -Wl,--hash-style=gnu"/g' /etc/makepkg.conf
+  sed -i 's/#RUSTFLAGS="-C opt-level=2"/RUSTFLAGS="-C opt-level=3 -C target-cpu=native -Ztune-cpu=native"/g' /etc/makepkg.conf
+  sed -i 's/LDFLAGS.*/LDFLAGS="--strip-debug -plugin-opt=-mcpu=native -plugin-opt=O3"/g' /etc/makepkg.conf
   fi
     systemctl set-default graphical.target
     if $(! grep -q experimental-features /etc/nix/nix.conf) ; then
@@ -4190,6 +4202,8 @@ kernel.split_lock_mitigate = 0
 #vm.dirty_background_bytes = 4194
 #vm.dirty_bytes = 4194
 
+vm.max_map_count=512000
+
 ' | tee "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
 
 sysctl net.ipv4.ip_local_port_range=30000 65535
@@ -5298,8 +5312,11 @@ if dmesg | grep -q nvidia ; then sed -i 's/<device driver="amdgpu">/<device driv
 # prevent motd news
 sed -i -e 's/ENABLED=.*/ENABLED=0/' /etc/default/motd-news
 
-
-
+        git config --global init.defaultBranch master
+        git config --global color.diff auto
+        git config --global color.status auto
+        git config --global color.branch auto
+        git config --global lfs.allowincompletepush true
 
 
 
@@ -5982,9 +5999,10 @@ if $linux ; then
   # ccache & path
     if $(! sudo grep -q "USE_CCACHE=1" $HOME/.zshrc) ; then
     sed -i "\$aUSE_CCACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    sed -i "\$aPREBUILT_CACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
-    sed -i "\$aCCACHE_DIR=$HOME/.ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$aCCACHE_RECACHE=yes" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+        sed -i "\$aUSE_PREBUILT_CACHE=1" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$aPREBUILT_CACHE_DIR=/var/cache/ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
+    sed -i "\$aCCACHE_DIR=/var/cache/ccache" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc
     sed -i "\$accache -M 30G >/dev/null" $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi ; fi
     if $(! sudo grep -q 'LD_LIBRARY_PATH' $HOME/.zshrc) ; then
     #echo "$ld_preload" | tee -a /home/"$himri"/.xsessionrc /root/.xsessionrc
@@ -5992,7 +6010,6 @@ if $linux ; then
     echo 'PATH=/usr/lib/ccache/bin:/lib/x86_64-linux-gnu:/usr/lib/llvm'"$clang"'/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
     LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:/usr/lib/llvm'"$clang"'/lib:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
     '"$ld_preload"'' | tee -a $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc /home/"$himri"/.xsessionrc /root/.xsessionrc /home/"$himri"/.profile /root/.profile ; fi
-ccache --set-config=sloppiness=locale,time_macros
 
 #if $(! grep -q LD_PRELOAD $HOME/.zshrc) ; then echo "$ld_preload" | tee -a /root/.zshrc /root/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi
 
@@ -6000,8 +6017,45 @@ ccache --set-config=sloppiness=locale,time_macros
 
 # smcr info to check if your hardware is capable
 #ld_preload="export LD_PRELOAD=libtrick.so:libmkl_core.so:libomp"$cclm".so.5:libmkl_def.so:libhugetlbfs.so.0:libmimalloc.so.2:libeatmydata.so:libsmc-preload.so.1:libmkl_vml_avx2.so:libmkl_intel_lp64.so:libmkl_intel_thread.so$(if dmesg | grep -q amdgpu ; then echo ":libomptarget.rtl.amdgpu.so.$cclm" | sed 's/-//g'
-
-
+export PATH="/usr/lib/ccache/bin${PATH:+:}${PATH}"
+export CCACHE_DIR="/var/cache/ccache"
+chown $himri /var/cache/ccache ; chmod 777 /var/cache/ccache
+echo 'max_size = 30G
+cache_dir = /var/cache/ccache
+debug = false
+umask = 002
+compiler_check = %compiler% -dumpversion
+cache_dir_levels = 5
+hash_dir = false
+compression = true
+compression_level = 1
+#base_dir = 
+#compiler =
+#cpp_extension =
+depend_mode = false
+direct_mode = true
+disable = false
+#extra_files_to_hash = 
+hard_link = false
+#hash_dir = true
+#ignore_headers_in_manifest = 
+keep_comments_cpp = false
+limit_multiple = 0.8
+log_file = 
+#max_files = 0
+path = /usr/bin:/usr/local/bin
+#log_file = /var/tmp/ccache/ccache.log
+#temporary_dir = /tmp/ccache
+pch_external_checksum = false
+#prefix_command = 
+#prefix_command_cpp = 
+read_only = false
+read_only_direct = false
+recache = true
+#run_second_cpp = true
+stats = true
+inode_cache = true
+sloppiness = locale,time_macros,file_stat_matches,include_file_ctime,include_file_mtime' | tee /home/$himri/.ccache/ccache.conf /root/.cache/ccache.conf /var/cache/ccache/ccache.conf
 
 # kde environment variables
 kdeenv='__GL_FSAA_MODE=0
@@ -6071,7 +6125,8 @@ fi
 
 if [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = arch ] || [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = debian ] ; then
 posix='LC_ALL=C
-LANG=C'
+LANG=C
+LC_COLLATE=C'
 fi
 
 #if $arch && ldconfig -p | grep -q libmimalloc ; then ld_preload="LD_PRELOAD=$(ldconfig -p | grep libmimalloc | head -n1 | awk -F '>' '{print $2}')" ; fi
@@ -6090,6 +6145,7 @@ LDPATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib
 '"$kdeenv"'
 '"$xdgidri"'
 '"$posix"'
+LD='"$(which mold)"'
 XIM_GLOBAL_CACHE_DIR=/var/cache/libx11/compose
 XCOMPOSEFILE=~/.XCompose
 XCOMPOSECACHE=~/.compose-cache
@@ -6225,8 +6281,8 @@ LIBGL_ALWAYS_SOFTWARE=0
 LESSSECURE=1
 LESSHISTSIZE=0
 LESSHISTFILE=-
+LDFLAGS="-Ofast -function-sections --gc-sections -data-sections --new-pass-manager -mcpu=native --hash-style=gnu -z,now --as-needed --no-copy-dt-needed-entries --sort-common -mbranches-within-32B-boundaries -z,now --as-needed --no-copy-dt-needed-entries --sort-common"
 LDFLAGS_MODULE=--strip-debug
-#LDFLAGS="-ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wno-format-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize -Wl,--hash-style=gnu" #-Xclang -plugin /usr/lib/llvm'"$cclm"'/lib/LLVMPolly.so
 LD_DEBUG_OUTPUT=0
 LD_BIND_NOW=0
 KIRIGAMI_LOWPOWER_HARDWARE=1
@@ -6258,7 +6314,12 @@ DOTNET_CLI_TELEMETRY_OPTOUT=1
 CONFIG_SND_HDA_PREALLOC_SIZE=16
 COMMAND_NOT_FOUND_INSTALL_PROMPT=1
 COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
-CCACHE_SLOPPINESS=locale,time_macros
+CCACHE_SLOPPINESS=locale,time_macros,file_stat_matches,include_file_ctime,include_file_mtime
+CCACHE_DIR=/var/cache/ccache
+PREBUILT_CACHE_DIR=/var/cache/ccache
+CCACHE_UMASK=002
+USE_CCACHE=1
+USE_RECACHE=yes
 #CC=clang'"$cclm"'
 BROWSER='"$(which firefox)"'
 #AR=llvm-ar'"$cclm"'
@@ -6276,7 +6337,10 @@ __GL_LOG_MAX_ANISO=0
 __GL_FSAA_MODE=0
 amdgpusi_enable_nir=true
 radeonsi_enable_nir=true
-EDITOR='"$(which vim)"'' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
+EDITOR='"$(which vim)"'
+GCM_CREDENTIAL_STORE=cache
+GCC_SPECS=""
+' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
 
 
 
@@ -6299,7 +6363,6 @@ sed -i '/export KDE_USE_IPV6=/c\export KDE_USE_IPV6=yes' /etc/environment /home/
 #__GLVND_DISALLOW_PATCHING=0
 #DXVK_HUD=compile
 #ENABLE_VKBASALT=1
-#GCC_SPECS=
 #GOMP_CPU_AFFINITY="N-M"
 #GST_GL_API=gles2
 #GTK_DEBUG=0
@@ -7315,6 +7378,7 @@ predictor1
 sync' | tee "$ifdr"/etc/ppp/options ; fi
 
 
+
 echo '# Defaults for kexec initscript
 # sourced by /etc/init.d/kexec and /etc/init.d/kexec-load
 
@@ -7322,15 +7386,15 @@ echo '# Defaults for kexec initscript
 LOAD_KEXEC=true
 
 # Kernel and initrd image
-KERNEL_IMAGE="/vmlinuz"
-INITRD="/initrd.img"
+KERNEL_IMAGE="'"$(find /boot/EFI/Linux/*clrxt*)"'"
+#INITRD="/initrd.img"
 
 # If empty, use current /proc/cmdline
 #APPEND=""
 APPEND="'"$par"'"
 
 # Load the default kernel from grub config (true/false)
-USE_GRUB_CONFIG=true' | tee /etc/default/kexec
+USE_GRUB_CONFIG=false' | tee /etc/default/kexec
 
   #
     systemctl daemon-reload
@@ -7485,8 +7549,13 @@ X-Plasma-MainScript=code/main.js' | tee /home/$himri/.local/share/kwin/scripts/k
  # wget ${rawlink}/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
  # wget ${rawlink}/.basicsetup/libsmc-preload32.so -O /usr/lib/libsmc-preload32.so
  if $debian && [ $microcode = off ] ; then apt -f -y remove intel-microcode amd-microcode iucode-tool ; elif $debian && [ microcode = on ] ; then apt -f -y install intel-microcode amd-microcode iucode-tool ; fi
-  if $debian ; then apt -f -y install blktool hdparm lz4 macchanger net-tools wireless-tools iw preload ethtool kexec-tools ; dpkg-reconfigure dash kexec-tools ; fi
-  if $arch ; then pacman -S --noconfirm --needed hdparm lz4 macchanger net-tools wireless_tools iw dash kexec-tools ; fi
+ 
+  if $arch && [ $microcode = off ] ; then pacman -Rscn --noconfirm intel-ucode ; pacman -Rscn --noconfirm amd-ucode ; pacman -Rscn --noconfirm iucode-tool ; elif $arch && [ microcode = on ] ; then pacman -S --noconfirm amd-ucode intel-ucode iucode-tool ; fi
+ 
+ $s 
+$s pacman -Rscn --noconfirm amd-ucode
+  if $debian ; then apt -f -y install blktool mold hdparm lz4 macchanger net-tools wireless-tools iw preload ethtool kexec-tools ; dpkg-reconfigure dash kexec-tools ; fi
+  if $arch ; then pacman -S --noconfirm --needed hdparm lz4 macchanger mold net-tools wireless_tools iw dash kexec-tools ; fi
   
   if $linux ; then
   if $(grep -q "/usr/bin/sddm" /etc/X11/default-display-manager) ; then
@@ -7532,18 +7601,46 @@ startserv=$(systemctl list-unit-files | grep "$enable_services" | grep disabled 
 maskenable=$(systemctl list-unit-files | grep "$enable_services" | grep "disabled\|mask" | awk '{print $1}')
 
 # dunno if mdadm is needed for raid. checkout to be sure
-if $(! $wrt) ; then  systemctl disable ModemManager && systemctl mask ModemManager &&
+if $(! $wrt) ; then  systemctl disable ModemManager ; systemctl mask ModemManager ;
 systemctl stop $disableserv
 systemctl disable $disableserv
 systemctl mask $maskdisable
 
 systemctl unmask $maskenable
 systemctl enable $startserv
+
+
+
+
+echo '[Unit]
+Description=Set sched_latency_ns in accordance with basic-linux-setup
+After=multi-user.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
+
+[Service]
+User=root
+ExecStart=/usr/sbin/bls-schedlatency.bash
+Type=simple
+Restart=always
+Environment="DISPLAY=:0"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target' | sudo tee /usr/lib/systemd/system/bls-schedlatency.service
+
+echo '#!/bin/bash
+if [ -e /sys/kernel/debug/sched/latency_ns ] 
+then
+echo 40000 > /sys/kernel/debug/sched/latency_ns 
+elif [ -e /proc/sys/kernel/sched_latency_ns ] 
+then 
+echo 40000 > /proc/sys/kernel/sched_latency_ns
+fi' | sudo tee /usr/sbin/bls-schedlatency.bash
+sudo chmod +x /usr/sbin/bls-schedlatency.bash
+sudo systemctl enable bls-schedlatency
+sudo systemctl start bls-schedlatency
+
 fi
 fi
-
-
-
 
 
 
@@ -7663,13 +7760,13 @@ else
         if [ ! "$(cat /etc/dracut.conf.d/*linux.conf)" = "$dracflags" ] ; then
         rm -rf /etc/dracut.conf.d/* ; echo "$dracflags" | tee /etc/dracut.conf.d/10-linux.conf ; fi
         if [ -e $systemdb ] ; then defi2=" --uefi" ; fi
-        dracut --regenerate-all --lz4$defi2 --add-fstab /etc/fstab --fstab --host-only -f --aggresive-strip --hostonly-cmdline --early-microcode
+        dracut --regenerate-all --lz4$defi2 --add-fstab /etc/fstab --fstab --host-only -f --strip --hostonly-cmdline$(if [ $microcode = on ] ; then echo " --early-microcode" ; fi) 
 
 
 
 
  fi ; fi 
- bootctl install ; bootctl systemd-efi-options ""$par"" ; $s bootctl update
+ bootctl install ; bootctl systemd-efi-options ""$par"" ; bootctl update 
 
  fi
 
@@ -7699,17 +7796,19 @@ else export KBUILD_CFLAGS+= -fuse-ld=lld ; fi
 
 #polly=/usr/lib/llvm*/lib/LLVMPolly.so
 #ldgold=/usr/lib/llvm*/lib/LLVMgold.so
+echocc() {
+echo '
+subdir-ccflags-y := -O3 -ffast-math -fforce-addr --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fexceptions -fno-semantic-interposition \
+-fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -ldl -lhmmer -lm -lncurses -lpthread -lsquid -m64 -pthread -Wall -Wformat-security -mcpu=native -g -fno-stack-protector \
+-fwrapv -lpgcommon -lpgport -lpq -lrt -lcrypt -mtune=native -march=native -fomit-frame-pointer -pipe -Wno-error -funroll-loops -ftree-vectorize -Wno-frame-address -fopenmp -mabi=native -mfpu=native -mfloat-abi=native -fgraphite-identity -floop-strip-mine -floop-nest-optimize -fno-semantic-interposition -fipa-pta -fdevirtualize-at-ltrans -flto -flto-partition=one
 
-export LDFLAGS_MODULE=--strip-debug
+export LDFLAGS_MODULE= --strip-debug
 
-export LDFLAGS="-O3 -plugin-opt=-function-sections -plugin-opt=-data-sections -plugin-opt=new-pass-manager -plugin-opt=O3 -plugin-opt=mcpu=$opt -plugin LLVMPolly.so --gc-sections -ffast-math -pipe -fPIE -march=$opt -mtune=$opt --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wno-format-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize -fforce-addr -Wl,--hash-style=gnu"
+export LDFLAGS= -O3 -plugin-opt=-function-sections -plugin-opt=-data-sections -plugin-opt=new-pass-manager -plugin-opt=O3 -plugin-opt=mcpu=native -plugin LLVMPolly.so --gc-sections -ffast-math -pipe -fPIE -march=native -mtune=native --param=ssp-buffer-size=32 -D_FORTIFY_SOURCE=2 -D_REENTRANT -fassociative-math -fasynchronous-unwind-tables -feliminate-unused-debug-types -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -m64 -pthread -Wnoformat-security -fno-stack-protector -fwrapv -funroll-loops -ftree-vectorize -fforce-addr -Wl,-O3 -Wl,-z,now -Wl,--as-needed -Wl,--no-copy-dt-needed-entries -Wl,--sort-common -Wl,--hash-style=gnu
 
-export KBUILD_USERCFLAGS:="-Wall -Wmissing-prototypes \
-                           -Wstrict-prototypes \
-                           -O3 -fomit-frame-pointer -std=gnu11"
 
-if [ $CC = llvm ] ; then
-export KBUILD_CFLAGS+="-mllvm -polly \
+
+#export KBUILD_CFLAGS+=  -mllvm -polly \
                         -mllvm -polly-run-inliner \
                         -mllvm -polly-opt-fusion=max \
                         -mllvm -polly-omp-backend=LLVM \
@@ -7720,10 +7819,11 @@ export KBUILD_CFLAGS+="-mllvm -polly \
                         -mllvm -polly-ast-use-context \
                         -mllvm -polly-opt-simplify-deps=no \
                         -mllvm -polly-rtc-max-arrays-per-group=40 \
-                        -mllvm -polly-parallel" ;
-                        export LDFLAGS+="-plugin LLVMPolly.so" ; fi
+                        -mllvm -polly-parallel 
+                        
+                        #export LDFLAGS+=-plugin LLVMPolly.so
 
-cflags="--param=ssp-buffer-size=32 \
+export KBUILD_CFLAGS+= --param=ssp-buffer-size=32 \
         -D_FORTIFY_SOURCE=2 \
         -D_REENTRANT \
         -fassociative-math \
@@ -7755,11 +7855,11 @@ cflags="--param=ssp-buffer-size=32 \
         -lrt \
         -lsquid \
         -m64 \
-        -mabi=$opt \
-        -mcpu=$opt \
-        -mfloat-abi=$opt \
-        -mfpu=$opt \
-        -mtune=$opt \
+        -mabi=native \
+        -mcpu=native \
+        -mfloat-abi=native \
+        -mfpu=native \
+        -mtune=native \
         -O3 \
         -pipe \
         -pthread \
@@ -7769,10 +7869,16 @@ cflags="--param=ssp-buffer-size=32 \
         -Wno-frame-address \
         -Wno-maybe-uninitialized \
         -Wno-trigraphs \
-        -Wundef"
+        -Wundef \
+        -fgraphite-identity -floop-strip-mine -floop-nest-optimize -fno-semantic-interposition -fipa-pta -fdevirtualize-at-ltrans -flto -flto-partition=one \
+        -Wl,-z -Wl,now -Wl,relro -ffat-lto-objects -fno-trapping-math -Wl,-sort-common -Wl,--enable-new-dtags -Wa,-mbranches-within-32B-boundaries
 
+KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
+			 -O3 -fomit-frame-pointer -std=gnu11 \
+			 -Wdeclaration-after-statement
+'
+}
 
-      # -fgraphite-identity -floop-strip-mine -floop-nest-optimize -fno-semantic-interposition -fipa-pta -flto -fdevirtualize-at-ltrans -flto-partition=one
 
 export KBUILD_CFLAGS:= "$cflags"
 
@@ -7874,7 +7980,11 @@ current modified config:
 $(cat $PWD/.blsconfig)" ; fi
 
 if [ $uninstall = yes ] ; then
-rm -rf /etc/environment.d/10-config.dat /etc/crontabs /etc/crontab /etc/anacrontab /etc/update_hosts.sh /root/cmdline /etc/root/cmdline /system/etc/root/cmdline /system/etc/init.d/${file} /etc/sysctl.conf /etc/sysctl.d/sysctl.conf /etc/rc.local /data/adb/post-fs-data.d/${file} /data/adb/service.d/${file} ; \cp -rf /etc/bak/* /
+
+for i in "$ifdr"/etc/environment.d/env* "$ifdr"/etc/crontabs "$ifdr"/etc/crontab "$ifdr"/etc/cron.d/@reboot "$ifdr"/etc/anacrontab "$ifdr"/etc/update_hosts.sh "$ifdr"/root/cmdline "$ifdr"/etc/profile.d/kwin.sh "$ifdr"/etc/init.d/${file} "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf "$ifdr"/etc/rc.local /data/adb/post-fs-data.d/${file} /data/adb/service.d/${file} "$ifdr"/home/$himri/.config/plasma-workspace/env "$ifdr"/home/x/.x* "$ifdr"/home/x/.X* ; do
+if [ -e $i ] ; then rm -rf $i ; fi ; done
+
+\cp -rf /etc/bak/* /
 if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX="splash quiet"' /etc/default/grub ; sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="splash quiet"' /etc/default/grub ; fi
 if grep -q "cmdline" /etc/fstab "$fstab" ; then sed -i '/cmdline/c\' "$fstab" ; fi
 rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi

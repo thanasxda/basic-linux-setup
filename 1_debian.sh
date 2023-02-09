@@ -622,7 +622,11 @@ $s systemctl enable --now dbus-broker
             
             $s chown root /usr
 
-            
+            echo " BUILDING AND BRUSHING KERNAL"
+            cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-branch --depth=1 -j8
+            cd clrxt-x86 
+            sudo bls=yes ./build.sh
+
             
             
             

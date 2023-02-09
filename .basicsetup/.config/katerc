@@ -1,12 +1,38 @@
 [General]
+Allow Tab Scrolling=true
+Auto Hide Tabs=false
+Close After Last=false
+Close documents with window=true
 Config Revision=10
 Days Meta Infos=30
+Diff Show Style=0
+Elide Tab Text=false
+Expand Tabs=false
+Icon size for left and right sidebar buttons=32
+Modified Notification=false
+Mouse back button action=0
+Mouse forward button action=0
+Output History Limit=100
+Recent File List Entry Count=10
+Restore Window Configuration=true
 Save Meta Infos=true
 Show Full Path in Title=false
 Show Menu Bar=true
 Show Status Bar=true
+Show Symbol In Navigation Bar=true
 Show Tab Bar=true
+Show Tabs Close Button=true
 Show Url Nav Bar=true
+Show output view for message type=1
+Show text for left and right sidebar=false
+Show welcome view for new window=true
+Startup Session=manual
+Stash new unsaved files=true
+Stash unsaved file changes=false
+Sync section size with tab positions=false
+Tab Double Click New Document=true
+Tab Middle Click Close Document=true
+Tabbar Tab Limit=0
 detailViewIconSize=16
 
 [KTextEditor Document]
@@ -57,7 +83,7 @@ Fallback Encoding=ISO 8859-15
 Animate Bracket Matching=false
 Auto Color Theme Selection=true
 Color Theme=Breeze Dark
-Font=Hack,9,-1,5,50,0,0,0,0,0
+Font=JetBrains Mono NL,9,-1,5,50,0,0,0,0,0
 Line Height Multiplier=1
 Schema=Normal
 Show Indentation Lines=false
@@ -137,3 +163,28 @@ showFullPathOnRoots=false
 showToolbar=true
 sortRole=0
 viewShade=66,73,74
+
+[lspclient]
+AllowedServerCommandLines=
+AutoHover=true
+AutoImport=true
+BlockedServerCommandLines=/usr/sbin/clangd -log=error --background-index --limit-results=500 --completion-style=bundled
+CompletionDocumentation=true
+CompletionParens=true
+Diagnostics=true
+DiagnosticsHighlight=true
+DiagnosticsHover=true
+DiagnosticsMark=true
+DiagnosticsSize=1024
+HighlightGoto=true
+IncrementalSync=false
+Messages=true
+ReferencesDeclaration=true
+SemanticHighlighting=true
+ServerConfiguration=
+SignatureHelp=true
+SymbolDetails=false
+SymbolExpand=true
+SymbolSort=false
+SymbolTree=true
+TypeFormatting=false
