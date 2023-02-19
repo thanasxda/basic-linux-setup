@@ -88,14 +88,14 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
       # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme
         if find /dev/nvme* ; then sched="none" ; else sched="bfq" ; fi
       # - only used when /dev/sd* ssd hdd etc.
-        sdsched="none"
+        sdsched="bfq"
         mtdsched="bfq"
         mmcsched="cfq"
         if $(! grep -q 'cfq' /sys/block/mmc*/queue/scheduler) ; then mmcsched="bfq" ; fi
 
       ### < CPU GOVERNOR >
       # - linux kernel cpu governor
-        governor="schedutil"
+        governor="performance" # use pstates
 
       ### < MITIGATIONS > - expect HIGH!!! performance penalty in favor of security when enabling this. degree of performance degradation relative to the hardware. can leave disabled and run trusted code, use librejs browser plugin
       # by default only enabed on v4 capable instruction set and all non x86_64 cpu's. override with $vars, easiest.
@@ -504,7 +504,7 @@ fi
 xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mit13" ; fi
 
 # cpu amd/intel
-xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off tsx=on" ; fi)"
+xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic amd_pstate=passive" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off tsx=on intel_pstate=hwp_only" ; fi)"
 #
 xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grepi -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge align_va_addr=on forcepae iommu.strict=0 novmcoredd iommu=force,pt $(if [ $extras = on ] ; then echo " init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages workqueue.power_efficient=0 noreplace-smp refscale.loops=$(($(nproc --all)*2))"
 #
@@ -1240,8 +1240,9 @@ fi
     if [ $lvm = no ] ; then olvm=" lvm lvmmerge lvmthinpool-monitor" ; fi
     if [ $crypt = no ] ; then ocrypt=" crypt" ; fi
     if [ ! -z $systemdb ] ; then uefilib=" uefi-lib" ; fi
-    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm$(if [ $microcode = on ] ; then echo " early_microcode=yes" ; fi) stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4$dracgpu' omit_dracutmodules+='debug syslog watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
+    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm$(if [ $microcode = on ] ; then echo " early_microcode=yes" ; fi) stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4$(if lscpu | grep -qi intel ; then echo " intel_pstate" ; elif lscpu | grep -qi amd ; then echo " amd_pstate" ; fi)$dracgpu' omit_dracutmodules+='debug syslog watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
       fi
+      if lscpu | grep -qi intel ; then modprobe intel_pstate ; elif lscpu | grep -qi amd ; then modprobe amd_pstate ; fi
         # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
 
 
@@ -1935,7 +1936,7 @@ echo 1 > /proc/sys/kernel/sched_scaling_enable
 echo 0 > /proc/sys/kernel/sched_tunable_scaling
 #echo 0 > /proc/sys/kernel/sched_boost
 echo 1 > /proc/sys/kernel/sched_child_runs_first
-##echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
+##echo 2250000 > /proc/sys/kernel/sched_min_granularity_ns
 #echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
 echo 40000 > /proc/sys/kernel/sched_latency_ns
 
@@ -2026,9 +2027,9 @@ echo "64" > /sys/class/drm/card0/device/idle_timeout_ms
 #echo "0" > /proc/sys/vm/oom_dump_tasks
 #echo "0" /proc/sys/vm/overcommit_ratio
 echo "1" > /proc/sys/vm/compact_unevictable_allowed
-#echo "15" > /proc/sys/vm/dirty_background_ratio
+#echo "40" > /proc/sys/vm/dirty_background_ratio
 #echo "500" > /proc/sys/vm/dirty_expire_centisecs
-#echo "60" > /proc/sys/vm/dirty_ratio
+#echo "50" > /proc/sys/vm/dirty_ratio
 #echo "3000" > /proc/sys/vm/dirty_writeback_centisecs
 
 echo "1" > /proc/sys/vm/oom_kill_allocating_task
@@ -2050,7 +2051,7 @@ echo 1 > /proc/sys/kernel/sched_scaling_enable
 echo 0 > /proc/sys/kernel/sched_tunable_scaling
 #echo 0 > /proc/sys/kernel/sched_boost
 echo 1 > /proc/sys/kernel/sched_child_runs_first
-#echo 1000000 > /proc/sys/kernel/sched_min_granularity_ns
+#echo 2250000 > /proc/sys/kernel/sched_min_granularity_ns
 #echo 980000 > /proc/sys/kernel/sched_rt_runtime_us
 echo 40000 > /proc/sys/kernel/sched_latency_ns
 #echo '0:1324800' > /sys/module/cpu_boost/parameters/input_boost_freq
@@ -2482,10 +2483,10 @@ echo 8192 > /proc/sys/vm/admin_reserve_kbytes
 echo 1 > /proc/sys/vm/compact_unevictable_allowed
 echo 0 > /proc/sys/vm/compaction_proactiveness
 #echo 0 > /proc/sys/vm/dirty_background_bytes
-echo 50 > /proc/sys/vm/dirty_background_ratio
+echo 40 > /proc/sys/vm/dirty_background_ratio
 #echo 0 > /proc/sys/vm/dirty_bytes
 echo 500 > /proc/sys/vm/dirty_expire_centisecs
-echo 80 > /proc/sys/vm/dirty_ratio
+echo 50 > /proc/sys/vm/dirty_ratio
 echo 1000 > /proc/sys/vm/dirty_writeback_centisecs
 echo 43200 > /proc/sys/vm/dirtytime_expire_seconds
 echo 750 > /proc/sys/vm/extfrag_threshold
@@ -3283,6 +3284,101 @@ echo "0" > /sys/kernel/logger_mode/logger_mode
 for i in $(find /sys/block - type l) ; do
 echo 31 > $i/device/queue_depth ; done
 
+### CLR-POWER-TWEAKS
+
+echo 50 > /proc/sys/vm/dirty_ratio  
+echo 1 > /proc/sys/kernel/unprivileged_bpf_disabled 
+
+## start IO at 5% not 1%... start IO a little earlier asynchronously since memory sizes are bigger now
+#echo 40 > /proc/sys/vm/dirty_background_ratio 
+## 15 seconds before the VM starts writeback allowing the FS to deal with this better
+#echo 1500 > /proc/sys/vm/dirty_writeback_centisecs
+#echo 10 > /proc/sys/vm/swappiness 
+echo 30000 > /sys/kernel/mm/transparent_hugepage/khugepaged/scan_sleep_millisecs
+echo 0 > /sys/devices/virtual/graphics/fbcon/cursor_blink  
+#echo 0 > /sys/kernel/rcu_expedited  
+echo 65536 > /proc/sys/vm/mmap_min_addr  
+
+## oom less
+echo 100 > /proc/sys/vm/extfrag_threshold  
+echo 4000 > /sys/kernel/mm/ksm/sleep_millisecs 
+
+## w /sys/kernel/mm/ksm/run - - - - 
+echo 1000 > /sys/kernel/mm/ksm/pages_to_scan 
+#echo 1703936 > /proc/sys/net/core/rmem_max  
+#echo 1703936 > /proc/sys/net/core/wmem_max  
+echo 1 > /proc/sys/net/core/high_order_alloc_disable 
+
+## This tuneable decides the minimum time a task will be be allowed to
+## run on CPU before being pre-empted out
+echo 2250000 > /proc/sys/kernel/sched_min_granularity_ns 
+echo 50000 > /proc/sys/kernel/sched_migration_cost_ns 
+
+## Ability of tasks being woken to preempt the current task
+echo 15000000 > /proc/sys/kernel/sched_wakeup_granularity_ns 
+
+## sched_autogroup would improve interactive desktop performance in the face of
+## multi‐ process CPU-intensive workloads. Whereas it would harm performance
+## thus disable it on Server
+#echo 1 > /proc/sys/kernel/sched_autogroup_enabled  
+
+## audio pm
+echo 1 > /sys/module/snd_hda_intel/parameters/power_save 
+
+## P state stuff
+#echo performance > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor 
+
+## we want at least half performance this helps us in race-to-halt and
+## to give us reasonable responses
+echo 50 > /sys/devices/system/cpu/intel_pstate/min_perf_pct 
+#echo fq > /proc/sys/net/core/default_qdisc 
+
+## Disable acceptance of all ICMP redirected packets on all interfaces.
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects  
+echo 0 > /proc/sys/net/ipv6/conf/all/accept_redirects  
+echo 0 > /proc/sys/net/ipv4/conf/default/accept_redirects  
+echo 0 > /proc/sys/net/ipv6/conf/default/accept_redirects  
+
+## Disables sending of all IPv4 ICMP redirected packets on all interfaces.
+echo 0 > /proc/sys/net/ipv4/conf/all/send_redirects  
+echo 0 > /proc/sys/net/ipv4/conf/default/send_redirects  
+
+## Disables acceptance of secure ICMP redirected packets on all interfaces.
+echo 0 > /proc/sys/net/ipv4/conf/all/secure_redirects  
+echo 0 > /proc/sys/net/ipv4/conf/default/secure_redirects  
+
+## SATA link power management
+echo med_power_with_dipm > /sys/class/scsi_host/*/link_power_management_policy  
+
+## Performance tuning for SATA and NVME storage
+#echo bfq > /sys/block/sd*/queue/scheduler  
+echo 4096 > /sys/block/sd*/queue/nr_requests 
+#echo 1024 > /sys/block/sd*/queue/read_ahead_kb  
+echo 1 > /sys/block/sd*/queue/add_random 
+
+## For server prefer mq-deadline to max throughput
+#echo mq-deadline > /sys/block/nvme*/queue/scheduler 
+
+## For desktop prefer bfq low_latency
+#echo bfq > /sys/block/nvme*/queue/scheduler
+echo 1 > /sys/block/nvme*/queue/iosched/low_latency
+
+#echo 2048 > /sys/block/nvme*/queue/nr_requests 
+#echo 1024 > /sys/block/nvme*/queue/read_ahead_kb 
+#echo 1 > /sys/block/nvme*/queue/add_random 
+
+## Enable turbo mode max
+echo 1 > /proc/sys/kernel/sched_itmt_enabled 
+
+## Reload the microcode at boot (disabled)
+echo 0 > /sys/devices/system/cpu/microcode/reload 
+echo performance > /sys/devices/system/cpu/cpu/power/energy_perf_bias   
+
+echo 0 > /proc/sys/kernel/nmi_watchdog  
+echo 0 > /sys/block/sdmmcnvme*/queue/iosched/slice_idle 
+
+
+
 
 ### io scheduler, governor and more
 #scheduler
@@ -3290,11 +3386,11 @@ if [ ! -f  $droidprop ] ; then
 # nvme
 for i in $(find /sys/block -type l); do
   echo "$sched" > $i/queue/scheduler;
-  echo "0" > $i/queue/add_random;
+  echo "1" > $i/queue/add_random;
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "64" > $i/queue/nr_requests
+  echo "4096" > $i/queue/nr_requests
   echo "8192" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -3350,11 +3446,11 @@ done;
 # ssd hdd
 for i in $(find /sys/block/sd*); do
   echo "$sdsched" > $i/queue/scheduler;
-  echo "0" > $i/queue/add_random;
+  echo "1" > $i/queue/add_random;
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "64" > $i/queue/nr_requests
+  echo "4096" > $i/queue/nr_requests
   echo "8192" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -3410,11 +3506,11 @@ fi
 # mtd
 for i in $(find /sys/block/mtd*); do
   echo "$mtdsched" > $i/queue/scheduler;
-  echo "0" > $i/queue/add_random;
+  echo "1" > $i/queue/add_random;
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "64" > $i/queue/nr_requests
+  echo "4096" > $i/queue/nr_requests
   echo "4096" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -3470,11 +3566,11 @@ done;
 # mmc
 for i in $(find /sys/block/mmc*); do
   echo "$mmcsched" > $i/queue/scheduler;
-  echo "0" > $i/queue/add_random;
+  echo "1" > $i/queue/add_random;
   echo "0" > $i/queue/iostats;
   echo "0" > $i/queue/io_poll
   echo "2" > $i/queue/nomerges
-  echo "64" > $i/queue/nr_requests
+  echo "4096" > $i/queue/nr_requests
   echo "2048" > $i/queue/read_ahead_kb
   echo "0" > $i/queue/rotational
   echo "2" > $i/queue/rq_affinity
@@ -3538,8 +3634,6 @@ echo 'options usbhid mousepoll=4' | tee /etc/modprobe.d/usbhid.conf
 #if $(! grep -q "options processor ignore_ppc=1" /etc/modprobe.d/ignore_ppc.conf) ; then
 #echo 'options processor ignore_ppc=1' | tee /etc/modprobe.d/ignore_ppc.conf ; fi
 
-#x86_energy_perf_policy --hwp-enable --force
-x86_energy_perf_policy --all 1 --force
 
 if $(! grep -q acpi-cpufreq /etc/modules) ; then
 echo acpi-cpufreq >> /etc/modules ; fi
@@ -3551,7 +3645,9 @@ cpupower frequency-set -g $governor
 
 echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo
 echo 1 > /sys/devices/system/cpu/cpufreq/boost
+x86_energy_perf_policy --all 1 --force
 x86_energy_perf_policy --turbo-enable 1 --force
+x86_energy_perf_policy --hwp-enable --force
 
 echo $governor > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
@@ -3593,9 +3689,9 @@ echo 1 > /proc/sys/kernel/sched_child_runs_first
 echo 0 > /proc/sys/kernel/sched_autogroup_enabled
 echo 500 > /proc/sys/kernel/sched_cfs_bandwidth_slice_us
 echo 40000 > /sys/kernel/debug/sched/latency_ns
-echo 5000000 > /sys/kernel/debug/sched/migration_cost_ns
-echo 500000 > /sys/kernel/debug/sched/min_granularity_ns
-echo 5000000 > /sys/kernel/debug/sched/wakeup_granularity_ns
+echo 50000 > /sys/kernel/debug/sched/migration_cost_ns
+echo 2250000 > /sys/kernel/debug/sched/min_granularity_ns
+echo 15000000 > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo 128 > /sys/kernel/debug/sched/nr_migrate
 
 # different path under 5.10
@@ -3603,17 +3699,17 @@ sysctl -w kernel.sched_scaling_enable=1
 sysctl /proc/sys/kernel/sched_scaling_enable=1
 sysctl /proc/sys/kernel/sched_tunable_scaling=0
 sysctl /proc/sys/kernel/sched_child_runs_first=1
-sysctl /proc/sys/kernel/sched_min_granularity_ns=500000
-sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=5000000
+sysctl /proc/sys/kernel/sched_min_granularity_ns=2250000
+sysctl /proc/sys/kernel/sched_wakeup_granularity_ns=15000000
 sysctl /proc/sys/kernel/sched_latency_ns=40000
 sysctl /proc/sys/kernel/debug/sched/scaling_enable=1
 sysctl /proc/sys/kernel/debug/sched/tunable_scaling=0
 sysctl /proc/sys/kernel/debug/sched/child_runs_first=1
-sysctl /proc/sys/kernel/debug/sched/min_granularity_ns=500000
+sysctl /proc/sys/kernel/debug/sched/min_granularity_ns=2250000
 sysctl /proc/sys/kernel/debug/sched/wakeup_granularity_ns=5000000
 sysctl /proc/sys/kernel/debug/sched/latency_ns=40000
 echo '0' > /sys/kernel/debug/tunable_scaling
-echo '500000' > /sys/kernel/debug/sched/min_granularity_ns
+echo '2250000' > /sys/kernel/debug/sched/min_granularity_ns
 echo '5000000' > /sys/kernel/debug/sched/wakeup_granularity_ns
 echo '40000' > /sys/kernel/debug/sched/latency_ns
 echo 0 > /proc/sys/kernel/debug/sched/min_task_util_for_colocation
@@ -3684,8 +3780,8 @@ echo N > "$i"debug
 echo 40000 > "$i"latency_ns
 #echo ? > "$i"latency_warn_ms
 #echo ? > "$i"latency_warn_once
-echo 5000000 > "$i"migration_cost_ns
-echo 500000 > "$i"min_granularity_ns
+echo 50000 > "$i"migration_cost_ns
+echo 2250000 > "$i"min_granularity_ns
 echo 128 > "$i"nr_migrate
 echo full > "$i"preempt
 echo 0 > "$i"tunable_scaling
@@ -3717,9 +3813,9 @@ echo "1" /proc/sys/fs/leases-enable
 echo "0" > /proc/sys/fs/dir-notify-enable
 echo "20" > /proc/sys/fs/lease-break-time
 echo "1" > /proc/sys/vm/compact_unevictable_allowed
-#echo "90" > /proc/sys/vm/dirty_background_ratio
+#echo "40" > /proc/sys/vm/dirty_background_ratio
 echo "500" > /proc/sys/vm/dirty_expire_centisecs
-#echo "90" > /proc/sys/vm/dirty_ratio
+#echo "50" > /proc/sys/vm/dirty_ratio
 echo "1000" > /proc/sys/vm/dirty_writeback_centisecs
 echo "1" > /proc/sys/vm/oom_dump_tasks
 echo "1" > /proc/sys/vm/oom_kill_allocating_task
@@ -4017,8 +4113,8 @@ kernel.sched_deadline_period_max_us = 500000
 kernel.sched_deadline_period_min_us = 100
 kernel.sched_energy_aware = 0
 kernel.sched_latency_ns = 40000
-kernel.sched_migration_cost_ns = 5000000
-kernel.sched_min_granularity_ns = 500000
+kernel.sched_migration_cost_ns = 50000
+kernel.sched_min_granularity_ns = 2250000
 kernel.sched_min_task_util_for_colocation = 0
 kernel.sched_nr_migrate = 128
 kernel.sched_rr_timeslice_ms = -1
@@ -4027,7 +4123,7 @@ kernel.sched_rt_runtime_us = -1
 kernel.sched_scaling_enable = 1
 kernel.sched_schedstats = 0
 kernel.sched_tunable_scaling = 0
-kernel.sched_wakeup_granularity_ns = 5000000
+kernel.sched_wakeup_granularity_ns = 15000000
 kernel.seccomp.actions_avail = NONE
 kernel.seccomp.actions_logged = NONE
 kernel.sem = 32000      1024000000      500     32000
@@ -4075,9 +4171,9 @@ vm.admin_reserve_kbytes = 8192
 vm.block_dump = 0
 vm.compact_unevictable_allowed = 1
 vm.compaction_proactiveness = 0
-vm.dirty_background_ratio = 50
+vm.dirty_background_ratio = 40
 vm.dirty_expire_centisecs = 500
-vm.dirty_ratio = 80
+vm.dirty_ratio = 50
 vm.dirty_writeback_centisecs = 1000
 #vm.dirtytime_expire_seconds = 43200
 vm.extfrag_threshold = 750
@@ -6470,8 +6566,8 @@ debug.atrace.tags.enableflags=0
 ####
 # vm
 
-vm.dirty_background_ratio=90
-vm.dirty_ratio=90
+vm.dirty_background_ratio=40
+vm.dirty_ratio=50
 ro.config.low_ram=true
 #vm.min_free_kbytes=4096
 vm.vfs_cache_pressure=50
