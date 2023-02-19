@@ -463,7 +463,7 @@ $s sed -i -z -e 's/#\[chaotic-aur\]\n#Include = \/etc\/pacman.d\/chaotic-mirrorl
  $s pacman -S --noconfirm --needed plzip
  $s pacman -S --noconfirm --needed pkg_scripts
  #yes | $s pacman -S --needed ffmpeg-git #$(if glxinfo | grep -qi intel ; then echo "libva-git" ; fi)
- pkg2="alsa-tools dkms debtap linux-clear-bin linux-clear-headers-bin w3m-imgcat clr-power-tweaks"
+ pkg2="alsa-tools dkms debtap linux-clear-bin linux-clear-headers-bin w3m-imgcat"
  $s pacman -S --noconfirm --needed $pkg2
 
 if
