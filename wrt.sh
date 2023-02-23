@@ -15,26 +15,31 @@
 # instructions:
 # wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/wrt.sh -O /tmp/wrt.sh && chmod +x /tmp/wrt.sh && sh /tmp/wrt.sh
 
+#auto_update="no" # this option needs to be configured in the configuration script as well not just in this pre-setup script. left hashed out so they can be called when running the script for ease of use
+persistent="yes" # you need to enable at least this to be able to use the parameter config. enabled by default to active the config on rc.local. this is an alternative option to auto_update as it wont. including these options cause updates will be lacking in future so no use autoupdating. variable will cary on being used for first time in config for correct installation.
 
-pkglist="base-files bridger busybox ca-bundle dnsmasq dropbear ethtool firewall4 fstools haveged htop iptables-mod-conntrack-extra iptables-mod-ipopt iptables-nft irqbalance kernel kmod kmod-asn1-decoder kmod-br-netfilter kmod-cfg80211 kmod-crypto-acompress kmod-crypto-aead kmod-crypto-arc4 kmod-crypto-cbc kmod-crypto-ccm kmod-crypto-cmac kmod-crypto-crc32c kmod-crypto-ctr kmod-crypto-cts kmod-crypto-des kmod-crypto-ecb kmod-crypto-gcm kmod-crypto-gf128 kmod-crypto-ghash kmod-crypto-hash kmod-crypto-hmac kmod-crypto-kpp kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-crypto-manager kmod-crypto-md4 kmod-crypto-md5 kmod-crypto-null kmod-crypto-rng kmod-crypto-seqiv kmod-crypto-sha1 kmod-crypto-sha256 kmod-crypto-sha512 kmod-cryptodev kmod-dnsresolver kmod-gpio-button-hotplug kmod-ifb kmod-iosched-bfq kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-ipset kmod-ipt-nat kmod-ipt-offload kmod-ipt-raw kmod-iptunnel kmod-iptunnel4 kmod-ipvlan kmod-leds-gpio kmod-lib-crc-ccitt kmod-lib-crc16 kmod-lib-crc32c kmod-lib-lzo kmod-lib-textsearch kmod-lib-zlib-deflate kmod-lib-zlib-inflate kmod-lib80211 kmod-libphy kmod-loop kmod-mac80211 kmod-mppe kmod-mtd-rw kmod-nf-conntrack kmod-nf-ipt kmod-nf-log kmod-nf-nat kmod-nf-nathelper kmod-nf-nathelper-extra kmod-nf-reject kmod-nf-socket kmod-nf-tproxy kmod-nfnetlink kmod-nfnetlink-queue kmod-nft-arp kmod-nft-bridge kmod-nft-compat kmod-nft-core kmod-nft-fib kmod-nft-nat kmod-nft-netdev kmod-nft-offload kmod-nft-queue kmod-nft-socket kmod-nft-tproxy kmod-nls-base kmod-nls-utf8 kmod-oid-registry kmod-phylink kmod-ppp kmod-ppp-synctty kmod-pppoe kmod-random-core kmod-sched kmod-sched-cake kmod-sched-core kmod-sit kmod-slhc kmod-swconfig kmod-tcp-bbr kmod-tun kmod-udptunnel4 kmod-usb-core kmod-usb-ehci kmod-usb-ohci kmod-usb2 libc libgcrypt libkmod libuci2 libustream-wolfssl logd luci-app-attendedsysupgrade luci-app-bcp38 luci-app-commands luci-app-simple-adblock luci-ssl macchanger mtd netifd nftables-json odhcp6c odhcpd-ipv6only opkg ppp ppp-mod-pppoe procd procd-seccomp procd-ujail px5g-wolfssl swconfig uboot-envtools uci uclient-fetch uhttpd-mod-lua umdns urandom-seed urngd usteer wireless-regdb wireless-tools wpad-basic-wolfssl xtables-nft zlib"
-
+# if multicore: irqbalance
+# bootloader rw: kmod-mtd-rw
+# extras: umdns usteer bridger
+pkglist="base-files ca-bundle busybox dnsmasq dropbear ethtool firewall4 fstools haveged htop iptables-mod-conntrack-extra iptables-mod-ipopt iptables-nft  kernel kmod kmod-asn1-decoder kmod-br-netfilter kmod-cfg80211 kmod-crypto-acompress kmod-crypto-aead kmod-crypto-arc4 kmod-crypto-cbc kmod-crypto-ccm kmod-crypto-cmac kmod-crypto-crc32c kmod-crypto-ctr kmod-crypto-cts kmod-crypto-des kmod-crypto-ecb kmod-crypto-gcm kmod-crypto-gf128 kmod-crypto-ghash kmod-crypto-hash kmod-crypto-hmac kmod-crypto-kpp kmod-crypto-lib-chacha20 kmod-crypto-lib-chacha20poly1305 kmod-crypto-lib-curve25519 kmod-crypto-lib-poly1305 kmod-crypto-manager kmod-crypto-md4 kmod-crypto-md5 kmod-crypto-null kmod-crypto-rng kmod-crypto-seqiv kmod-crypto-sha1 kmod-crypto-sha256 kmod-crypto-sha512 kmod-cryptodev kmod-dnsresolver kmod-gpio-button-hotplug kmod-ifb kmod-iosched-bfq kmod-ipt-conntrack kmod-ipt-conntrack-extra kmod-ipt-core kmod-ipt-ipopt kmod-ipt-ipset kmod-ipt-nat kmod-ipt-offload kmod-ipt-raw kmod-iptunnel kmod-iptunnel4 kmod-ipvlan kmod-leds-gpio kmod-lib-crc-ccitt kmod-lib-crc16 kmod-lib-crc32c kmod-lib-lzo kmod-lib-textsearch kmod-lib-zlib-deflate kmod-lib-zlib-inflate kmod-lib80211 kmod-libphy kmod-loop kmod-mac80211 kmod-mppe kmod-nf-conntrack kmod-nf-ipt kmod-nf-log kmod-nf-nat kmod-nf-nathelper kmod-nf-nathelper-extra kmod-nf-reject kmod-nf-socket kmod-nf-tproxy kmod-nfnetlink kmod-nfnetlink-queue kmod-nft-arp kmod-nft-bridge kmod-nft-compat kmod-nft-core kmod-nft-fib kmod-nft-nat kmod-nft-netdev kmod-nft-offload kmod-nft-queue kmod-nft-socket kmod-nft-tproxy kmod-nls-base kmod-nls-utf8 kmod-oid-registry kmod-phylink kmod-ppp kmod-ppp-synctty kmod-pppoe kmod-random-core kmod-sched kmod-sched-cake kmod-sched-core kmod-sit kmod-slhc kmod-swconfig kmod-tcp-bbr kmod-tun kmod-udptunnel4 kmod-usb-core kmod-usb-ehci kmod-usb-ohci kmod-usb2 libc libgcrypt libkmod libuci2 libustream-wolfssl logd luci-app-attendedsysupgrade luci-app-bcp38 luci-app-simple-adblock luci-ssl macchanger netifd nftables-json odhcp6c odhcpd-ipv6only opkg ppp ppp-mod-pppoe procd procd-seccomp procd-ujail px5g-wolfssl swconfig uboot-envtools uci uclient-fetch uhttpd-mod-lua urandom-seed urngd wireless-regdb wireless-tools wpad-basic-wolfssl xtables-nft zlib"
+if [ $auto_update = yes ] ; then
 wrtsh='#!/bin/bash
 ### get script update on reboot on /tmp/init.sh and run...
 link=https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh
 while [ ! -f /tmp/init.sh ];
 sleep 10
-do ping 1.1.1.1 -c 4
+do ping 1.1.1.1 -c3
 if [ $? -eq 0 ]; then wget --timeout=10 -4 "$link" -O /tmp/init.sh ; fi
 if grep -q thanas /tmp/init.sh
 then chmod +x /tmp/init.sh && sh /tmp/init.sh && echo "succes"; exit 0; fi
 done'
-
+fi
 ### remove unused x-wrt stock packages
 opkg update && opkg remove --force-removal-of-dependent-packages --force-depends luci-app-dawn luci-app-ddns luci-app-ksmbd luci-app-mwan3 luci-app-natcap luci-app-natflow-users luci-app-p910nd luci-app-xwan luci-app-upnp *dawn* *ddns* *ksmbd* *mwan* *natcap* *natflow* *p910* *xwan* *upnp* *wsdd2* *pptpd* *zh-cn* *wireguard* *wizard* *dashboard* *mesh* *macvlan*
 
 ### install some pkgs & enable
 ### when too lazy to compile x-wrt
-echo "" && echo "" && echo $pkglist && echo "" && echo "Above is the recommended packagelist..." && echo ""
+echo "\n\n\n" "$pkglist\n" && echo "Above is the recommended packagelist..." && echo "\n"
 while true; do read -p "Do you have enough space installing the full packageset? type y/n, confirm with enter:" yn
 case $yn in
 [Yy]* ) opkg install --force-depends $pkglist ; break;;
@@ -211,37 +216,19 @@ echo "$pkglist" | tee /etc/pkglist.bak ; fi
 ### commit changes & apply config
 uci commit
 
+
 ### sync
+if [ $auto_update = yes ] ; then
 echo "$wrtsh" | tee /etc/rc.local ; chmod +x /etc/rc.local ; cp /tmp/init.sh /etc/sysctl.conf ; sh /etc/rc.local 
+fi
 
 wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/.basicsetup/wrt/profile -O /etc/profile
 
+for i in umount wifi-init auto_usb_mount blockd dawn ddns fakemesh fstab ksmbd macvlan miniupnpd mwan3 natcapd natcapd_boot natflow-boot natflow-user natflow-zone openvpn p910nd pptpd relayd usbmode wizard wsdd2 xwan ; do service $i disable ; done
 
-service umount disable
-service wifi-init disable
-service auto_usb_mount disable
-service blockd disable
-service dawn disable
-service ddns disable
-service fakemesh disable
-service fstab disable
-service ksmbd disable
-service macvlan disable
-service miniupnpd disable
-service mwan3 disable
-service natcapd disable
-service natcapd_boot disable
-service natflow-boot disable
-service natflow-user disable
-service natflow-zone disable
-service openvpn disable
-service p910nd disable 
-service pptpd disable 
-service relayd disable 
-service usbmode disable 
-service wizard disable 
-service wsdd2 disable 
-service xwan disable 
+if [ $auto_update != yes ] ; then
+wget https://raw.githubusercontent.com/thanasxda/basic-linux-setup/master/init.sh -O /tmp/init.sh ; cat /tmp/init.sh | tee /etc/rc.local ; chmod +x /etc/rc.local ; sh -x /etc/rc.local
+fi
 
 ### done
 reboot 

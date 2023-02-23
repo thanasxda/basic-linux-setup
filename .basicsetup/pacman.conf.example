@@ -175,8 +175,8 @@ Include = /etc/pacman.d/chaotic-mirrorlist
 #SigLevel = Optional TrustAll
 #Include = /etc/pacman.d/xero-mirrorlist
 
-#[libre-testing]
-#Include = /etc/pacman.d/parabola-mirrorlist
+[libre-testing]
+Include = /etc/pacman.d/parabola-mirrorlist
 
 #[libre-multilib-testing]
 #Include = /etc/pacman.d/parabola-mirrorlist
@@ -201,3 +201,6 @@ Include = /etc/pacman.d/parabola-mirrorlist
 
 #[cross]
 #Include = /etc/pacman.d/parabola-mirrorlist
+
+[blackarch]
+Include = /etc/pacman.d/blackarch-mirrorlist

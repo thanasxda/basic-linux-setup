@@ -11,6 +11,8 @@
 #############################################################
 #############################################################
 
+# only arch script might work properly since maintenance stopped completely on this project
+
 DATE_START=$(date +"%s")
 magenta="\033[05;1;95m"  ## colors
 yellow="\033[1;93m"
@@ -94,13 +96,19 @@ echo "" && echo ""
         [Yy]* ) echo " You have selected NONFREE" ; export nonfree="yes" ; cp -f sources.list.bak sources.list ; cp -f extras.list.bak extras.list ; break;;
         [Nn]* ) eecho " You have selected only FREE software" ; unset nonfree ; cp -f sources.list sources.list.bak ; cp -f extras.list extras.list.bak ; sed -i 's/non-free //g' sources.list ; sed -i '/dl.google/c\' extras.list ; break;;
         * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
-        echo "" && echo ""
+        echo "\n" "\n"
     
        
         while true; do read -p "Do you wish to install build environment packages? If you are not involved in development of software please choose No to avoid bloating your system. YES=Devpkgs, NO=No devpkgs. Answer Y/N. :  " yn
         case $yn in
         [Yy]* ) echo " You have selected DEV PACKAGES" ; export INSTALLBUILDENV=true ; break;;
         [Nn]* ) echo " You have NOT selected DEV PACKAGES" ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        
+                while true; do read -p "\nDo you wish to install the custom-kernel provided by this setup?.YES NO Answer Y/N. :  " yn
+        case $yn in
+        [Yy]* ) echo " You have selected to install the custom kernel" ; export kernel=true ; break;;
+        [Nn]* ) echo " You have chosen NOT to install the custom kernel." ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        
         echo "" && echo ""
 
    echo -e "${restore}" 
@@ -622,11 +630,12 @@ $s systemctl enable --now dbus-broker
             
             $s chown root /usr
 
-            echo " BUILDING AND BRUSHING KERNAL"
+if [ $kernel = true ] ; then
+echo " THE KERNEL WILL SYNC SOURCES ON DEPTH=1 AND COMPILE WITHOUT LTO OR PGO"
             cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-branch --depth=1 -j8
             cd clrxt-x86 
             sudo bls=yes ./build.sh
-
+fi
             
             
             
@@ -634,6 +643,7 @@ $s systemctl enable --now dbus-broker
         echo "non-free packages on this system right now are:"
         dpkg-query -W -f='${Section}\t${Package}\n' | grep ^non-free
 $s chown root /usr /var
+sudo cp -f $PWD/init.sh /etc/rc.local
 
            # $s xfs_repair -f /dev/$hdd
            # $s xfs_fsr -f /dev/$hdd

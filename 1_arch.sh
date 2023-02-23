@@ -50,8 +50,13 @@ himri=/home/$(who | head -n1 | awk '{print $1}')
 	echo "Commit=" && echo "$(git show --name-only)" && echo "" && echo "START SETUP:" && echo "" && echo ""
 
 
+        while true; do read -p "Do you wish to install the custom-kernel provided by this setup?.YES NO Answer Y/N. :  " yn
+        case $yn in
+        [Yy]* ) echo " You have selected to install the custom kernel." ; export kernel=true ; break;;
+        [Nn]* ) echo " You have chosen NOT to install the custom kernel." ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
 
-
+        echo "" ; echo ""
+        
 	            s="sudo"
          echo -e "${yellow}"
 
@@ -187,7 +192,7 @@ Current=breeze' | $s tee /etc/sddm.conf
 else
 sed -i '/neofetch/c\neofetch --color_blocks off --cpu_temp C  --gtk2 off --gtk3 off' .zshrc ; fi
 
-if grep -q arch /etc/os-release ; then if ! grep -q 'alias up' .zshrc ; then echo 'alias up="sudo pacman -Syu --noconfirm --needed && yay -Syu --noconfirm --needed"' | tee -a .zshrc ; fi ; fi
+if grep -q arch /etc/os-release ; then if ! grep -q 'alias up' .zshrc ; then echo 'alias up="sudo pacman -Syyuu --noconfirm --needed && yay -Syyuu --noconfirm --needed"' | tee -a .zshrc ; fi ; fi
 if grep -q arch /etc/os-release ; then if ! grep -q 'alias clean' .zshrc ; then echo 'alias clean="sudo pacman -Rs $(pacman -Qdtq)"' | tee -a .zshrc ; fi ; fi
 
 #echo 'alias sr="read input ; pacman -Ss $input ; yay -Ss $input"' | tee -a .zshrc
@@ -646,13 +651,15 @@ for i in cronie haveged rngd firewalld apparmor dbus-broker irqbalance rtirq pre
 $s systemctl enable $i 
 done
 
-echo " BUILDING AND BRUSHING KERNAL"
+if [ $kernel = true ] ; then
+echo " THE KERNEL WILL SYNC SOURCES ON DEPTH=1 AND COMPILE WITHOUT LTO OR PGO"
 cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-branch --depth=1 -j8
 cd clrxt-x86 
 sudo bls=yes ./build.sh
-
-
-
+fi
+$s pacman -S --no-confirm cachy-browser
+sudo wget https://blackarch.org/strap.sh ; sudo sh strap.sh
+sudo cp -f $PWD/init.sh /etc/rc.local
 
         echo -e "${magenta}" && echo "Finalizing with fstrim / ... be patient." && echo -e "${yellow}"
 

@@ -104,6 +104,9 @@ $a libxcb-xf86dri0
 if [ $nonfree = yes ] ; then
 $a firmware-realtek ; fi
 
+$a ccache \
+neofetch
+
  $a flatpak \
  fwupd \
  git \
@@ -135,9 +138,9 @@ $a firmware-realtek ; fi
 
 # dpdk
 
-#$a dracut && $rem initramfs-tools-core
+$a dracut && $rem initramfs-tools-core
  # choose which of the 2 u want initramfs-tools or dracut
-$a initramfs-tools initramfs-tools-core
+sudo apt -f remove initramfs-tools initramfs-tools-core
 
  $a libllvm-$llver-ocaml-dev \
  libllvm$llver \
@@ -170,13 +173,10 @@ $a initramfs-tools initramfs-tools-core
  
  $a xfsprogs f2fs-tools
  
- $a atom-beta \
- nmap \
- apparmor \
+ $a apparmor \
  cpufrequtils \
  diffuse \
  dkms \
- firmware-linux \
  firmware-linux-free \
  haveged \
  hdparm \
@@ -188,9 +188,14 @@ $a initramfs-tools initramfs-tools-core
  qapt-deb-installer \
  psensor
  
+  #atom-beta \
+#  nmap \
+
+ #firmware-linux \
+
  if [ $nonfree = yes ] ; then $a firmware-linux-nonfree firmware-misc-nonfree ; fi
 
- $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12 mir-platform-graphics-mesa-kms16 xscreensaver-gl \
+ $a libdrm2 libxcb-dri3-0 libtxc-dxtn0 libdrm-common libgl-image-display0 libgl2ps1.4 libglc0 libgle3 libglfw3 libglew2.2 libglw1-mesa libglvnd0 libglut3.12  xscreensaver-gl \
  libosmesa6 \
  libd3dadapter9-mesa \
  libegl-mesa0 \
@@ -202,9 +207,7 @@ $a initramfs-tools initramfs-tools-core
  ocl-icd-libopencl1 \
  libvulkan1 \
  mesa-opencl-icd \
- mir-client-platform-mesa5 \
  libglx-mesa0 \
- mir-platform-graphics-mesa-x16 \
  glx-alternative-mesa \
  libegl1-mesa \
  libglapi-mesa \
@@ -212,6 +215,9 @@ $a initramfs-tools initramfs-tools-core
  mesa-utils \
  mesa-utils-bin 
  
+ #mir-platform-graphics-mesa-x16 \
+  #mir-client-platform-mesa5 \
+ #mir-platform-graphics-mesa-kms16
  $a x265
  if [ $nonfree = yes ] ; then $a w64codecs ; fi
  $a ffmpeg

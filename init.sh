@@ -11,7 +11,7 @@
 #############################################################
 #############################################################
 # setup meant as universal config for x86, android & general.
-POSIXLY_CORRECT=0 ; droidprop="/system/build.prop" ; wrt="grep -q wrt /etc/os-release" ; # distro="\|your-distro" # unhash if running another distro, but know it has not been tested
+POSIXLY_CORRECT=0 ; droidprop="/system/build.prop" ; wrt="grep -q wrt /etc/os-release" ; # distro="\|your-distro" # unhash if running another distro, but know it has not been tested !!!!!!!!!!
 linux=$(grep -q "debian\|arch$distro" /etc/os-release) ; arch="grep -q arch /etc/os-release" ; debian="grep -q debian /etc/os-release" 
      ### script execution delay
 bgmips=$(grep -qi "bogomips\|BogoMIPS" /proc/cpuinfo | awk -F ":" '{print $2}' | awk -F '.' '{print $1}' | head -n 1)
@@ -33,59 +33,115 @@ if [ -f /system/xbin/sh ] ; then export bb="/system/xbin/" ; fi
 fi 
 # GITHUB/microsoft
 interjection() {
-if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop ; then cat "$(pwd)"/.blsconfig | tee /data/adb/service.d/.blsconfig ; else cat "$(pwd)"/.blsconfig | tee /etc/.blsconfig ; fi ; if [ -e $PWD/.blsconfig ] ; then for i in $(cat $PWD/.blsconfig) ; do export $i ; done ; fi
-} 
+if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droidprop ] ; then cat $PWD/.blsconfig | tee /data/adb/service.d/.blsconfig ; else cat $PWD/.blsconfig | tee /etc/.blsconfig ; fi ; if [ -e $PWD/.blsconfig ] ; then for i in $(cat $PWD/.blsconfig) ; do export $i ; done ; fi
+}     
+########################################################################################################################################################################################################################
+##################  DO NOT CONTINUE ANY FURTHER WITHOUT HAVING READ THE UNDERNEATH DISCLAIMER  #########################################################################################################################
+########################################################################################################################################################################################################################
+     ### < DISCLAIMER >
+      # !!! I AM NOT RESPONSIBLE IF YOUR COMPUTER CATCHES FIRE AND BRINGS YOUR HOUSE ALONG WITH IT. !!! 
+      # eol
+      
+    ### < CREDITS >
+      # special thanks to all underneath in particular: 
+      # /* Arch wiki (improving performance) and all of its contributors for the outstanding information */
+      # /* Alexandre Oliva for making linux libre, free of proprietary code */
+      # /* Intel for clear-linux and Arjan van de Ven for actively maintaining the kernel */
+      # /* Alexandre Frade for Xanmod kernel */
+      # /* Phoronix by Michael Larabel for providing detailed benchmarks over every aspect */
+      # /* Tons of thousands contributors i do injustice upon by not mentioning making stuff like this possible, as this stuff is just a minor mod/configuration over preexisting work like gnu/linux and all the software that comes with it. where the real work is done, mainly free of charge. showing some appreciation will not hurt despite of the level of professionalism... unless you want to be using proprietary closed source software for the rest of your life which does not respect your freedom */
+      # if i happen to mess up a commit on authorship due to a dirty merge/patchset, again... just a hobbyist having fun learning, so my excuses.
+      
+    ### < COMPATIBILITY >
+      # since i dont include stuff i dont test or run... and this script is just for fun...
+      # if running anything else upto you to tweak to your needs.
+      # general devices and android are configured to use the script differently. config hardware dependent.
+      # setup optimized for: 
+      # /* init:         systemd */
+      # /* bootloader:   grub/systemd/maybe refind, bios/efi/efi-stub */
+      # /* initramfs:    dracut/initramfs-tools */
+      # /* kernel:       custom-linux-libre (not hurd), amd/intel only (full-setup only) */
+      # /* de:           kde */
+      # /* compositor:   x11 */
+      # /* os:           debian/arch (might break others, not tested) */
+      # /* general:      must work from android 4.x or earlier (if busybox is present) upto latest (if maintained), same case openwrt. other general devices must be supported, but lack of testing. */
+      # if the script does not work on debian/arch for you, android and/or general devices... probably it lacks maintenance. 
+      # if modifying the script be aware doing things according to shellcheck might break compatibility over legacy devices. (older android versions, routers. etc)
+
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
 ### <<<< VARIABLES >>>> - UNDERNEATH VARIABLES ARE SETUP RELATED >>>>>>>>>>>>>>>>>>>>>>>>>>>>
  # note that some options are related to x86 specific linux distributions only and have no effect on general devices
 ########################################################################################################################################################################################################################
 ########################################################################################################################################################################################################################
-
-      ### < GENERAL SCRIPT CONFIG >
-       # IMPORTANT NOTE: you can also create a .blsconfig within the $PWD this script will run from which in case of x86 GNU/Linux is /etc/rc.local so: /etc/.blsconfig, put the variables you want to override, or even your own $rawlink in case of forking. This is an alternative method to still get updates while overriding setup options. In case you want the setup to be frozen: override variable will stop it from syncing with any repository and keep it strictly local, vars variable will not. choice is yours. keep in mind .blsconfig in case of git is in gitignore.
-      # setup variables you want to override without applying override variable and disabling sync function from repo regardless of what script is configured to. use single quoutes in vars variable. this option will only apply to the setup variables and not to the full config like the override variable, example: you want to autosync but dont want mitigations=off by default. or change rawlink to fork or any other value of the setup variables on top of the script. once the script is overridden by the sync it will create a file if the $vars variable has been even specified once. for x86 it will be located in /etc/.blsconfig. since the script attempts to be compatible in some usecases the kernel cmdline will be packed in ramdisk. for stubborn cases as such run `sudo su ; firstrun=yes sh /path/to/script while having the $vars variable set or having a .blsconfig file in the same $PWD.
-
+########################################################################################################################################################################################################################
+### WARNING: using this script means configuring it to << YOUR needs >>. its just a couple variables... (if youre lazy scrolling down at least). if you do not create a `.blsconfig` prior to running this script... you can make one here. you get the point... note that there are many options even stupid stuff such as igpumitigations. they default to `on` however. just thought it was nice putting the knobs there. in short, user can control quite a lot and personalize just from these variables for personalization of quite a lot going on in the full setup. not all however. edit the full script for fine-tuning if needed.
+# lots of settings just changed when making this script due to it still having been in its testing phase... however i think as is is the sweetspot more or less for a decent setup over various hardware.
+########################################################################################################################################################################################################################
+## it WONT hurt setting extra, already handled preconfigured variables if this setup would ever change to remain on your settings. so dont rely on my repo... use yours
+# example config: 
+# vars='mitigations=on ; level=medium ; script_autoupdate=no ; account=your-forked-repo ; git=gitlab ; branch=name-of-your-branch ; repo=name-of-your-repo ; path=/path/to/file ; file=name-of-script.sh ; microcode=on ; loglevel=7 ; areyoustupid=no ; ksm=1 ; thp=madvise ; nobarrier=off ; audit=1 ; ignoreloglevel=off ; inteligpumitigations=auto ; bluetooth=on ; ipv6=on ; unsafesysctl=no ; clean_sources_list_d=no ; sourceslist_update=no ; override=yes ; sdsched=mq-deadline ; sched=kyber ; dns1=your-router-ip ; dns2=your-router-ip ; dns61=your-router-ipv6-ip ; dns62=your-router-ipv6-ip ; pingaddr=8.8.8.8 ; governor=ondemand ; pwrsave=on ; country=will-be-auto-detected-and-appended ; ranvasp=2 ; kaslr=on ; seccomp=1' 
 ########################################################################
-##      ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      ##      
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+##      WARNING: ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      !!!!      WARNING: ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      !!!!      WARNING: ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      
+##      WARNING: ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      !!!!      WARNING: ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY      !!!!      WARNING: ENTER SETUP VARIABLE VALUES YOU WANT TO OVERRIDE LOCALLY
+## !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ########################################################################
         vars=''                                                      
 ########################################################################
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
+    ### < GENERAL SCRIPT CONFIG >
+########################################################################################################################################################################################################################
+    ### < SCRIPT AUTO UPDATE FEATURE > - syncs latest script from repo. do not enable this it has been mainly for my own convenience while making this. only enable when forking from your OWN repo.
+        #script_autoupdate="no" # use `sudo script_autoupdate=yes sh /etc/rc.local` instead, this will get the single update once... if and when there is one. preferably dont even use this.
+        persistent="yes" # when rc.local on openwrt isnt used to autoupdate the script, echo the config to /etc/rc.local on openwrt instead. for openwrt only. these 2 cant work simoultanious. so set local persistent config.
 
-        #fix_bootpart="no" # fix boot partition systemd-boot/refind efi stub only (do not use otherwise, will wipe boot and efi partition), dont use if dual boot. unhash for usage or call out prior to running script: sudo fix_bootpart=yes sh init.sh
-        script_autoupdate="yes"
-        sourceslist_update="no"
-        clean_sources_list_d="no" # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
-        restore_backup="no" # to avoid much maintenance is partial
-        uninstall="no"
-        override="no" # due to compatibility reasons script is present over many devices. if choosing to edit the script then enable override variable underneath
-        #firstrun="yes" # additional first run setup, unlike others hashed out this one is active if you unhash
-        #safeconfig="no" # ld_preload and stuff      # if you have issues enable this for bootparams only. mainly x86. also overrides LD_PRELOAD libraries
-        unsafesysctl="no" # only contains tcp config, labeled `unsafe` because on some hardware it could cause connection issues
-        compositor="x11"
-        #windowmanager="kwin_x11" # kwin, kwin_gles, kwin_x11, kwin_wayland, openbox etc
-        account=thanasxda # links to use for this setup, in case of forking.
+        account=thanasxda # links to use for this setup, in case of forking (global btw). complaining about what I use is a waste of your time...
         repo=basic-linux-setup
         branch=master
         git=github
         #path=/path/to
         file=init.sh
-        # gitlab/github. if using anything else just override rawlink alltogether
-        interjection ; if [ $git = github ] ; then
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
+########################################################################################################################################################################################################################
+        interjection ; if [ $git = github ] ; then # gitlab/github. if using anything else just override rawlink alltogether
         rawlink=https://raw.${git}usercontent.com/$account/$repo/$branch$path
         elif [ $git = gitlab ] ; then
         rawlink=https://${git}.com/$account/$repo/-/raw/$branch$path
         fi # dont quoute, if not on git replace rawlink instead in $vars
-
+        if [ -e $droidprop ] ; then if [ ! -e /data/adb/service.d/init.sh ] ; then script_autoupdate="on" ; else script_autoupdate="off" ; fi ; fi # on android instead of modding the module, only sync first time to install the android module. after that requires  manual input as option in local .blsconfig within same $pwd 
+        if [ ! -e $droidprop ] && $(! $wrt) && echo $PWD | grep -qi $repo && $(! grep -qi $(git show --name-only) /etc/.blscommitlog) ; then touch /etc/.blscommitlog ; echo "$(date) $(git show --name-only)" | tee -a /etc/.blscommitlog ; fi # keep local logs of commits for GNU/LINUX mainly for debugging
+        
+        #fix_bootpart="no" # fix boot partition systemd-boot/refind efi stub only (do not use otherwise, will wipe boot and efi partition), dont use if dual boot. unhash for usage or call out prior to running script: sudo fix_bootpart=yes sh init.sh
+        sourceslist_update="no"
+        clean_sources_list_d="no" # clean /etc/apt/sources.list.d/* with the exception of extras.list which isn't synced
+        restore_backup="no" # to avoid much maintenance is partial
+        uninstall="no"
+        override="no" # due to compatibility reasons script is present over many devices. if choosing to edit the script then enable override variable underneath. this is to keep the script local without overriding and directly editing the script without relying on a local config file or vars.
+        #firstrun="yes" # additional first run setup, unlike others hashed out this one is active if you unhash
+        #safeconfig="no" # ld_preload and stuff if you have issues enable this for bootparams only. mainly x86. also overrides LD_PRELOAD libraries .. not used anymore btw 
+        unsafesysctl="no" # only contains tcp config, labeled `unsafe` because on some hardware it could cause connection issues
+########################################################################################################################################################################################################################
+################## AFTER HAVING PAID ATTENTION AND HAVING READ ALL THIS FAR, YOU ARE FREE TO DO WHATEVER YOU WANT. THANKS FOR YOUR TIME AND HOPE YOU ENJOY AS MUCH AS I DID MAKING THIS ################################
+########################################################################################################################################################################################################################
+    
       ### < MISC >
+        compositor="x11" # before switching to wayland, check phoronix. settings are how they are for a reason. besides point, setup made on x11 for performance, most probably wouldnt work well on wayland as its not been tested on it.
+        #windowmanager="kwin_x11" # kwin, kwin_gles, kwin_x11, kwin_wayland, openbox etc
         ipv6="off" # ipv6 "on" to enable
-        dns1="1.1.1.1" # dns servers
+        dns1="1.1.1.1" # dns servers - default in this setup is cloudflare which supports dns over https (DoH) by default.
         dns2="1.0.0.1"
-        dns61="2606:4700:4700::1111"
+        dns61="2606:4700:4700::1111" # ipv6 dns servers, only when ipv6 is on
         dns62="2606:4700:4700::1001"
         pingaddr="1.1.1.1" # preferred address to ping
         bluetooth="off"
 
       ### < I/O SCHEDULER >
-      # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme
+      # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme. test yourself though.
         if find /dev/nvme* ; then sched="none" ; else sched="bfq" ; fi
       # - only used when /dev/sd* ssd hdd etc.
         sdsched="bfq"
@@ -95,19 +151,23 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
 
       ### < CPU GOVERNOR >
       # - linux kernel cpu governor
-        governor="performance" # use pstates
-
-      ### < MITIGATIONS > - expect HIGH!!! performance penalty in favor of security when enabling this. degree of performance degradation relative to the hardware. can leave disabled and run trusted code, use librejs browser plugin
-      # by default only enabed on v4 capable instruction set and all non x86_64 cpu's. override with $vars, easiest.
-        x86="/lib/ld-linux-x86-64.so.2" ; if [ ! -e $x86 ] ; then     mitigations="on"    # non-x86_64     - enabled
-        elif $x86 --help | grep -q "v4 (supported" ;         then     mitigations="on"    # x86_64_v4      - enabled - modern cpu's not worthwhile
+        governor="performance" # use pstates - only managed clocks on cpu's supporting pstates. older cpu's relying on acpi-cpufreq probably want to set schedutil here to keep cores from maxing out constant rate.
+        if [ -e $droidprop ] ; then governor="schedutil" ; fi
+        
+      ### < MITIGATIONS > - expect HIGH!!! performance penalty in favor of security when enabling this. one of your main concerns in this setup should be THIS. degree of performance degradation relative to the hardware. can leave disabled and run trusted code, use librejs browser plugin (remember you might have the most insane hardening but 1 wrong javascript through the browser is enough to infect you with malware or worse, so dont be lazy... make use of librejs/jshelter/noscript. unfortunately trying to remain on `free` software will limit what you can and cannot do. note that browsers are preconfigured using http3 by default, which is udp: less secure. full-setup only, i think... or maybe in this script as well. too lazy dont remember check for yourself. dont need me to explain it. as im tired of this setup use `about:flags` and find quic protocol for anything chrome based. `about:config` and find http3 for anything based on mozilla.)
+      # by default only enabed on v4 capable instruction set and all non x86_64 cpu's. override with $vars, easiest. preferably use this only if your kernel+userspace setup is deblobbed and has no non-free software. 
+      # (most newer v4 cpu's see just 5% improvements over older gen which could be over 30%, ranges depending hardware & benchmark)
+      # THIS IS CONFIGURED TO WORK WITH DEBIAN/ARCH ONLY! (other distributions might be different)
+        if $arch ; then x86="/lib/ld-linux-x86-64.so.2" ; elif $debian ; then x86="/usr/lib64/ld-linux-x86-64.so.2" ; fi
+        if [ ! -e $x86 ] ; then                                       mitigations="on"    # non-x86_64     - enabled 
+        elif $x86 --help | grep -q "v4 (supported" ;         then     mitigations="on"    # x86_64_v4      - enabled - modern cpu's not worthwhile 
         elif $x86 --help | grep -q "v3 (supported" ;         then     mitigations="off"   # x86_64_v3      - disabled
         elif $x86 --help | grep -q "v2 (supported" ;         then     mitigations="off"   # x86_64_v2      - disabled
         else                                                          mitigations="off"   # x86_64         - disabled
           fi
 
       ### < TCP CONGESTION CONTROL >
-      # - linux kernel tcp congestion algorithm
+      # - tcp congestion algorithm
         tcp_con="bbr"
         if [ ! -f /proc/sys/net/core/default_qdisc ] ; then if grep -q 'westwood' /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then tcp_con="westwood" ; else tcp_con="cubic" ; fi ; fi
         if grep -q 'bbr2' /proc/sys/net/ipv4/tcp_allowed_congestion_control ; then tcp_con="bbr2" ; fi
@@ -115,7 +175,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
       ### < QDISC >
       # - queue managment
         qdisc="fq_codel"
-        if [ ! $tcp_con = bbr ] || [ ! $tcp_con = bbr2 ] ; then qdisc="cake" ; fi
+        if [ ! $tcp_con = bbr ] || [ ! $tcp_con = bbr2 ] ; then if $(! $wrt) ; then qdisc="fq" ; else qdisc="cake" ; fi ; fi
 
       ### < WIRELESS REG-DB >
       # - wireless regulatory settings per country 00 for global
@@ -127,8 +187,8 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
       ### < WIFI SETTINGS >
       # - basic wifi settings
         beacons="50"
-        frag="4096"
-        rts="4096"
+        frag="2346"
+        rts="2347"
         txpower="auto"
         pwrsave="off"
         distance="10"
@@ -145,28 +205,37 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
         autoneg="on"
 
       ### < EXTRAS >
-        idle="nomwait"
-        perfamdgpu="auto" #"performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
-        cpumaxcstate="9"
-        zpool="z3fold" # zram and zswap only autoconfigured for 2gb ram or less in this setup and only of kernel modules are present, so not on routers. only regresses performance if ram is sufficient.
-        zpoolpercent="35"
-        pagec="0"
-        ksm="0"
-        ranvasp="2"
-        kaslr="on"
-        microcode="off"
-        seccomp="1" # switch only working if systemd is present, permanently disabling needs patched kernel.
-        thp="always" # always/madvise/off
-        vdso="on"
-        extras="on"
+      # GENERAL INFORMATION & EXTRA OPTIONS: 
+        level="high" # low/medium/high(morethanmedium is mitigated high) for benchmarkig use high. for security + benchmarking use morethanmedium=on (level will be ignored when enabling this). more mild is medium. low just medium bootparams. high disables almost all (i could think of) causing overhead. anything other than level=high,morethanmedium=on will skip parts of this script alltogether so dont expect the script to even be configurable using those options as most will be left on defaults. mitigations need to be disabled manually on newer (v4 instructionset) cpu's. this level option requires better scripting when switching from one level to the other only if falling back from high to medium or vice versa... due to it being a personal script pick one option and stick with it as im not in the mood for wasted efforts nor investing more time in this. for benchmarking only use high. instead of relying on this quick general setup you should scroll down and check or modify. this is just for ease of use.
+        #morethanmedium="on" # keeps settings high but mitigations on every instructionset cpu even if the compromise in performance could be tremendous. keeps nobarrier enabled on storage. assuming you have read the readme, most probably youre on f2fs/xfs as this script is not for your average user. active when unhashed.
+        idle="nomwait" # setting this to `poll` can improve performance but keeps cores from idling. deteriorating efficiency. 
+        nobarrier="on" # only applicable on f2fs/ext4. can compromise data integrity in favor of performance. f2fs works best.
+        cpumaxcstate="9" # c-states even for benchmarking purposes. only consumes more energy. some cstates can benefit latency under circumstances as well.
+        pagec="0" # dependent on ksm
+        ksm="0" # depending on your system usecase and memory management in some usecases might be beneficial leaving on. disabling can cause improved latency with sacrifice of consuming more memory. if i dont give explanations... linux kernel documentation is your friend.
+        ranvasp="2" # no performance benefit switching off, not worth it
+        kaslr="on" # no performance benefit switching off, not worth it. if youre on an old distro and still using prelink, it breaks security functions as these. (note: on android it must be off to set mitigations=off. not on other architectures, maybe thats why it doesnt benefit x86 in my experience but did something for aarch64... not sure might have been other factors as well did not pinpoint. tips in readme for mitigations on android, not handled by this setup as hijacking cmdline wont work on most if not all default kernels. lots of things testing very well on aarch64 have almost no effect on x86 btw... so this setup might not be optimal at all for you if on any other arhcitecture, keep in mind.)
+        microcode="off" # the full-setup does not use microcode updates from userspace because of it being proprietary. hardware microcode cannot be switched off since its baked in. this also serves as a performance boost (on my hardware, significant). keep in mind some mitigations can also be handled through microcode. if you use a deblobbed libre kernel this will not work eitherway, even when enabled. the kernel provided in the full-setup is deblobbed. if you are not concerned with free code nor performance you might want to enable this. it slows down performance however if mitigations=on microcode might be able to mitigate more efficiently. part from reading, have not benched this in practice as i tend not to use mitigations. (maybe when on v4 cpu, more reasonable)
+        seccomp="1" # switch only working if systemd is present, permanently disabling needs patched kernel. when off in kernel causes system to be slightly more responsive without gains in benchmarks. not worth on x86, does more for arm. (custom kernel tried patch, not worth so revered to defaults)
+        thp="always" # always/madvise/off - will be overriden automatically depending on how much memory you have now. so this setting is useless now. if you have sufficient ram use persistent preallocated hugepages and disable transparant hugepages. most performance increase when working with databases. 
+        vdso="on" # many things including vdso, on by default. just some kernels might differ so leave switches in despite.
+        extras="off" # off for defaults. init_on_free, init_on_alloc off means defaults btw, so enabled.
         dracut="enabled" # include dracut in mkinitramfs firstrun
-        debloatandroid="yes" # if on android on first run script will debloat android, select no if issues
-        androidfstab="yes" # script will modify android fstab, select no if experiencing bootloop lol. restore defaults with variables or manually `cp -rf/system/etc/bak /` in recovery
-        androidbuildprop="yes" # setup will apply persistent minimal build.prop modifications to android disable if facing any issues
         rcu="rcu_nocbs=0" # rcu_nocbs=<cpu#>/rcu_nocb_poll
-        inteligpumitigations="auto"
-        logging="off"
-        areyoustupid="no" # LoL 
+        perfamdgpu="auto" # "performance" for automatic scaling till highest clocks when necessary "high" for highest constant clocks and "auto" for default # more info here https://wiki.archlinux.org/title/AMDGPU
+        inteligpumitigations="auto" # auto for default = on , as for the benching addicts.... do not disable mitigations on your intel igpu lol
+        zpool="z3fold" # zram and zswap only autoconfigured for 2gb ram or less in this setup and only of kernel modules are present, so not on routers. only regresses performance if ram is sufficient.
+        zpoolpercent="35" # dependent on zram
+        audit="0" # could cause slight overhead when on
+        loglevel="5" # set loglevel. loglevel 1 info. 7 is default. to avoid overhead on disk you could set a high loglevel on tmpfs but it requires sufficient ram and scripting to be dumped on disk during reboots and im not willing to put in more effort into this. (set to more sane defaults now for the average user, since setup is huge and theres many sorts of logging/debugging/auditing in linux scroll down ensuring all is set to your needs)
+        ignoreloglevel="off" # overrides loglevel specified in cmdline params to kernel defaults. (note that custom kernel from full-setup uses 1 info)
+        #areyoustupid="no" # this disables additional security and irrelevant options and sets settings more extreme hoewever there are no real performance gains despite. thus the title. 
+        #additional_cmdline="" # apply additional cmdline parameters
+      
+      ### < ANDROID ONLY >
+        debloatandroid="yes" # if on android on first run script will debloat android on first run of the script only, select no if issues (this is highly likely to cause you trouble if you use factory roms and not aosp/lineage. not guaranteed but possible)
+        androidfstab="yes" # script will modify android fstab, select no if experiencing bootloop lol. restore defaults with variables or manually `cp -rf/system/etc/bak /` in recovery (contains most likely failsafe kernelversion matching for appropriate flags)
+        androidbuildprop="yes" # setup will apply persistent minimal build.prop modifications to android disable if facing any issues (just a couple, almost all are hashed out... most only for legacy devices since script aims for compatibility. probably most not present in latest source)
 
       ### < ADDITIONAL BLOCKLISTS FOR HOSTS FILE > - not on openwrt
         list1=
@@ -183,10 +252,12 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
       ### < FSTAB FLAGS >
       # - /etc/fstab - let fstrim.timer handle discard # https://www.kernel.org/doc/Documentation/filesystems/<ext4.txt><f2fs.txt><xfs.txt> some flags might be incompatible with android, if bootloop check
         if [ ! -e $droidprop ] ; then export errorsmnt=",errors=remount-ro" ; fi
-        if [ $(uname -r | cut -c1-1) -ge 5 ] ; then f2fsmem=",memory=normal,compress_algorithm=lz4:9,compress_chksum" ; fi
+        if [ $(uname -r | cut -c1-1) -ge 5 ] ; then f2fsmem=",memory=normal,compress_algorithm=lz4:9,compress_chksum" ; fi # f2fs compression lz4 level 9 used. setting zstd,lz4hc here can improve disk read speeds upto 20% according to benchmarks over defaults at the cost of slight cpu overhead depending on the settings used. as reasonable balance set to lz4:9. needs kernel support (included in custom kernel provided by this setup, will not fail to boot if not so). option can be tweaked further if needed. kept reasonable.
+                # trigger morethanmedium config if set 
+        interjection ; if [ $morethanmedium = on ] ; then level="high" ; fi
         xfs="defaults,rw,lazytime,noatime,noquota,nodiscard,attr2,inode64,logbufs=8,logbsize=256k,allocsize=64m,largeio,swalloc,filestreams,async"
-       ext4="defaults,rw,lazytime,noatime,noquota,nodiscard,commit=60,nobarrier,noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
-       f2fs="defaults,rw,lazytime,noatime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=nobarrier,gc_merge,async$f2fsmem"
+       ext4="defaults,rw,lazytime,noatime,noquota,nodiscard$(if [ $level = high ] || [ $nobarrier = on ] && [ $level = high ] ; then echo ",commit=60,nobarrier" ; fi),noauto_da_alloc,user_xattr,max_batch_time=120,noblock_validity,nomblk_io_submit,init_itable=0,async$errorsrmnt"
+       f2fs="defaults,rw,lazytime,noatime,noquota,nodiscard,background_gc=on,no_heap,inline_xattr,inline_data,inline_dentry,flush_merge,extent_cache,mode=adaptive,alloc_mode=default,fsync_mode=$(if [ $level = high ] || [ $nobarrier = on ] && [ $level = high ] ; then echo "nobarrier" ; else echo "posix" ; fi),gc_merge,async$f2fsmem"
        vfat="defaults,rw,lazytime,noatime,fmask=0022,dmask=0022,shortname=mixed,utf8,errors=remount-ro"
       tmpfs="defaults,rw,lazytime,noatime,nr_inodes=1M,auto"
 
@@ -209,7 +280,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
         droidsysctl="/system/etc/sysctl.conf"
         droidhosts="/system/etc/hosts"
         droidcmdline="/system/etc/root/cmdline"
-        droidshell="/system\/xbin\/sh" # only shebang
+        droidshell="/system\/xbin\/sh" # only shebang ps if you mod this use different delimiters for sed, didnt know at the time thus the \//\/\//\\/ got used to it by now
         #if $(! grep -q lazytime "$fstab") ; then export droidshell="/system\/bin\/sh" ; fi
         #if [ $testing = yes ] ; then export droidshell="/bin\/sh" ; fi
         #"$bb"mount -o rw /dev/block/bootdevice/by-name/vendor /vendor
@@ -221,11 +292,12 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if $droidprop
         "$bb"mount -o remount,rw rootfs /
         fi
         # fix boot partition setup
-        if $linux ; then 
+        if $linux && $(! $wrt) && [ ! -e $droidprop ] ; then # DO NOT MESS AROUND WITH THIS ( if modding the script by accident ) AND WIPE /boot PARTITION $linux ONLY! explicitly used with sudo now not to be recognized by busybox or wrt. it wouldnt lead to a hardbrick, but still spares some effort. especially if youre not handy with unbricking android or wrt, or anything else.
         if [ -e /efi/ ] ; then systemdb=/efi/loader ; elif [ -e /boot/efi/ ] ; then systemdb=/boot/efi/loader ; elif [ -e /boot/loader/loader.conf ] ; then systemdb=/boot/loader ; fi
-        if [ $fix_bootpart = yes ] ; then if [ ! -z $systemdb ] ; then 
-        if apt-cache search dracut | grep -qi intalled || pacman -Qm dracut | grep -qi dracut ; then yes | rm -rf /boot/* /efi/* ; dracut --regenerate-all --uefi ; bootctl install ; refind-install ; refind-mkdefault ; firstrun=yes ; fi ; fi ; fi ; fi
+        if [ $fix_bootpart = yes ] ; then firstrun=yes ; if [ ! -z $systemdb ] ; then 
+        if apt-cache search dracut | grep -qi intalled || pacman -Qm dracut | grep -qi dracut ; then yes | sudo rm -rf /boot/* /efi/* ; dracut --regenerate-all --uefi ; bootctl install ; refind-install ; refind-mkdefault ; firstrun=yes ; fi ; fi ; fi ; fi
 
+        
       ### < MEMORY ALLOCATION >
       # - if memory under 2gb or swap or zram considered low spec if not high spec
 export zram='#!/bin/sh
@@ -236,7 +308,7 @@ modprobe lz4_compress
 echo lz4 > /sys/block/zram0/comp_algorithm
 echo "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)G"  > /sys/block/zram0/disksize
 if [ "$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo )" -lt 1000000 ] ; then
-echo "0.$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)G"  > /sys/block/zram0/disksize ; fi
+echo "0.$(awk '\''/MemTotal/ { print $2 }'\'' /proc/meminfo | cut -c1-1)00m"  > /sys/block/zram0/disksize ; fi
 echo 0 > /sys/block/zram0/queue/add_random
 echo 0 > /sys/block/zram0/queue/chunk_sectors
 echo 0 > /sys/block/zram0/queue/dax
@@ -319,16 +391,8 @@ update-initramfs -u
 sudo sed -i '\''s/#ALGO.*/ALGO=lz4/g'\'' /etc/default/zramswap
 sudo sed -i '\''s/PERCENT.*/PERCENT='"$zpoolpercent"'/g'\'' /etc/default/zramswap; fi'
 
-# if NOT tv box OR openwrt then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
+# if NOT tv box OR openwrt (USED TO BE THAT WAY NOT ANYMORE, ALL INCLUSIVE) then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
-interjection ; if [ $areyoustupid = yes ] ; then for i in export ; do
-if $(! grep -q nokaslr /proc/cmdline) ; then $i firstrun="yes" ; fi
-if $arch && [ -e /etc/firstboot ] ; then
-pacman -Rsn --noconfirm intel-ucode
-pacman -Rsn --noconfirm amd-ucode
-rm -rf /etc/firstboot
-firstrun="yes" ; fi
-$i thp="always" ; done ; fi
 
 hoverc=32
 overcommit=3
@@ -336,18 +400,7 @@ oratio=150
 shmmax=100000000
 shmmni=1600000
 shmall=35000000
-if [ $thp = madvise ] ; then
-echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
-echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-elif [ $thp = always ] ; then
-echo always > /sys/kernel/mm/transparent_hugepage/enabled
-echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
-elif [ $thp = off ] ; then
-echo never > /sys/kernel/mm/transparent_hugepage/enabled
-echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
-echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
+
 #hpages=' transparent_hugepage=madvise'
 #hugepages="16"
 #hpages=' transparent_hugepage=madvise'
@@ -366,7 +419,7 @@ shmall=100000000
 hoverc=256
 overcommit=1
 oratio=110
-swappiness=1
+swappiness=10
 cpress=30
 thp=always
 rm -rf /etc/zram.sh
@@ -387,7 +440,7 @@ shmall=100000000
 hoverc=512
 overcommit=1
 oratio=140
-swappiness=0
+swappiness=5
 cpress=50
 thp=always
 sed -i 's/RUNSIZE=.*/RUNSIZE=25%/g' /etc/initramfs-tools/initramfs.conf ; fi
@@ -407,7 +460,7 @@ shmall=100000000
 hoverc=1024
 overcommit=1
 oratio=180
-swappiness=0
+swappiness=2
 cpress=90
 thp=always
 sed -i 's/RUNSIZE=.*/RUNSIZE=30%/g' /etc/initramfs-tools/initramfs.conf ; fi
@@ -481,6 +534,28 @@ sysctl -w kernel.shmmni=$shmmni
 sysctl -w kernel.shmall=$shmall
 sysctl -w vm.overcommit_ratio=$oratio
 
+interjection ; if [ $areyoustupid = yes ] ; then for i in export ; do
+if $(! grep -q nokaslr /proc/cmdline) ; then $i firstrun="yes" ; fi
+if $arch && [ -e /etc/firstboot ] ; then
+pacman -Rsn --noconfirm intel-ucode
+pacman -Rsn --noconfirm amd-ucode
+rm -rf /etc/firstboot
+firstrun="yes" ; fi
+$i thp="always" ; done ; fi
+
+if [ $thp = madvise ] ; then
+echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
+echo madvise > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+elif [ $thp = always ] ; then
+echo always > /sys/kernel/mm/transparent_hugepage/enabled
+echo always > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 1 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag
+elif [ $thp = off ] ; then
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
+echo never > /sys/kernel/mm/transparent_hugepage/shmem_enabled
+echo 0 > /sys/kernel/mm/transparent_hugepage/khugepaged/defrag ; fi
+
 # from the kernel documentation: The number of kernel parameters is not limited, but the length of the complete command line (parameters including spaces etc.) is limited to a fixed number of characters. This limit depends on the architecture and is between 256 and 4096 characters. It is defined in the file ./include/asm/setup.h as COMMAND_LINE_SIZE.
 # if you wonder why your setup doesnt show all parameters in /proc/cmdline.... suddenly chronological order becomes important.
 interjection ; if [ $areyoustupid = yes ] ; then for i in export ; do
@@ -503,11 +578,12 @@ if lscpu | grep -qi "x86\|PPC" ; then mit11=" nospectre_v1 spec_store_bypass_dis
 if lscpu | grep -qi "x86\|PPC\|s390|\ARM" || [ -f $droidprop ] ; then mit12=" nospectre_v2" ; fi
 fi
 xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mit13" ; elif [ $mitigations = on ] ; then xmitigations=" mitigations=on" ; fi
-
+if [ $level = medium ] || [ $level = low ] || [ $morethanmedium = on ] ; then xmitigiations=" mitigations=on" ; extras="off" ; fi
+if [ $ignoreloglevel = off ] ; then log=" audit=$audit loglevel=$loglevel mminit_loglevel=$loglevel log_priority=$loglevel udev.log_priority=$loglevel udev.log_level=$loglevel" ; fi
 # cpu amd/intel
-xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic amd_pstate=passive" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off tsx=on intel_pstate=hwp_only" ; fi)"
+xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic amd_pstate=passive" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off$(if [ $level != medium ] || [ $level != low ] ; then echo " tsx=on" ; fi) intel_pstate=hwp_only" ; fi)"
 #
-xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grepi -q AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=io,perf_event,rdma,cpu,cpuacct,cpuset,net_prio,hugetlb,blkio,memory,devices,freezer,net_cls,pids,misc noautogroup big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge align_va_addr=on iommu.strict=0 novmcoredd iommu=force,pt$(if [ $extras = on ] ; then echo " init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 audit=0 loglevel=0 mminit_loglevel=0 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused log_priority=0 migration_debug=0 udev.log_priority=0 udev.log_level=0 acpi_sleep=s4_hwsig slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages$( if [ $logging = on ] ; then echo " ignore_loglevel" ; fi) rcupdate.rcu_expedited=1 workqueue.power_efficient=0 noreplace-smp refscale.loops=$(($(nproc --all)*2))"
+xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grep -qi AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=cpu,cpuacct,cpuset,memory$(if [ $level = high ] ; then echo ",io,perf_event,rdma,net_prio,hugetlb,blkio,devices,freezer,net_cls,pids,misc cgroup_no_v1=all noautogroup" ; fi) big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge$(if [ ! -z $additional_cmdline ] ; then echo " $additional_cmdline" ; fi) align_va_addr=on iommu.strict=0 novmcoredd iommu=force,pt$(if [ $extras = on ] && [ $level = high ] ; then echo " init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused migration_debug=0 acpi_sleep=s4_hwsig slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages$log$( if [ $ignoreloglevel = on ] ; then echo " ignore_loglevel" ; fi) rcupdate.rcu_expedited=1 workqueue.power_efficient=$(if [ $level = high ] ; then echo "0" ; else echo "1" ; fi) noreplace-smp refscale.loops=$(($(nproc --all)*2))"
 #
 xrflags=$(if [ $(uname -r | cut -c1-1) -ge 4 ] && grep -q "/ " /etc/fstab | $(! grep -q "btrfs\|zfs" $fstab) ; then echo " rootflags=lazytime,noatime" ; else echo " rootflags=noatime" ; fi)
 #
@@ -521,11 +597,12 @@ xkaslr="$(if [ $kaslr = off ] && [ ! -f $droidprop ] || [ $kaslr = off ] && $(ls
 #
 xzsw="$(if echo "$zswap" | grep -q "zswap.enabled=1" ; then echo "$zswap" ; else echo " zswap.enabled=0" ; fi)"
 # extras only with kexec # udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),
-xtra0=" libahci.ignore_sss=1 libata.force=ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance pstore.backend=null"
+xtra0=" libahci.ignore_sss=1 libata.force=ncq,dma$(if [ $level = high ] ; then echo ",nodmalog,noiddevlog,nodirlog" ; fi),lpm,setxfer nodelayacct no-steal-acc enable_mtrr_cleanup printk.always_kmsg_dump=0 pcie_aspm=force pcie_aspm.policy=performance$(if [ $level = high ] ; then echo " pstore.backend=null" ; fi)"
 #
-xtra1=" cpufreq.default_governor=performance cgroup_no_v1=all cryptomgr.notests stack_depot_disable=true nf_conntrack.acct=0 numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(find /sys/block/nvme*) ; then echo " nvme_core.default_ps_max_latency_us=0 nvme_load=YES" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes processor.ignore_tpc=1$(if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1" ; fi) noresume hibernate=noresume no_timer_check processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
+xtra1=" cpufreq.default_governor=performance cryptomgr.notests stack_depot_disable=true$(if [ $level = high ] ; then echo " nf_conntrack.acct=0" ; fi) numa_balancing=disable workqueue.disable_numa nfs.enable_ino64=1$(if $(find /sys/block/nvme*) ; then echo " nvme_core.default_ps_max_latency_us=0 nvme_load=YES" ; fi) ahci.mobile_lpm_policy=0 plymouth.ignore-serial-consoles fstab=yes processor.ignore_tpc=1$(if [ $cpumaxcstate = 0 ] ; then echo " processor.latency_factor=1" ; fi) noresume hibernate=noresume no_timer_check processor.bm_check_disable=1$(if [ $vdso = off ] ; then echo " vdso=0" ; fi)"
 #if [ $safeconfig = no ] ; then
-xtra2=" reboot=warm$xipv6 io_delay=none uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 rd.udev.log_level=0 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig processor.max_cstate=$cpumaxcstate$(if ip -o link | grep -qi wlan ; then echo " rfkill.default_state=0 rfkill.master_switch_mode=1" ; fi) carrier_timeout=1 ip=:::::::$dns1:$dns2: systemd.unified_cgroup_hierarchy=0"
+xtra2=" reboot=warm$xipv6 io_delay=none uhci-hcd.debug=0 usb-storage.quirks=p usbcore.usbfs_snoop=0 apparmor=1 autoswap biosdevname=0 boot_delay=0 memtest=0 page_poison=0 rd.systemd.gpt_auto=1 rd.systemd.show_status=false rd.udev.exec_delay=0 slab_merge sysfs.deprecated=0 systemd.default_timeout_start_sec=0 systemd.gpt_auto=1 udev.exec_delay=0 waitdev=0 cec.debug=0 kvm.mmu_audit=0 scsi_mod.use_blk_mq=1 bootconfig processor.max_cstate=$cpumaxcstate$(if ip -o link | grep -qi wlan ; then echo " rfkill.default_state=0 rfkill.master_switch_mode=1" ; fi) carrier_timeout=1 ip=:::::::$dns1:$dns2:$(if [ $level = high ] ; then echo " rd.udev.log_level=0 systemd.unified_cgroup_hierarchy=0" ; fi)"
+
 #fi
 # disable radeon and have just amdgpu workaround for performance degradation in some gpus. need to unlock for manual control of voltages, didnt work for me
 #unlockgpu="$(printf 'amdgpu.ppfeaturemask=0x%x\n' "$(($(cat /sys/module/amdgpu/parameters/ppfeaturemask) | 0x4000))")"
@@ -537,7 +614,7 @@ xtra2=" reboot=warm$xipv6 io_delay=none uhci-hcd.debug=0 usb-storage.quirks=p us
 #
 # nohz_full=1-$(nproc) parport=0 floppy=0 agp=0 lp=0 pata_legacy.all=0
 
-# find local config and override above setup variables determined by what is defined with in the persistent config
+# find local config and override above setup variables determined by what is defined within the persistent config
 interjection
 # first run of script does more
 if [ -f $droidprop ] && [ ! -f /data/adb/service.d/${file} ] || [ ! -f $doidprop ] && $(! grep -q thanas /etc/rc.local) ; then export firstrun=yes ; firstrun=yes ; fi
@@ -555,7 +632,7 @@ if [ $microcode = on ] && $arch && $(lscpu | grep -q Intel) && [ $firstrun = yes
                                         # https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt
                                           bootargvars="$(echo "$xmicrocode$xmitigations$xcpu$xvarious$xkaslr$xrflags$xsched$xzsw")"
                                         export xpar="quiet splash$bootargvars$xtra0$xtra1$xtra2"
-                                      if lscpu | grep -q x86_64 ; then export par="$(grep '/ ' /etc/fstab | awk '{print "root="$1}') rw $xpar" ; else export par=$xpar ; fi
+                                      if lscpu | grep -q x86_64 ; then export par="root=$(awk '/\/ / {print $1}' /etc/fstab) $(if find *clrxt* /boot >/dev/null ; then echo "rw" ; else echo "ro" ; fi) $xpar" ; else export par=$xpar ; fi # if clrxt-x86 doesnt boot set to rw manually
                                         if [ $uninstall = yes ] ; then par=$(cat "$ifdr"/etc/bak/root/cmdline) ; fi
 
 # module options
@@ -568,12 +645,10 @@ $i cpufreq default_governor=$governor
 $i cryptomgr notests
 $i kvm mmu_audit=0
 $i libahci ignore_sss=1
-$i libata force=udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),ncq,dma,nodmalog,noiddevlog,nodirlog,lpm,setxfer
-$i nf_conntrack acct=0
+$i libata force=udma$(dmesg | grep 'configured for UDMA' | awk -F 'UDMA' '{print $2}'),ncq,dma$(if [ $level = high ] ; then echo ",nodmalog,noiddevlog,nodirlog" ; fi),lpm,setxfer
 $i nfs enable_ino64=1
-$i pstore backend=null
+if [ $level = high ] ; then $i pstore backend=null ; $i scsi_mod scsi_logging_level=0 ; $i nf_conntrack acct=0 ; fi
 $i scsi_mod use_blk_mq=1
-$i scsi_mod scsi_logging_level=0
 $i uhci-hcd debug=0
 $i usb-storage quirks=p
 $i usbcore usbfs_snoop=0
@@ -614,7 +689,7 @@ $i i915 mitigations=$inteligpumitigations
 $i i915 enable_fbc=1
 $i i915 fastboot=1
 $i i915 modeset=1
-$i i915 enable_guc=2
+$i i915 enable_guc=2 #blobs arent included in libre
 $i i915 enable_dc=1
 $i i915 mmio_debug=0
 $i i915 guc_log_level=0
@@ -772,6 +847,7 @@ else echo "Offline"; fi'
 
   ### < RC.LOCAL OPENWRT >
     # - /etc/rc.local & /etc/sysctl.conf, /tmp/init.sh for openwrt
+    if [ $persistent != yes ] ; then
 wrtsh='#!/bin/sh
 ### get script update on reboot on /tmp/init.sh and run...
 link='"${rawlink}"'/'"${file}"'
@@ -782,7 +858,7 @@ if [ $? -eq 0 ]; then wget --continue -4 "$link" -O /tmp/'"${file}"' ; fi
 if grep -q thanas /tmp/'"${file}"'
 then chmod +x /tmp/'"${file}"' && sh /tmp/'"${file}"' && echo "succes"; exit 0; fi
 done'
-
+fi
 
 
 
@@ -830,7 +906,7 @@ Target = bash
 [Action]
 Description = Re-pointing /bin/sh symlink to dash...
 When = PostTransaction
-Exec = /usr/sbin/ln -sfT /usr/sbin/dash /usr/sbin/sh
+Exec = '"$(which ln)"' -sfT '"$(which dash)"' '"$(which sh)"'
 Depends = dash' | tee /etc/pacman.d/hooks/dash.hook
 
 # clr header hook
@@ -873,13 +949,14 @@ fi
       #sed -i 's/#UserStopDelaySec=.*/UserStopDelaySec=1/g' /etc/systemd/logind.conf
       #sed -i 's/#ReserveVT=.*/ReserveVT=1/g' /etc/systemd/logind.conf
       #sed -i 's/#InhibitDelayMaxSec=.*/InhibitDelayMaxSec=1/g' /etc/systemd/logind.conf
-      sed -i 's/#RemoveIPC=.*/RemoveIPC=yes/g' /etc/systemd/logind.conf
       #sed -i 's/#UserStopDelaySec=.*/UserStopDelaySec=1/g' /etc/systemd/logind.conf
-      sed -i 's/#HandleRebootKey=.*/HandleRebootKey=reboot/g' /etc/systemd/logind.conf
+      sed -i 's/#HandleRebootKey=.*/HandleRebootKey=reboot/g' /etc/systemd/logind.conf # fixes slow reboots, poweroffs (its either this or noresume parameter in cmdline, which breaks hibernation)
       sed -i 's/#HandlePowerKey=.*/HandlePowerKey=poweroff/g' /etc/systemd/logind.conf
       #sed -i 's/#HoldoffTimeoutSec=.*/HoldoffTimeoutSec=1/g' /etc/systemd/logind.conf
       #sed -i 's/RESUME=UUID=/#RESUME=UUID=/g' /etc/initramfs-tools/conf.d/resume
-      sed -i 's/#Storage=.*/Storage=none/g' /etc/systemd/coredump.conf
+if [ $level = high ] ; then sed -i 's/#Storage=.*/Storage=none/g' /etc/systemd/coredump.conf ; sed -i 's/#RemoveIPC=.*/RemoveIPC=yes/g' /etc/systemd/logind.conf ; else
+      sed -i 's/Storage=.*//g' /etc/systemd/coredump.conf ; sed -i 's/RemoveIPC=.*//g' /etc/systemd/logind.conf ; fi
+      
       sed -i 's/#DNSSEC=.*/DNSSEC=yes/g' /etc/systemd/resolved.conf
       sed -i 's/#DNSOverTLS=.*/DNSOverTLS=yes/g' /etc/systemd/resolved.conf
       sed -i 's/#Cache=.*/Cache=yes/g' /etc/systemd/resolved.conf
@@ -938,9 +1015,7 @@ fi
     "gitkraken",
     "github-desktop",
     "konsole",
-    "lld",
-    "mold",
-    "ld",
+
 ],
 // Default
 0: [
@@ -958,6 +1033,10 @@ fi
     "apt:,
     "dpkg",
     "aptitude",
+    "lld",
+    "mold",
+    "ld",
+    "ld.gold",
 ],
 // Low
 (9, Idle): [
@@ -1224,7 +1303,7 @@ fi
     resolution="$(xrandr --current | grep current | awk '{print $8$9$10}' | sed 's/\,.*//')"
     sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT=""' /etc/default/grub
     sed -i '/GRUB_CMDLINE_LINUX=/c\GRUB_CMDLINE_LINUX=""' /etc/default/grub
-    sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="'"$par"'"' /etc/default/grub
+    sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\GRUB_CMDLINE_LINUX_DEFAULT="'"$xpar"'"' /etc/default/grub
     #sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="'"$par"'"/g' /etc/default/grub
     #sed -i 's/GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="splash quiet'"$x0"'"/g' /etc/default/grub
     sed -i "/GRUB_TIMEOUT/c\GRUB_TIMEOUT=1" /etc/default/grub
@@ -1241,13 +1320,17 @@ fi
     if [ $lvm = no ] ; then olvm=" lvm lvmmerge lvmthinpool-monitor" ; fi
     if [ $crypt = no ] ; then ocrypt=" crypt" ; fi
     if [ ! -z $systemdb ] ; then uefilib=" uefi-lib" ; fi
-    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm$(if [ $microcode = on ] ; then echo " early_microcode=yes" ; fi) stdloglvl=0 sysloglvl=0 fileloglvl=0 show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4 lz4hc$(if lscpu | grep -qi intel ; then echo " intel_pstate" ; elif lscpu | grep -qi amd ; then echo " amd_pstate" ; fi)$dracgpu' omit_dracutmodules+='debug syslog watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
+    dracflags="kernel_cmdline='$par' hostonly=yes hostonly_cmdline=yes use_fstab=yes$defi add_fstab+=/etc/fstab mdadmconf=$raid lvmconf=$lvm$(if [ $microcode = on ] ; then echo " early_microcode=yes" ; fi)$(if [ $ignoreloglevel = off ] ; then echo " stdloglvl=0 sysloglvl=0 fileloglvl=0" ; fi) show_modules=yes do_strip=yes nofscks=no compress=lz4 add_drivers+='lz4 lz4hc$(if lscpu | grep -qi intel ; then echo " intel_pstate" ; elif lscpu | grep -qi amd ; then echo " amd_pstate" ; fi)$dracgpu' omit_dracutmodules+='$(if [ $level = high ] ; then echo "syslog " ; fi)debug watchdog watchdog-modules brltty$oraid$obt$olvm$ocrypt' add_dracutmodules+='dash kernel-modules rootfs-block udev-rules usrmount base fs-lib shutdown systemd dracut-systemd systemd-initrd systemd-sysusers dbus dbus-broker rngd drm fstab-sys i18n kernel-modules-extra terminfo network network-manager img-lib$uefilib'"
+              if [ $dracut = enabled ] ; then
+        if [ ! "$(cat /etc/dracut.conf.d/*linux.conf)" = "$dracflags" ] ; then
+        rm -rf /etc/dracut.conf.d/* ; echo "$dracflags" | tee /etc/dracut.conf.d/10-linux.conf ; fi ; fi
       fi
       if lscpu | grep -qi intel ; then modprobe intel_pstate ; elif lscpu | grep -qi amd ; then modprobe amd_pstate ; fi
         # omit_dracutmodules+='iscsi brltty' dracutmodules+='systemd dash rootfs-block udev-rules usrmount base fs-lib shutdown rngd fips busybox rescue caps lz4 acpi_cpufreq cpufreq_performance processor msr$draczswap'"
 
-
-
+if [ $level = low ] ; then echo "\n setup applied till cmdline params on level = low, success" ; exit 0 ; fi
+        
+##################################### level = low ends here
 
 
 
@@ -1306,7 +1389,7 @@ fi
     echo 'tmpfs    /tmp        tmpfs    '"$tmpfs"',mode=1777         0 0' | tee -a "$fstab"
     echo 'tmpfs    /var/tmp    tmpfs    '"$tmpfs"',mode=1777         0 0' | tee -a "$fstab"
     echo 'tmpfs    /run/shm    tmpfs    '"$tmpfs"',mode=0755         0 0' | tee -a "$fstab"
-    echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"',noexec 0 0' | tee -a "$fstab" #nosuid causes worstening of hackbench
+    echo 'tmpfs    /dev/shm    tmpfs    '"$tmpfs"''"$devshm"',noexec'"$(if [ $level != high ] ; then echo ",nosuid" ; fi)"'  0 0' | tee -a "$fstab" #nosuid causes worstening of hackbench
     echo 'tmpfs    /var/lock   tmpfs    '"$tmpfs"',mode=1777         0 0' | tee -a "$fstab"
     echo 'tmpfs    /var/run    tmpfs    '"$tmpfs"',mode=0755         0 0' | tee -a "$fstab" ; fi)
     #echo 'tmpfs    /var/log    tmpfs    '"$tmpfs"',mode=1755,size=10m  0 0' | tee -a /etc/fstab
@@ -1320,7 +1403,7 @@ fi
     sed -i 's/\/tmp        tmpfs.*/\/tmp        tmpfs    '"$tmpfs"',mode=1777          0 0/g' "$fstab"
     sed -i 's/\/var\/tmp    tmpfs.*/\/var\/tmp    tmpfs    '"$tmpfs"',mode=1777          0 0/g' "$fstab"
     sed -i 's/\/run\/shm    tmpfs.*/\/run\/shm    tmpfs    '"$tmpfs"',mode=0755          0 0/g' "$fstab"
-    sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"',noexec     0 0/g' "$fstab"
+    sed -i 's/\/dev\/shm    tmpfs.*/\/dev\/shm    tmpfs    '"$tmpfs"''"$devshm"',noexec'"$(if [ $level != high ] ; then echo ",nosuid" ; fi)"'    0 0/g' "$fstab"
     sed -i 's/\/var\/lock   tmpfs.*/\/var\/lock   tmpfs    '"$tmpfs"',mode=1777          0 0/g' "$fstab"
     sed -i 's/\/var\/run   tmpfs.*/\/var\/run   tmpfs    '"$tmpfs"',mode=0755             0 0/g' "$fstab"
 
@@ -1359,7 +1442,7 @@ fi
       if grep -q "Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com," $HOME/.ssh/config ; then
       echo "Flag exists"; else echo 'Ciphers aes128-gcm@openssh.com,aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
       Compression yes' | tee -a $HOME/.ssh/config /root/.ssh/config ; fi
-      sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" "$ifdr"/etc/ssh/sshd_config
+      sed -i "/#PermitRootLogin prohibit-password/c\PermitRootLogin no" "$ifdr"/etc/ssh/sshd_config # configure some security which wont harm performance
       sed -i "/X11Forwarding yes/c\X11Forwarding no" "$ifdr"/etc/ssh/sshd_config
       sed -i "/#AllowTcpForwarding yes/c\AllowTcpForwarding no" "$ifdr"/etc/ssh/sshd_config
       sed -i "/#PermitTTY yes/c\PermitTTY no" "$ifdr"/etc/ssh/sshd_config
@@ -1386,9 +1469,10 @@ fi
 
 
   # journaling and more
+  if [ $level = high ] ; then
       if grep -q "Storage=none" /etc/systemd/journald.conf ; then echo "Flag exists" ; else echo "Storage=none" | tee -a /etc/systemd/journald.conf ; fi
-      sed -i s"/\Storage=.*/Storage=none/"g /etc/systemd/coredump.conf
-      sed -i s"/\Seal=.*/Seal=no/"g /etc/systemd/coredump.conf
+      sed -i 's/\Storage=.*/Storage=none/g' /etc/systemd/coredump.conf
+      sed -i 's/\Seal=.*/Seal=no/g' /etc/systemd/coredump.conf ; fi
 
 
 
@@ -1402,6 +1486,7 @@ fi
 
 
   # hdparm
+
   if [ ! -f "$ifdr"/etc/pdparm.conf ] ; then touch "$ifdr"/etc/hdparm.conf &&
 echo 'apm = 254
 dma = on
@@ -1413,6 +1498,8 @@ keep_features_over_reset = on' | tee -a "$ifdr"/etc/hdparm.conf ; fi
       sed -i 's/#keep_settings_over_reset =.*/keep_settings_over_reset = on/g' /etc/hdparm.conf
       sed -i 's/#keep_features_over_reset =.*/keep_features_over_reset = on/g' /etc/hdparm.conf
       sed -i 's/#write_cache =.*/write_cache = on/g' /etc/hdparm.conf
+      if [ $level != high ] ; then sed -i 's/apm =.*//g' /etc/hdparm.conf ; fi
+
 
 
 
@@ -1426,8 +1513,8 @@ keep_features_over_reset = on' | tee -a "$ifdr"/etc/hdparm.conf ; fi
 
 
 
-  # selinux - we have apparmor, but leave this in passively config devices who have selinux instead
- if $droidprop ; then
+  # selinux - we have apparmor, but leave this in passively config devices who have selinux instead - might break fedora/rhel/centos so just on android where older kernels are on selinux instead ( last time i tested it broke fedora, so ... havent tested ever since as i do not have a full-setup for fedora and do not plan on doing more effort )
+ if [ -e $droidprop ] ; then
     sed -i "/SELINUX=permissive/c\SELINUX=enforcing" "$ifdr"/etc/selinux/config
     sed -i "/SELINUXTYPE=/c\SELINUXTYPE=mls" "$ifdr"/etc/selinux/config
     echo 1 > /sys/fs/selinux/enforce
@@ -1437,10 +1524,10 @@ keep_features_over_reset = on' | tee -a "$ifdr"/etc/hdparm.conf ; fi
 
 
   # firewall
-    sed -i "/shields-down/c\shields-down=public" "$ifdr"/etc/firewall/applet.conf
+    sed -i "/shields-down/c\shields-down=public" "$ifdr"/etc/firewall/applet.conf #firewalld default preconfig
     sed -i "/shields-up/c\shields-up=block" "$ifdr"/etc/firewall/applet.conf
     sed -i "/DefaultZone/c\DefaultZone=block" "$ifdr"/etc/firewalld/firewalld.conf
-    ufw deny 22/tcp
+    ufw deny 22/tcp # ufw not used in this setup but left in despite
     ufw deny 22/udp
     ufw deny 23/tcp
     ufw deny 23/udp
@@ -1518,12 +1605,11 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
   hdparm -A1 $i
   hdparm -d1 $i
   hdparm -W 1 $i
-  hdparm -B 254 $i
+  if [ $level = high ] ; then hdparm -B 254 $i ; smartctl --smart=off $i ; fi
   hdparm -Q 32 $i
   hdparm -R0 $i
   hdparm -k1 $i
   hdparm -K1 $i
-  smartctl --smart=off $i
   done
 
 
@@ -1532,7 +1618,8 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
   if $linux && [ $country != 00 ] ; then
   echo 'WIRELESS_REGDOM='"$country"'' | tee /etc/conf.d/wireless-regdom ; fi
   if $arch ; then
-  sed -i 's/-mtune=generic/-fasynchronous-unwind-tables -feliminate-unused-debug-types -ffast-math -fforce-addr -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -fopenmp -funsafe-math-optimizations -fwrapv -lcrypt -ldl -lhmmer -lm -lncurses -lpgcommon -lpgport -lpq -lpthread -lrt -lsquid -m64 -march=native -mcpu=native -mtune=native -pipe -pthread -g0 -fuse-linker-plugin -Wl,--as-needed -Wl,--sort-common -Wl,norelro -Wl,-mcpu=native -Wl,--strip-debug -falign-functions=64 -O3 -fassociative-math -Wno-frame-address -Wno-trigraphs -Wundef -ffat-lto-objects -Wl,-O3 -fuse-ld=lld -fvpt -fpeel-loops -finline-functions -funswitch-loops -fgcse-after-reload -ftree-loop-distribute-patterns -Ofast -funroll-loops -Wp,-D_REENTRANT -ftree-loop-optimize -foptimize-sibling-calls -fdelete-null-pointer-checks -faggressive-loop-optimizations -mprefer-vector-width=256 -flto=auto -fomit-frame-pointer -fno-stack-protector -Wno-format-security -Wl,--hash-style-gnu /g' /etc/makepkg.conf
+  if [ $level = high ] ; then extracflags=" -ffast-math -Wl,norelro -Ofast -funroll-loops -fomit-frame-pointer -fno-stack-protector -Wno-format-security -flto=auto -faggressive-loop-optimizations -funsafe-math-optimizations" ; else extracflags=" -D_FORTIFY_SOURCE=2 -Wl,relro -fstack-clash-protection -fcf-protection" ; fi
+  sed -i 's/-mtune=generic/-fasynchronous-unwind-tables -feliminate-unused-debug-types -fforce-addr -fno-semantic-interposition -fno-signed-zeros -fno-strict-aliasing -fno-trapping-math -fopenmp -fwrapv -lcrypt -ldl -lhmmer -lm -lncurses -lpgcommon -lpgport -lpq -lpthread -lrt -lsquid -m64 -march=native -mcpu=native -mtune=native -pipe -pthread -g0 -fuse-linker-plugin -Wl,--as-needed -Wl,--sort-common  -Wl,-mcpu=native -Wl,--strip-debug -falign-functions=64 -O3 -fassociative-math -Wno-frame-address -Wno-trigraphs -Wundef -ffat-lto-objects -Wl,-O3 -fuse-ld=lld -fvpt -fpeel-loops -finline-functions -funswitch-loops -fgcse-after-reload -ftree-loop-distribute-patterns -Wp,-D_REENTRANT -ftree-loop-optimize -foptimize-sibling-calls -fdelete-null-pointer-checks -mprefer-vector-width=256 -Wl,--hash-style-gnu -fgraphite-identity -floop-block -floop-interchange -floop-nest-optimize -floop-optimize -floop-parallelize-all -floop-strip-mine -ftree-loop-vectorize -ftree-loop-distribution -fprefetch-loop-arrays'"$extracflags"' /g' /etc/makepkg.conf
   sed -i 's/!ccache/ccache/g' /etc/makepkg.conf
   sed -i 's/-O2/-O3/g' /etc/makepkg.conf
   sed -i 's/-O1/-O3/g' /etc/makepkg.conf
@@ -1540,9 +1627,10 @@ echo 'options no-resolv local-use bogus-priv filterwin2k stop-dns-rebind domain-
   sed -i 's/x86-64/native/g' /etc/makepkg.conf
   sed -i 's/DEBUG_CFLAGS=.*/DEBUG_CFLAGS="-g0"/g' /etc/makepkg.conf
   sed -i 's/ -fno-plt -fexceptions//g' /etc/makepkg.conf
+  if [ $level = high ] ; then
   sed -i 's/-Wp,-D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security/-Ofast/g' /etc/makepkg.conf
   sed -z -i -e 's/-fstack-clash-protection -fcf-protection/\n/g' /etc/makepkg.conf
-
+  fi
    if ! grep -q CC=clang /etc/makepkg.conf ; then
 echo '#export CC=clang
 #export CXX=clang++
@@ -1574,13 +1662,25 @@ NINJAFLAGS="-j'"$(nproc --all)"'"' | tee -a /etc/makepkg.conf
     systemctl set-default graphical.target
     if $(! grep -q experimental-features /etc/nix/nix.conf) ; then
     echo 'experimental-features = nix-command flakes' | tee -a /etc/nix/nix.conf ; fi
+    if [ $level = high ] ; then 
     sed -i 's/^#ForwardToSyslog=yes/ForwardToSyslog=no/' /etc/systemd/journald.conf
     sed -i 's/^#ForwardToKMsg=yes/ForwardToKMsg=no/' /etc/systemd/journald.conf
     sed -i 's/^#ForwardToConsole=yes/ForwardToConsole=no/' /etc/systemd/journald.conf
     sed -i 's/^#ForwardToWall=yes/ForwardToWall=no/' /etc/systemd/journald.conf
+    sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf /etc/systemd/user.conf
+    sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf /etc/systemd/user.conf
     echo "kernel.core_pattern=/dev/null" | tee /etc/sysctl.d/50-coredump.conf
+    else
+    sed -i 's/^ForwardToSyslog=.*//' /etc/systemd/journald.conf
+    sed -i 's/^ForwardToKMsg=.*//' /etc/systemd/journald.conf
+    sed -i 's/^ForwardToConsole=.*//' /etc/systemd/journald.conf
+    sed -i 's/^ForwardToWall=.*//' /etc/systemd/journald.conf 
+    sed -i 's/^DumpCore=.*//' /etc/systemd/system.conf /etc/systemd/user.conf
+    sed -i 's/^CrashShell=.*//' /etc/systemd/system.conf /etc/systemd/user.conf
+    echo "" | tee /etc/sysctl.d/50-coredump.conf
+    fi
     if grep -q DefaultTimeoutStopSec /etc/systemd/system.conf ; then
-    sed -i 's/DefaultTimeoutStopSec/DefaultTimeoutStopSec=1s/' ; elif
+    sed -i 's/DefaultTimeoutStopSec/DefaultTimeoutStopSec=1s/' /etc/systemd/system.conf ; elif
     ! grep -q DefaultTimeoutStopSec /etc/systemd/system.conf ; then
     echo 'DefaultTimeoutStopSec=1s' | tee -a /etc/systemd/system.conf ; fi
     echo 'Dir::Log::Terminal "";' | tee /etc/apt/apt.conf.d/01disable-log
@@ -1633,8 +1733,6 @@ journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     sed -i 's/# SHA_CRYPT_MIN_ROUNDS 5000/SHA_CRYPT_MIN_ROUNDS 5000/g' "$ifdr"/etc/login.defs
     sed -i 's/# SHA_CRYPT_MAX_ROUNDS 5000/SHA_CRYPT_MAX_ROUNDS 50000/g' "$ifdr"/etc/login.defs
     sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/' "$ifdr"/etc/sudoers
-    sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf /etc/systemd/user.conf
-    sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf /etc/systemd/user.conf
     chmod 0600 "$ifdr"/etc/hosts.allow
     chmod 0600 "$ifdr"/etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
     if $(! grep -q rngd "$ifdr"/etc/modules) ; then
@@ -1674,11 +1772,12 @@ Target = systemd
 [Action]
 Description = Gracefully upgrading systemd-boot...
 When = PostTransaction
-Exec = /usr/sbin/systemctl restart systemd-boot-update.service' | tee /etc/pacman.d/hooks/95-systemd-boot.hook
+Exec = '"$(which systemctl)"' restart systemd-boot-update.service' | tee /etc/pacman.d/hooks/95-systemd-boot.hook
 fi
 
+if [ $level = high ] ; then 
 sysctl kernel.split_lock_mitigate=0
-
+fi
     #scsiblack=$(if [ $scsi = off ] ; then
     #echo 'scsi_mod
 #scsi_common
@@ -1720,10 +1819,7 @@ if $(! grep -q /etc/environment /etc/pam.d/sddm) ; then echo exists ; else echo 
     sed -i 's/managed=.*/managed=true/g' /etc/NetworkManager/NetworkManager.conf
 
 
-    sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/system.conf
-    sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/system.conf
-    sed -i 's/^#DumpCore=.*/DumpCore=no/' /etc/systemd/user.conf
-    sed -i 's/^#CrashShell=.*/CrashShell=no/' /etc/systemd/user.conf
+
 
     chmod 0655 /sys/module/*/parameters/*
     chown root /sys/module/*/parameters/*
@@ -1954,11 +2050,11 @@ echo 1200 > /sys/module/cpu_boost/parameters/powerkey_input_boost_ms
 #echo 0 > /sys/module/cpu_boost/parameters/shed_boost_on_powerkey_input
 
 
-
+if [ $level = high ] ; then 
 echo "0" > /sys/module/workqueue/parameters/power_efficient
-
+fi
 echo "0" > /sys/devices/system/cpu/cpu*/core_ctl/enable
-echo "schedutil" > /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
+echo $governor > /sys/devices/system/cpu/cpufreq/policy*/scaling_governor
 #echo "1000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/up_rate_limit_us
 #echo "5000" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/down_rate_limit_us
 ##echo "1324800" > /sys/devices/system/cpu/cpufreq/policy0/schedutil/hispeed_freq
@@ -2003,10 +2099,10 @@ echo "Y" > /sys/module/lpm_levels/parameters/cluster_use_deepest_state
 
 echo "N" > /sys/module/lpm_levels/parameters/sleep_disabled
 
-
+if [ $level = high ] ; then 
 sysctl -e -w kernel.panic_on_oops=0
 sysctl -e -w kernel.panic=0
-
+fi
 chmod 0664 /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
 #echo "710000000" > /sys/class/kgsl/kgsl-3d0/devfreq/max_freq
 #echo "710000000" > /sys/class/kgsl/kgsl-3d0/max_gpuclk
@@ -2061,7 +2157,6 @@ echo 40000 > /proc/sys/kernel/sched_latency_ns
 #echo '3:748800' > /sys/module/cpu_boost/parameters/input_boost_freq
 echo 40 > /sys/module/cpu_boost/parameters/input_boost_ms
 echo 1200 > /sys/module/cpu_boost/parameters/powerkey_input_boost_ms
-echo "0" > /sys/module/workqueue/parameters/power_efficient
 
 
 echo "Y" > /sys/module/lpm_levels/parameters/lpm_prediction
@@ -2104,8 +2199,9 @@ echo "1" > /proc/sys/dev/cnss/randomize_mac
 
 echo "deep" > /sys/power/mem_sleep
 
+if [ $level = high ] ; then 
 echo "10" > /sys/class/thermal/thermal_message/sconfig
-
+fi
 echo "0-3, 6-$(nproc -all)" > /dev/cpuset/camera-daemon/cpus
 echo "0-$(nproc -all)" > /dev/cpuset/top-app/cpus
 echo "0-$(nproc -all)" /dev/cpuset/foreground/cpus
@@ -2247,17 +2343,15 @@ echo Y > /sys/module/printk/parameters/console_suspend
 echo 0 > /sys/devices/system/edac/cpu/log_ce
 echo 0 > /sys/devices/system/edac/cpu/log_ue
 
-sysctl -w kernel.panic_on_oops=0
-sysctl -w kernel.panic=0
 
 #for i in $( find /sys/ -name debug_mask) ; do
  echo 0 > $i
 #done
-
+if [ $level = high ] ; then 
 if [ -e /sys/module/logger/parameters/log_mode ] ; then
- echo 0 > /sys/module/logger/parameters/log_mode
+ echo $loglevel > /sys/module/logger/parameters/log_mode
 fi
-
+fi
 echo 1 > /sys/devices/platform/soc/$(getprop ro.boot.bootdevice)/ufstw_lu0/tw_enable
 echo 0 > /sys/module/mmc_core/parameters/use_spi_crc
 #settings put global device_idle_constants light_after_inactive_to=5000,light_pre_idle_to=10000,light_max_idle_to=86400000,light_idle_to=43200000,light_idle_maintenance_max_budget=20000,light_idle_maintenance_min_budget=5000,min_time_to_alarm=60000,inactive_to=120000,motion_inactive_to=120000,idle_after_inactive_to=5000,locating_to=2000,sensing_to=120000,idle_to=7200000,wait_for_unlock=true
@@ -2275,7 +2369,7 @@ echo 0 > /sys/module/mmc_core/parameters/use_spi_crc
 
 
 
-
+if [ $level = high ] ; then 
 
 
 
@@ -2958,6 +3052,7 @@ echo 0 > /sys/module/xt_recent/parameters/ip_list_uid
 echo 0 > /sys/module/xt_recent/parameters/ip_pkt_list_tot
 
 
+fi
 
 
 
@@ -2966,8 +3061,7 @@ echo 0 > /sys/module/xt_recent/parameters/ip_pkt_list_tot
 
 
 
-
-
+if [ $level = high ] ; then 
 
 
 #
@@ -3156,7 +3250,8 @@ echo N > /sys/module/kernel/parameters/initcall_debug
 echo N > /sys/module/kvm/parameters/flush_on_reuse
 echo Y > /sys/module/kvm/parameters/mmio_caching
 echo N > /sys/module/netfs/parameters/debugtriple
-echo N > /sys/module/printk/parameters/ignore_loglevel
+if [ $ignoreloglevel = yes ] ; then
+echo N > /sys/module/printk/parameters/ignore_loglevel ; fi
 echo Y >  /sys/module/random/parameters/ratelimit_disable
 echo 1 > /sys/module/rcupdate/parameters/rcu_expedited
 echo 0 > /sys/module/rcupdate/parameters/rcu_normal
@@ -3213,13 +3308,14 @@ echo 99999999999999999999999999999999 > /sys/module/pstore/parameter/update_ms
 echo null > /sys/module/pstore/parameters/backend
 
 # general and omit debugging android, x86 and more
-/etc/init.d/syslogd stop
+if [ $loglevel = 0 ] ; then
+/etc/init.d/syslogd stop ; fi
 sysctl dev.em.0.debug=0
 echo Y > /sys/module/8250/parameters/skip_txen_test
 echo 0 > /proc/sys/kernel/tracepoint_printk
 echo 0 > /sys/kernel/profiling
 echo 0 > /sys/kernel/tracing/tracing_on
-echo "0 0 0 0" > /proc/sys/kernel/printk
+echo "$loglevel $loglevel $loglevel $loglevel" > /proc/sys/kernel/printk
 echo "0" > /proc/sys/debug/exception-trace
 echo "0" > /proc/sys/kernel/sched_schedstats
 echo "0" > /sys/module/diagchar/parameters/diag_mask_clear_param
@@ -3277,7 +3373,7 @@ for i in $(find /sys/ -name snapshot_crashdumper); do echo "0" > $i; done
 echo "0" > /sys/module/logger/parameters/log_mode
 echo "0" > /sys/kernel/logger_mode/logger_mode
 
-
+fi
 
 
 
@@ -3660,7 +3756,7 @@ done;
 echo "$governor" > /sys/module/cpufreq/parameters/default_governor
 echo "GOVERNOR="$governor"" | tee /etc/default/cpufrequtils
 
-
+if [ $level = high ] ; then 
 # more
 chmod 666 /sys/module/workqueue/parameters/power_efficient
 chown root /sys/module/workqueue/parameters/power_efficient
@@ -3730,7 +3826,7 @@ echo 0 > /sys/kernel/debug/tracing/events/xfs/enable
 echo 0 > /sys/kernel/debug/tracing/events/f2fs/enable
 echo 0 > /sys/kernel/debug/tracing/events/block/enable
 
-
+fi
 
 # some paths changed since 5.10 so double
 # there are more than listed here though:
@@ -3796,7 +3892,7 @@ echo 5000000 > "$i"wakeup_granularity_ns
 #echo ? > "$i"scan_size_mb
 done
 
-if [ -f $droidprop ] && ! grep -q tv $droidprop ; then
+if [ -f $droidprop ] && $(! grep -q tv $droidprop) ; then
 for i in /sys/kernel/debug/sched/ /sys/kernel/debug/sched_ ; do
 echo ENERGY_AWARE >> "$i"features ; done ; fi
 
@@ -3931,7 +4027,7 @@ sysctl -w kernel.sched_schedstats=0
 
 
 
-
+if [ $level = high ] ; then 
 
 
 
@@ -4033,7 +4129,6 @@ kernel.auto_msgmni = 0
 kernel.bpf_stats_enabled = 0
 kernel.cad_pid = 1
 kernel.cap_last_cap = 40
-kernel.core_pattern = |/bin/false
 kernel.core_pipe_limit = 0
 kernel.core_uses_pid = 1
 kernel.ctrl-alt-del = 0
@@ -4125,8 +4220,6 @@ kernel.sched_scaling_enable = 1
 kernel.sched_schedstats = 0
 kernel.sched_tunable_scaling = 0
 kernel.sched_wakeup_granularity_ns = 15000000
-kernel.seccomp.actions_avail = NONE
-kernel.seccomp.actions_logged = NONE
 kernel.sem = 32000      1024000000      500     32000
 kernel.shm_next_id = -1
 kernel.shm_rmid_forced = 0
@@ -4155,7 +4248,6 @@ kernel.yama.ptrace_scope = 0
 min_perf_pct = 100
 net.core.default_qdisc = '"$qdisc"'
 net.ipv4.tcp_congestion_control = '"$tcp_con"'
-sysctl -w kernel.core_pattern='\''|/bin/false'\''
 #user.max_cgroup_namespaces = 7642
 #user.max_fanotify_groups = 128
 #user.max_fanotify_marks = 15849
@@ -4279,18 +4371,7 @@ net.mptcp.checksum_enabled = 0
 net.mptcp.enabled = 1
 net.mptcp.pm_type = 0
 net.mptcp.stale_loss_cnt = 4
-net.netfilter.nf_conntrack_acct = 0
-net.netfilter.nf_log.0 = NONE
-net.netfilter.nf_log.1 = NONE
-net.netfilter.nf_log.10 = NONE
-net.netfilter.nf_log.2 = NONE
-net.netfilter.nf_log.3 = NONE
-net.netfilter.nf_log.4 = NONE
-net.netfilter.nf_log.5 = NONE
-net.netfilter.nf_log.6 = NONE
-net.netfilter.nf_log.7 = NONE
-net.netfilter.nf_log.8 = NONE
-net.netfilter.nf_log.9 = NONE
+
 
 net.core.enable_tcp_offloading = 1
 
@@ -4302,6 +4383,26 @@ kernel.split_lock_mitigate = 0
 vm.max_map_count=512000
 
 ' | tee "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
+
+if [ $loglevel = 0 ] ; then 
+echo 'net.netfilter.nf_conntrack_acct = 0
+net.netfilter.nf_log.0 = NONE
+net.netfilter.nf_log.1 = NONE
+net.netfilter.nf_log.10 = NONE
+net.netfilter.nf_log.2 = NONE
+net.netfilter.nf_log.3 = NONE
+net.netfilter.nf_log.4 = NONE
+net.netfilter.nf_log.5 = NONE
+net.netfilter.nf_log.6 = NONE
+net.netfilter.nf_log.7 = NONE
+net.netfilter.nf_log.8 = NONE
+net.netfilter.nf_log.9 = NONE
+kernel.core_pattern = |/bin/false
+kernel.seccomp.actions_avail = NONE
+kernel.seccomp.actions_logged = NONE' | tee -a "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
+
+sysctl -w kernel.core_pattern=|/bin/false
+fi
 
 sysctl net.ipv4.ip_local_port_range=30000 65535
 echo $tcp_con > /proc/sys/net/ipv4/tcp_congestion_control
@@ -4324,7 +4425,7 @@ echo 1 > /proc/sys/net/core/enable_tcp_offloading
 
 
 
-
+fi
 
 
 # these settings might be problematic with connection on certain hardware... switch on top
@@ -4360,7 +4461,7 @@ sysctl net.core.somaxconn=1000
 echo 0 > /proc/sys/net/core/bpf_jit_harden
 echo 0 > /proc/sys/net/core/bpf_jit_kallsyms
 
-
+if [ $loglevel = 0 ] ; then
 echo NONE > /proc/sys/net/netfilter/nf_log/0
 echo NONE > /proc/sys/net/netfilter/nf_log/1
 echo NONE > /proc/sys/net/netfilter/nf_log/10
@@ -4371,7 +4472,7 @@ echo NONE > /proc/sys/net/netfilter/nf_log/5
 echo NONE > /proc/sys/net/netfilter/nf_log/6
 echo NONE > /proc/sys/net/netfilter/nf_log/7
 echo NONE > /proc/sys/net/netfilter/nf_log/8
-echo NONE > /proc/sys/net/netfilter/nf_log/9
+echo NONE > /proc/sys/net/netfilter/nf_log/9 ; fi
 
 #echo "0" >/proc/sys/net/ipv4/conf/default/secure_redirects
 #echo "0" >/proc/sys/net/ipv4/conf/default/accept_redirects
@@ -5263,7 +5364,7 @@ echo "--type=renderer --event-path-policy=0 --change-stack-guard-on-fork=enable 
 #if $(! grep -q getent /etc/chromium.d/default-flags) ; then
 #echo 'export CHROMIUM_FLAGS="$CHROMIUM_FLAGS $(cat /home/$(getent passwd | grep 1000 | awk -F '\'':'\'' '\''{print $1}'\'')/.config/chromium-flags.conf)"' | tee -a /etc/chromium.d/default-flags ; fi
 
-if [ $firstrun = yes ] ; then
+if [ $firstrun = yes ] && [ $script_autoupdate = yes ] ; then
 mkdir -p tmp
 mkdir -p /home/$himri/.config/BraveSoftware/Brave-Browser-Nightly/Default
 mkdir -p /home/$himri/.config/chromium/Default
@@ -5275,7 +5376,7 @@ wget ${rawlink}/.basicsetup/.config/BraveSoftware/Brave-Browser-Nightly/Local%20
 
 
 
-sed -i 's/StartServer=.*/StartServer=false/g' /home/$himri/.config/akonadi/akonadiserverrc
+sed -i 's/StartServer=.*/StartServer=false/g' /home/$himri/.config/akonadi/akonadiserverrc # kde bloat harming performance 
 
 
 
@@ -5290,12 +5391,12 @@ CursorTheme=Vimix-cursors
 Font=Noto Sans,10,-1,5,50,0,0,0,0,0,Condensed
 
 [X11]
-ServerArguments=-nolisten tcp -nolisten udp' | tee /etc/sddm.conf.d/kde_settings.conf
+ServerArguments=-nolisten tcp -nolisten udp' | tee /etc/sddm.conf.d/kde_settings.conf # attempt to make xserver local and block udp tcp however using `local "$@"'` here as well makes xserver unable to start
 
 
 
 echo '#!/bin/sh
-exec /usr/bin/X -nolisten tcp -nolisten udp -nolisten local "$@"' | tee /etc/X11/xinit/xserverrc
+exec /usr/bin/X -nolisten tcp -nolisten udp -nolisten local "$@"' | tee /etc/X11/xinit/xserverrc  # attempt to make xserver local and block udp tcp
 
 # pulseaudio
  sed -i 's|load-module module-switch-on-connect|#load-module module-switch-on-connect|g' /etc/pulse/default.pa
@@ -5416,6 +5517,8 @@ sed -i -e 's/ENABLED=.*/ENABLED=0/' /etc/default/motd-news
         git config --global lfs.allowincompletepush true
         git config --global apply.ignoreWhitespace
         git config --global rerere.enabled true
+        git config --global credential.helper cache
+        git config --global credential.credentialStore cache
 
 
 if grep -q btrfs /etc/fstab ; then
@@ -5718,7 +5821,7 @@ if ip -o link | grep -q wlan ; then
 echo 'options rfkill default_state=0 master_switch_mode=1' | tee /etc/modprobe.d/wlanextra.conf
 fi
 
-
+if [ $level = high ] ; then 
 
 echo 'options usbhid mousepoll=4
 options ahci mobile_lpm_policy=0
@@ -5739,7 +5842,7 @@ options tcp_bbr2 debug_port_mask=0 debug_ftrace=N debug_with_printk=N ecn_enable
 options usbcore autosuspend=5
 options snd_hda_intel power_save=1
 options snd_ac97_codec power_save=1' | tee /etc/modprobe.d/general.conf
-
+fi
 
 if $(find /sys/block/nvme*) ; then
 echo 'options nvme_core default_ps_max_latency_us=0' | tee /etc/modprobe.d/nvme.conf
@@ -6231,7 +6334,7 @@ fi
 
 #if $arch && ldconfig -p | grep -q libmimalloc ; then ld_preload="LD_PRELOAD=$(ldconfig -p | grep libmimalloc | head -n1 | awk -F '>' '{print $2}')" ; fi
 
-
+if [ $level = high ] ; then 
 # /etc/environment variables
 # test what works for you, kde desktop runs on opengl backend. turning all these on makes it lag.
 # for more info: https://docs.mesa3d.org/envvars.html
@@ -6442,7 +6545,7 @@ GCM_CREDENTIAL_STORE=cache
 GCC_SPECS=""
 ' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
 
-
+fi
 
 if [ $ipv6 = on ]
 then
@@ -7070,22 +7173,22 @@ sed -i 's/dalvik.vm.dexopt-flags=.*/dalvik.vm.dexopt-flags=m=y,v=n,o=y,u=n/g' $d
 sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=8m/g' $droidprop
 
 
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -ge 8 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 6500000 ] ; then
 sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=768m/g' $droidprop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=1566m/g' $droidprop
 fi
 
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-2)" -ge 12 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 10000000 ] ; then
 sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=1024m/g' $droidprop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=2048m/g' $droidprop
 fi
 
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-2)" -ge 32 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -ge 29000000 ] ; then
 sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=2048m/g' $droidprop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=4096m/g' $droidprop
 fi
 
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo | cut -c1-1)" -le 4 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 4400000 ] ; then
 sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=256m/g' $droidprop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' $droidprop
 fi
@@ -7096,7 +7199,7 @@ sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=512m/g' $droidprop
 
 fi
 
-if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 1100000 ] ; then
+if [ "$(awk '/MemTotal/ { print $2 }' /proc/meminfo)" -le 1200000 ] ; then
 sed -i 's/dalvik.vm.heapgrowthlimit=.*/dalvik.vm.heapgrowthlimit=64m/g' $droidprop
 sed -i 's/dalvik.vm.heapsize=.*/dalvik.vm.heapsize=192m/g' $droidprop
 sed -i 's/dalvik.vm.heapstartsize=.*/dalvik.vm.heapstartsize=5m/g' $droidprop
@@ -7383,12 +7486,12 @@ echo "Y" > /sys/module/sync/parameters/fsync_enabled
 
 
 
+# setup uses firewalld not both anymore since ufw caused regression on latency in older hardware, leave this in despite but change to performance mode just in case
+#if [ $level = high ] && [ $loglevel = 0 ] ; then
+#ufw logging off
+#else ufw logging on ; fi
 
-
-ufw logging off
-
-
-
+# hindsight disable it alltogether since we dont use it...
 
 
 
@@ -7486,7 +7589,7 @@ echo '# Defaults for kexec initscript
 LOAD_KEXEC=true
 
 # Kernel and initrd image
-KERNEL_IMAGE="'"$(find /boot/EFI/Linux/*clrxt*)"'"
+KERNEL_IMAGE="'"$(find /boot/EFI/Linux/*clrxt* | head -n 1)"'"
 #INITRD="/initrd.img"
 
 # If empty, use current /proc/cmdline
@@ -7605,7 +7708,7 @@ fi
 
 
 
-if [ $firstrun = yes ] && $linux; then
+if [ $firstrun = yes ] && $linux ; then
 
   ### some more firstrun stuff
   #aptitude search '~i!~Nlib(~Dqt|~Dkde)'
@@ -7614,8 +7717,8 @@ if [ $firstrun = yes ] && $linux; then
   if $debian ; then
   sudo wget ${rawlink}/kdebugsettings_22.12.0-2.1_amd64.deb ; sudo dpkg -i kdebugsettings*.deb
   sudo wget ${rawlink}/.basicsetup/mkcomposecache_1.2.2-2.4_amd64.deb ; sudo dpkg -i mkcomposecache*.deb
-  sudo wget ${rawlink}/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so
-  sudo wget ${rawlink}/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; sudo dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb
+  # sudo wget ${rawlink}/.basicsetup/libtrick.so ; cp libtrick.so /usr/lib/x86_64-linux-gnu/libtrick.so ; rm -f libtrick.so # library for amdcpus fooling intel math kernel libraries by spoofing amd as intel cpu, probably doesnt work on their latest releases and MKL disabled cause only AVX512 instructionset capable cpu's benefit from it and well. its closed source.
+  sudo wget ${rawlink}/.basicsetup/system76-scheduler_1.2.1-2_amd64.deb ; sudo dpkg -i system76-scheduler*.deb ; rm -rf system76*scheduler*.deb # these binaries arent in debian nor can be found as deb. had to convert rpm packages.
   fi
 
   if $arch ; then sudo wget ${rawlink}/.basicsetup/system76-scheduler-1.2.1-1-x86_64.pkg.tar.zst ; sudo pacman -U --noconfirm --needed system76-scheduler-1.2.1-1-x86_64.pkg.tar.zst ; rm -rf system76-scheduler*.pkg.tar.zst
@@ -7646,6 +7749,7 @@ X-KDE-ServiceTypes=KWin/Script
 X-Plasma-API=javascript
 X-Plasma-MainScript=code/main.js' | tee /home/$himri/.local/share/kwin/scripts/kwin-system76-scheduler-integration/metadata.desktop ; fi
 
+if [ $level = high ] ; then 
  # wget ${rawlink}/.basicsetup/smc-tools_1.8.2_amd64.deb -O tmp/smc-tools.deb ; dpkg -i tmp/smc-tools.deb
  # wget ${rawlink}/.basicsetup/libsmc-preload32.so -O /usr/lib/libsmc-preload32.so
  if $debian && [ $microcode = off ] ; then apt -f -y remove intel-microcode amd-microcode iucode-tool ; elif $debian && [ microcode = on ] ; then apt -f -y install intel-microcode amd-microcode iucode-tool ; fi
@@ -7710,8 +7814,8 @@ systemctl unmask $maskenable
 systemctl enable $startserv
 
 
-
-
+fi
+fi
 echo '[Unit]
 Description=Set sched_latency_ns in accordance with basic-linux-setup
 After=multi-user.target suspend.target hibernate.target hybrid-sleep.target suspend-then-hibernate.target
@@ -7739,7 +7843,7 @@ sudo chmod +x /usr/sbin/bls-schedlatency.bash
 sudo systemctl enable bls-schedlatency
 sudo systemctl start bls-schedlatency
 
-fi
+
 fi
 
 
@@ -7976,13 +8080,14 @@ export KBUILD_CFLAGS+= --param=ssp-buffer-size=32 \
 KBUILD_USERHOSTCFLAGS := -Wall -Wmissing-prototypes -Wstrict-prototypes \
 			 -O3 -fomit-frame-pointer -std=gnu11 \
 			 -Wdeclaration-after-statement
-'
-}
 
 
 export KBUILD_CFLAGS:= "$cflags"
 
 export subdir-ccflags-y:= "$cflags"
+# these flags are from old setup, just kept for reference
+'
+}
 
 ccg=gcc-"$(apt-cache search gcc | awk '{print $1}' | grep "gcc-.*-linux-gnu" | cut -c5-6 | sort -n | tail -n 1)"
 ccl=llvm-"$(apt-cache search llvm | awk '{print $1}' | grep "llvm-.*-runtime" | sort -n | tail -n 1 | cut -c6-7)"
@@ -8005,12 +8110,13 @@ pkill -f ksystemstats
 pkill -f kglobalaccel5
 pkill -f drkonqi
 
+if [ $level = high ] ; then 
 
     journalctl --vacuum-size=1
     journalctl --vacuum-time=2weeks
     pkill -f journalctl
 loginctl unlock-sessions
-
+fi
 mv /usr/share/dbus-1/services/org.kde.runners.baloo.service /usr/share/dbus-1/services/org.kde.runners.baloo.service.disable
 mv /usr/share/dbus-1/services/org.kde.kglobalaccel.service /usr/share/dbus-1/services/org.kde.kglobalaccel.service.disable
 mv /usr/share/dbus-1/services/org.freedesktop.Akonadi.Control.service /usr/share/dbus-1/services/org.freedesktop.Akonadi.Control.service.disable
@@ -8033,7 +8139,7 @@ rm -rf tmp
 #tuned -p network-throughput
 
 echo "script ran from $scriptdir"
-
+exit 0
 
 fi
 
@@ -8041,10 +8147,11 @@ fi
 
 
 
-
-
-
-
+# avoid security flaws
+chown root /home/$himri/.zshrc
+chown root /home/$himri/.bashrc
+chown root /home/$himri/.p10k.zsh
+chown root /home/$himri/.config/fish/*
 
 
 
@@ -8075,9 +8182,7 @@ grep -q "ping -c3 "$ping"" /etc/rc.local
 fi
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
 
-if [ -e $PWD/.blsconfig ] ; then echo " local config present, if correct values are specified within $PWD/.blsconfig they will be used.
-current modified config:
-$(cat $PWD/.blsconfig)" ; fi
+if [ $script_autoupdate != yes ] ; then cp -f $PWD/init.sh /etc/rc.local ; fi
 
 if [ $uninstall = yes ] ; then
 
@@ -8089,9 +8194,13 @@ if grep -q mitigations=off /etc/default/grub ; then sed -i '/GRUB_CMDLINE_LINUX=
 if grep -q "cmdline" /etc/fstab "$fstab" ; then sed -i '/cmdline/c\' "$fstab" ; fi
 rm -rf /DO_NOT_DELETE ; rm -rf /etc/sysctl.d/sysctl.conf ; fi
 
+if $wrt && [ $persistent = yes ] ; then if $(! grep -qi thanas /etc/rc.local) ; then cat $PWD/init.sh | tee /etc/rc.local && chmod +x /etc/rc.local ; fi ; fi
 
 if [ $restore_backup = yes ] ; then \cp -rf /etc/bak/* / ; rm -rf /DO_NOT_DELETE ; fi
 
+if [ -e $PWD/.blsconfig ] ; then echo "\n local config present, if correct values are specified within $PWD/.blsconfig they will be used.
+current modified config:
+$(cat $PWD/.blsconfig)" ; fi
 ######
 ### still configuring this script, tips are welcome
 ### might still contain double or bad values...
