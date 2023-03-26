@@ -394,12 +394,6 @@ sudo sed -i '\''s/PERCENT.*/PERCENT='"$zpoolpercent"'/g'\'' /etc/default/zramswa
 # if NOT tv box OR openwrt (USED TO BE THAT WAY NOT ANYMORE, ALL INCLUSIVE) then 2 gb and 1 gb zram+zwap, if more than 2 gb none of both. different hugepages and /dev/shm tmpfs, overriding more settings regarding memory. read to know. note big hugepages need hardware support. 'grep Huge /proc/meminfo' adjust to your needs.
 # all
 
-hoverc=32
-overcommit=3
-oratio=150
-shmmax=100000000
-shmmni=1600000
-shmall=35000000
 
 #hpages=' transparent_hugepage=madvise'
 #hugepages="16"
@@ -418,10 +412,10 @@ shmmni=64000000
 shmall=100000000
 hoverc=256
 overcommit=1
-oratio=110
+oratio=50
 swappiness=10
 cpress=30
-thp=always
+thp=madvise
 rm -rf /etc/zram.sh
 sed -i 's/RUNSIZE=.*/RUNSIZE=20%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
@@ -439,7 +433,7 @@ shmmni=64000000
 shmall=100000000
 hoverc=512
 overcommit=1
-oratio=140
+oratio=100
 swappiness=5
 cpress=50
 thp=always
@@ -478,7 +472,7 @@ shmmni=64000000
 shmall=100000000
 hoverc=192
 overcommit=1
-oratio=110
+oratio=50
 #hpages=' transparent_hugepage=madvise'
 swappiness=10
 cpress=10
@@ -502,7 +496,7 @@ if [ -e $droidprop ] ; then export droidzram="/system" ; fi
 echo 1 > /sys/module/zswap/parameters/enabled ; echo lz4 > /sys/module/zswap/parameters/compressor ; echo "$zram" | tee "$droidzram"/etc/zram.sh ; if $(! grep -q "zram" /etc/crontab /etc/anacrontabs) ; then echo "@reboot root sh /etc/zram.sh >/dev/null" | tee -a /etc/crontab && echo "@reboot sh /etc/zram.sh >/dev/null" | tee /etc/anacrontabs && chmod +x /etc/zram.sh && sh /etc/zram.sh ; if [ -e $droidprop ] ; then echo "$zram" | tee "$droidzram"/etc/zram.sh ; chown root /system/etc/zram.sh ; chmod +x /system/etc/zram.sh &&  "$bb"sh /system/etc/zram.sh ; fi ; fi
 hoverc=64
 overcommit=1
-oratio=100
+oratio=50
 swappiness=10
 cpress=10
 thp=madvise
@@ -521,7 +515,7 @@ shmall=35000000
 #hard memlock 102400' | tee /etc/security/limits.conf
 hoverc=32
 overcommit=1
-oratio=80
+oratio=50
 swappiness=10
 cpress=10
 thp=madvise
@@ -577,8 +571,8 @@ if lscpu | grep -qi x86 ; then mit10=" mmio_stale_data=off retbleed=off mds=off 
 if lscpu | grep -qi "x86\|PPC" ; then mit11=" nospectre_v1 spec_store_bypass_disable=off" ; fi # some kernels support nospec flag instead
 if lscpu | grep -qi "x86\|PPC\|s390|\ARM" || [ -f $droidprop ] ; then mit12=" nospectre_v2" ; fi
 fi
-xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mit13" ; elif [ $mitigations = on ] ; then xmitigations=" mitigations=on" ; fi
-if [ $level = medium ] || [ $level = low ] || [ $morethanmedium = on ] ; then xmitigiations=" mitigations=on" ; extras="off" ; fi
+xmitigations="$mit1$mit2$mit3$mit4$mit5$mit6$mit7$mit8$mit9$mit10$mit11$mit12$mit13" ; elif [ $mitigations = on ] ; then xmitigations=" mitigations=auto" ; fi
+if [ $level = medium ] || [ $level = low ] || [ $morethanmedium = on ] ; then xmitigiations=" mitigations=auto" ; extras="off" ; fi
 if [ $ignoreloglevel = off ] ; then log=" audit=$audit loglevel=$loglevel mminit_loglevel=$loglevel log_priority=$loglevel udev.log_priority=$loglevel udev.log_level=$loglevel" ; fi
 # cpu amd/intel
 xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic amd_pstate=passive" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off$(if [ $level != medium ] || [ $level != low ] ; then echo " tsx=on" ; fi) intel_pstate=hwp_only" ; fi)"
@@ -4449,7 +4443,7 @@ sysctl net.ipv4.tcp_max_syn_backlog=8096
 sysctl net.ipv4.tcp_tw_reuse=1
 sysctl net.ipv4.tcp_slow_start_after_idle=0
 sysctl -w net.core.rmem_max=16777216
-sysctl.net.core.busy_poll = 50
+sysctl.net.core.busy_poll=50
 sysctl net.ipv4.tcp_fastopen=3
 
 

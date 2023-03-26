@@ -72,7 +72,7 @@ glxinfo | grep -qi AMD ; then
 $s pacman -S --noconfirm --needed vulkan-radeon amdvlk xf86-video-amdgpu
 fi
 
-
+yay -S --noconfirm --needed vscodium
 
 
 if lscpu | grep -q Intel ; then

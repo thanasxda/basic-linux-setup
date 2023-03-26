@@ -657,7 +657,7 @@ cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-b
 cd clrxt-x86 
 sudo bls=yes ./build.sh
 fi
-$s pacman -S --no-confirm cachy-browser
+$s pacman -S --noconfirm cachy-browser
 sudo wget https://blackarch.org/strap.sh ; sudo sh strap.sh
 sudo cp -f $PWD/init.sh /etc/rc.local
 

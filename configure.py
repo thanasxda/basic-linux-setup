@@ -23,7 +23,7 @@ render = ImageTk.PhotoImage(load)
 root.iconphoto(False, render)
 cv = Canvas(root, highlightthickness=0, height=80, width=340)
 cv['bg']='black'
-cv.grid(column=0, columnspan=2)
+cv.grid(column=1, columnspan=2)
 cv.create_image(170, 0, image=render, anchor='n')
 
 # checkboxes
@@ -273,15 +273,15 @@ def addConf():
     os.system("echo '"+config+"' | sudo tee $PWD/.blsconfig ; sudo cp $PWD/.blsconfig /etc/.blsconfig")
 
 btn = Button(root, text='Save', command=addConf)
-btn.grid()
+btn.grid(row=15, column=1)
 
 # apply config
 def applyConf():
     os.system("sudo cp $PWD/configure.py /etc/configure.py ; if [ -e $PWD/init.sh ] ; then sudo cp init.sh /etc/rc.local ; fi ; sudo sh /etc/rc.local")
 
 btn2 = Button(root, text='Apply', command=applyConf)
-btn2.grid()
+btn2.grid(row=16, column=1)
 
-Label(root, text='by thanasxda').grid(row=18, column=5)
+Label(root, text='by thanasxda').grid(row=16, column=5)
 
 root.mainloop()
