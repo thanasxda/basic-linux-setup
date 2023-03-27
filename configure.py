@@ -140,7 +140,7 @@ wdis = StringVar(root, value='10')
 wdisTf = Entry(root, textvariable=wdis).grid(row=10, column=4)
 
 Label(root, text='transparant hugepages: ').grid(row=11, column=4)
-thp = StringVar(root, value='always')
+thp = StringVar(root, value='madvise')
 thpTf = Entry(root, textvariable=thp).grid(row=12, column=4)
 
 cat="cat /proc/sys/net/ipv4/tcp_allowed_congestion_control"

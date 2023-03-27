@@ -144,9 +144,6 @@ Include = /etc/pacman.d/mirrorlist
 [cachyos]
 Include = /etc/pacman.d/cachyos-mirrorlist
 
-[chaotic-aur]
-Include = /etc/pacman.d/chaotic-mirrorlist
-
 #[nemesis_repo]
 #SigLevel = Optional TrustedOnly
 #Server = https://erikdubois.github.io/$repo/$arch
@@ -204,3 +201,6 @@ Include = /etc/pacman.d/parabola-mirrorlist
 
 [blackarch]
 Include = /etc/pacman.d/blackarch-mirrorlist
+
+[chaotic-aur]
+Include = /etc/pacman.d/chaotic-mirrorlist

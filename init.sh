@@ -33,7 +33,7 @@ if [ -f /system/xbin/sh ] ; then export bb="/system/xbin/" ; fi
 fi 
 # GITHUB/microsoft
 interjection() {
-if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droidprop ] ; then cat $PWD/.blsconfig | tee /data/adb/service.d/.blsconfig ; else cat $PWD/.blsconfig | tee /etc/.blsconfig ; fi ; if [ -e $PWD/.blsconfig ] ; then for i in $(cat $PWD/.blsconfig) ; do export $i ; done ; fi
+if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droidprop ] && [ ! -z $(cat $PWD/.blsconfig) ] ; then cat $PWD/.blsconfig | tee /data/adb/service.d/.blsconfig ; elif [ ! -e $droidprop ] && [ ! -z $(cat $PWD/.blsconfig) ] ; then cat $PWD/.blsconfig | tee /etc/.blsconfig ; fi ; if [ -e $PWD/.blsconfig ] ; then for i in $(cat $PWD/.blsconfig) ; do export $i ; done ; fi
 }     
 ########################################################################################################################################################################################################################
 ##################  DO NOT CONTINUE ANY FURTHER WITHOUT HAVING READ THE UNDERNEATH DISCLAIMER  #########################################################################################################################
@@ -97,7 +97,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droi
 ########################################################################################################################################################################################################################
     ### < SCRIPT AUTO UPDATE FEATURE > - syncs latest script from repo. do not enable this it has been mainly for my own convenience while making this. only enable when forking from your OWN repo.
         #script_autoupdate="no" # use `sudo script_autoupdate=yes sh /etc/rc.local` instead, this will get the single update once... if and when there is one. preferably dont even use this.
-        persistent="yes" # when rc.local on openwrt isnt used to autoupdate the script, echo the config to /etc/rc.local on openwrt instead. for openwrt only. these 2 cant work simoultanious. so set local persistent config.
+        persistent="yes" # when rc.local on openwrt isnt used to autoupdate the script, echo the config to /etc/rc.local on openwrt instead. for openwrt only. these 2 cant work simultanious. so set local persistent config.
 
         account=thanasxda # links to use for this setup, in case of forking (global btw). complaining about what I use is a waste of your time...
         repo=basic-linux-setup
@@ -217,7 +217,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droi
         kaslr="on" # no performance benefit switching off, not worth it. if youre on an old distro and still using prelink, it breaks security functions as these. (note: on android it must be off to set mitigations=off. not on other architectures, maybe thats why it doesnt benefit x86 in my experience but did something for aarch64... not sure might have been other factors as well did not pinpoint. tips in readme for mitigations on android, not handled by this setup as hijacking cmdline wont work on most if not all default kernels. lots of things testing very well on aarch64 have almost no effect on x86 btw... so this setup might not be optimal at all for you if on any other arhcitecture, keep in mind.)
         microcode="off" # the full-setup does not use microcode updates from userspace because of it being proprietary. hardware microcode cannot be switched off since its baked in. this also serves as a performance boost (on my hardware, significant). keep in mind some mitigations can also be handled through microcode. if you use a deblobbed libre kernel this will not work eitherway, even when enabled. the kernel provided in the full-setup is deblobbed. if you are not concerned with free code nor performance you might want to enable this. it slows down performance however if mitigations=on microcode might be able to mitigate more efficiently. part from reading, have not benched this in practice as i tend not to use mitigations. (maybe when on v4 cpu, more reasonable)
         seccomp="1" # switch only working if systemd is present, permanently disabling needs patched kernel. when off in kernel causes system to be slightly more responsive without gains in benchmarks. not worth on x86, does more for arm. (custom kernel tried patch, not worth so revered to defaults)
-        thp="always" # always/madvise/off - will be overriden automatically depending on how much memory you have now. so this setting is useless now. if you have sufficient ram use persistent preallocated hugepages and disable transparant hugepages. most performance increase when working with databases. 
+        thp="madvise" # always/madvise/off - will be overriden automatically depending on how much memory you have now. so this setting is useless now. if you have sufficient ram use persistent preallocated hugepages and disable transparant hugepages. most performance increase when working with databases.  ( hindsight enforced to madvise now since latency penalty is too much )
         vdso="on" # many things including vdso, on by default. just some kernels might differ so leave switches in despite.
         extras="off" # off for defaults. init_on_free, init_on_alloc off means defaults btw, so enabled.
         dracut="enabled" # include dracut in mkinitramfs firstrun
@@ -521,6 +521,9 @@ cpress=10
 thp=madvise
 sed -i 's/RUNSIZE=.*/RUNSIZE=10%/g' /etc/initramfs-tools/initramfs.conf ; fi
 
+# ENFORCE TRANSPARANT HUGEPAGES MADVISE AVOIDING LATENCY PENALTY
+thp=madvise
+
 sysctl -w vm.nr_overcommit_hugepages=$hoverc
 #sysctl -w vm.nr_hugepages=$hugepages
 sysctl -w kernel.shmmax=$shmmax
@@ -536,6 +539,9 @@ pacman -Rsn --noconfirm amd-ucode
 rm -rf /etc/firstboot
 firstrun="yes" ; fi
 $i thp="always" ; done ; fi
+
+# remove arch firstboot file. created to ensure all is setup well during second boot after clean setup ( setup got too complicated and i got too lazy )
+rm -rf /etc/firstboot
 
 if [ $thp = madvise ] ; then
 echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
@@ -626,7 +632,7 @@ if [ $microcode = on ] && $arch && $(lscpu | grep -q Intel) && [ $firstrun = yes
                                         # https://raw.githubusercontent.com/torvalds/linux/master/Documentation/admin-guide/kernel-parameters.txt
                                           bootargvars="$(echo "$xmicrocode$xmitigations$xcpu$xvarious$xkaslr$xrflags$xsched$xzsw")"
                                         export xpar="quiet splash$bootargvars$xtra0$xtra1$xtra2"
-                                      if lscpu | grep -q x86_64 ; then export par="root=$(awk '/\/ / {print $1}' /etc/fstab) $(if find *clrxt* /boot >/dev/null ; then echo "rw" ; else echo "ro" ; fi) $xpar" ; else export par=$xpar ; fi # if clrxt-x86 doesnt boot set to rw manually
+                                      if lscpu | grep -q x86_64 ; then export par="root=$(awk '/\/ / {print $1}' /etc/fstab) $(if find *clrxt* /boot >/dev/null ; then echo "rw" ; else echo "rw" ; fi) $xpar" ; else export par=$xpar ; fi # if clrxt-x86 doesnt boot set to rw manually (hindsight always set to rw since it has no use locally it can be changed easily as most kernels have trouble booting ro)
                                         if [ $uninstall = yes ] ; then par=$(cat "$ifdr"/etc/bak/root/cmdline) ; fi
 
 # module options
@@ -1728,7 +1734,7 @@ journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     sed -i 's/# SHA_CRYPT_MAX_ROUNDS 5000/SHA_CRYPT_MAX_ROUNDS 50000/g' "$ifdr"/etc/login.defs
     sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/' "$ifdr"/etc/sudoers
     chmod 0600 "$ifdr"/etc/hosts.allow
-    chmod 0600 "$ifdr"/etc/hosts.deny ; chmod 0750 /home/* ; umask 002 ; fi
+    chmod 0600 "$ifdr"/etc/hosts.deny ; chmod 0750 /home/* ; umask 0022 ; fi
     if $(! grep -q rngd "$ifdr"/etc/modules) ; then
     sed -i -r '/^fscache?/D' "$ifdr"/etc/modules
 cat <<EOL>> "$ifdr"/etc/modules
@@ -4236,7 +4242,7 @@ kernel.unprivileged_userns_clone = 1
 kernel.usermodehelper.bset = 4294967295 511
 kernel.usermodehelper.inheritable = 4294967295  511
 kernel.watchdog = 0
-kernel.watchdog_cpumask = 0-3
+kernel.watchdog_cpumask = 0-'"$(nproc --all)"'
 kernel.watchdog_thresh = 60
 kernel.yama.ptrace_scope = 0
 min_perf_pct = 100
@@ -6203,7 +6209,7 @@ if $linux ; then
     #echo "$ld_preload" | tee -a /home/"$himri"/.xsessionrc /root/.xsessionrc
     clang=$(ls /usr/lib | grep 'llvm-' | tail -n 1 | rev | cut -c-3 | rev)
     echo 'PATH=/usr/lib/ccache/bin:/lib/x86_64-linux-gnu:/usr/lib/llvm'"$clang"'/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
-    LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:/usr/lib/llvm'"$clang"'/lib:/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+    LD_LIBRARY_PATH=$PATH/../lib:$PATH/../lib64:/usr/lib/llvm'"$clang"'/lib:/lib/x86_64-linux-gnu:/usr/lib/jvm/default/lib/server:$LD_LIBRARY_PATH
     '"$ld_preload"'' | tee -a $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; elif [ $safeconfig = yes ] ; then sed -i 's/LD_PRELOAD=/#LD_PRELOAD=/g' /etc/environment $HOME/.zshrc $HOME/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc /home/"$himri"/.xsessionrc /root/.xsessionrc /home/"$himri"/.profile /root/.profile ; fi
 
 #if $(! grep -q LD_PRELOAD $HOME/.zshrc) ; then echo "$ld_preload" | tee -a /root/.zshrc /root/.bashrc /home/"$himri"/.zshrc /home/"$himri"/.bashrc ; fi
@@ -6220,7 +6226,7 @@ mkdir -p /root/.ccache
 echo 'max_size = 30G
 cache_dir = ~/.ccache
 debug = false
-umask = 002
+umask = 0022
 compiler_check = %compiler% -dumpversion
 cache_dir_levels = 5
 hash_dir = false
@@ -6335,7 +6341,7 @@ if [ $level = high ] ; then
 # https://cgit.freedesktop.org/mesa/mesa/tree/docs/features.txt?h=staging/22.3
 echo '#!/bin/sh -x
 PATH=/usr/lib/ccache/bin:/lib/x86_64-linux-gnu:/usr/lib/llvm*/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/usr/local/games:/usr/games
-LD_LIBRARY_PATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib:/lib/x86_64-linux-gnu
+LD_LIBRARY_PATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib:/lib/x86_64-linux-gnu:/usr/lib/jvm/default/lib/server 
 LDPATH='"$PATH"'/../lib:'"$PATH"'/../lib64:/usr/lib/llvm*/lib
 '"$ld_preload"'
 '"$linker"'
@@ -6514,7 +6520,7 @@ COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
 CCACHE_SLOPPINESS=locale,time_macros,file_stat_matches,include_file_ctime,include_file_mtime
 CCACHE_DIR=~/.ccache
 PREBUILT_CACHE_DIR=~/.ccache
-CCACHE_UMASK=002
+CCACHE_UMASK=0022
 USE_CCACHE=1
 USE_RECACHE=yes
 #CC=clang'"$cclm"'
@@ -8138,10 +8144,15 @@ exit 0
 fi
 
 
-
+rm -rf /home/$himri/.ccache/ccache.conf.tmp*
 
 
 # avoid security flaws
+cp -rf /root/.zshrc /home/$himri/.zshrc
+cp -rf /root/.bashrc /home/$himri/.bashrc
+cp -rf /root/.p10k.zsh /home/$himri/.p10k.zsh
+cp -rf /root/.config/fish/* /home/$himri/.config/fish/*
+
 chown root /home/$himri/.zshrc
 chown root /home/$himri/.bashrc
 chown root /home/$himri/.p10k.zsh

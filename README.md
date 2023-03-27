@@ -1,5 +1,11 @@
 ### personal setup (eol/unmaintained) 
 Only arch script might work despite lack of maintenance. Main focus of this setup is reducing overhead. Be sure to run `sudo ./configure.py` to configure it to YOUR needs prior to using this setup if you choose to do so.
+TLDR: Remember prior to using this setup as is inform yourself on mitigations. 
+Test [__here__](https://leaky.page/). Unless you use the GUI config they will be disabled by default on anything less than v4 instruction-set cpu's that are x86. Also remember this setup optionally will compile clrxt-x86 which I have no time updating and by default only the Arch script (since if I do update its mainly the Arch setup as it requires lesser effort) will pass the option to the kernel build script for building for security or performance (mitigations mainly & zeroing registers). Be sure to personalize this setup prior to usage, as it is set to my own needs. I did go as far as making it easily configurable for you.
+The Arch setup can be used in many ways, libre repo's are included for people having privacy in mind for conversion (will need linux-libre-firmware and libre kernel after activating the specific repositories. check for proprietary software and remove all non-free instructions in readme). There are example configs in this setup. The rest is up to your personal needs.
+Further tests [__here__](https://webkay.robinlinus.com/).
+DISCLAIMER: use setup responsibly. it's personal. 
+
 ![image](bls.jpg)
 
 ## About:

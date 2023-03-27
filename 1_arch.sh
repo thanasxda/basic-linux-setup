@@ -34,6 +34,8 @@ echo "" && echo ""
 ####### START #############################################################
 
 # arch script is sloppier... no mood for too much effort as long as it works
+# use f2fs with arch setup 
+
           if [ $USER = root ] ; then
           echo -e "DO NOT RUN AS $USER OR sudo ! If you're using root type exit or reopen bash and do not execute the script with sudo. Just ./script* or sh script* and enter password." ; exit 0
           else echo -e "WELCOME $USER" ; fi
@@ -54,7 +56,14 @@ himri=/home/$(who | head -n1 | awk '{print $1}')
         case $yn in
         [Yy]* ) echo " You have selected to install the custom kernel." ; export kernel=true ; break;;
         [Nn]* ) echo " You have chosen NOT to install the custom kernel." ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
-
+        echo "\n"
+        if [ $kernel = true ] ; then
+        while true; do read -p "Do you wish to install to build the kernel for performance using mitigations=off?.YES NO Answer Y/N. :  " yn
+        case $yn in
+        [Yy]* ) echo " You have selected to build the kernel for performance." ; export secure_kernel=true ; break;;
+        [Nn]* ) echo " You have chosen to keep security in mind when compiling the kernel." ; break;; * ) echo "Please answer yes or no. Confirm by pressing ENTER:";; esac ; done
+        fi
+        echo "\n"
         echo "" ; echo ""
         
 	            s="sudo"
@@ -251,7 +260,7 @@ cd $basicsetup/.mozilla/firefox/.default-release
                     $s \cp -rf prefs.js /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)"/prefs.js
                     $s \cp -rf prefs.js /etc/firefox/firefox.js
                     $s \cp -rf extensions /home/$i/.mozilla/firefox/extensions
-                    $s \cp -rf extensions /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)"/extensions ; done
+                    $s \cp -rf extensions /home/$i/.mozilla/firefox/"$(ls /home/$i/.mozilla/firefox | grep default-release)" ; done
 
 fi
                         # fix ~/  home folder permissions
@@ -361,7 +370,7 @@ echo '######################################################
 ###     Include = /etc/pacman.d/cachyos'"$i"'mirrorlist
 ######################################################
 ## Netherlands
-Server = https://nl.cachyos.org/repo/$arch'"$i"'/$repo
+#Server = https://nl.cachyos.org/repo/$arch'"$i"'/$repo
 ## Germany
 Server = https://mirror.cachyos.org/repo/$arch'"$i"'/$repo
 Server = https://aur.cachyos.org/repo/$arch_v'"$i"'/$repo
@@ -592,8 +601,8 @@ $s pacman -S --noconfirm --needed eos-sddm-theme eos-plasma-sddm-config eos-sett
 #yay -S --noconfirm --needed kernel-install-for-dracut ; fi
 
 
-yay -S --noconfirm spack
-
+#yay -S --noconfirm spack
+yay -S --noconfirm --needed vscodium
 
 
 
@@ -651,15 +660,30 @@ for i in cronie haveged rngd firewalld apparmor dbus-broker irqbalance rtirq pre
 $s systemctl enable $i 
 done
 
+
+sudo pacman-key --init ; sudo pacman -Syy
+sudo pacman-key --init ; sudo pacman -Syy
+$s wget https://raw.githubusercontent.com/BlackArch/blackarch-site/master/blackarch-mirrorlist ; $s cp -f blackarch-mirrorlist /etc/pacman.d/blackarch-mirrorlist
+$s pacman -S --noconfirm --needed cachy-browser
+sudo wget https://blackarch.org/strap.sh ; sudo sh strap.sh
+sudo cp -f $PWD/init.sh /etc/rc.local
+
+cd $basicsetup/.mozilla/firefox/.default-release
+                    for i in $(ls /home) ; do
+                    $s \cp -rf prefs.js /home/$i/.cachy/"$(ls /home/$i/.cachy | grep default-release)"/prefs.js
+                    $s \cp -rf prefs.js /etc/firefox/firefox.js
+                    $s \cp -rf extensions /home/$i/.cachy/extensions
+                    $s \cp -rf extensions /home/$i/.cachy/"$(ls /home/$i/.cachy | grep default-release)" ; done
+
+                    cd $PWD
+                    sudo rm -rf tmp
 if [ $kernel = true ] ; then
 echo " THE KERNEL WILL SYNC SOURCES ON DEPTH=1 AND COMPILE WITHOUT LTO OR PGO"
 cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-branch --depth=1 -j8
 cd clrxt-x86 
-sudo bls=yes ./build.sh
+sudo bls=yes$(if [ $secure_kernel = yes ] ; then echo " buildforperformance=no" ; fi) ./build.sh
 fi
-$s pacman -S --noconfirm cachy-browser
-sudo wget https://blackarch.org/strap.sh ; sudo sh strap.sh
-sudo cp -f $PWD/init.sh /etc/rc.local
+
 
         echo -e "${magenta}" && echo "Finalizing with fstrim / ... be patient." && echo -e "${yellow}"
 
