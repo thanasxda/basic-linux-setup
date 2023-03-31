@@ -37,6 +37,7 @@ cb6 = IntVar()
 cb7 = IntVar()
 cb8 = IntVar()
 cb9 = IntVar()
+cb10 = IntVar()
 
 # column 1
 cbb0 = Checkbutton(root, text="disable mitigations", variable=cb0, onvalue=1, offvalue=0).grid(row=3, column=1)
@@ -49,11 +50,12 @@ cbb6 = Checkbutton(root, text="enable raid/lvm/crypt", variable=cb6, onvalue=1, 
 cbb7 = Checkbutton(root, text="disable ethernet link auto-negotiation", variable=cb7, onvalue=1, offvalue=0).grid(row=10, column=1)
 cbb8 = Checkbutton(root, text="disable ethernet offloading", variable=cb8, onvalue=1, offvalue=0).grid(row=11, column=1)
 cbb9 = Checkbutton(root, text="enable auto-update script", variable=cb9, onvalue=1, offvalue=0).grid(row=12, column=1)
+cbb10 = Checkbutton(root, text="enable audit", variable=cb10, onvalue=1, offvalue=0).grid(row=13, column=1)
 
 # entries
-Label(root, text='config level: low/medium/morethanmedium/high').grid(row=13, column=1)
+Label(root, text='config level: low/medium/morethanmedium/high').grid(row=14, column=1)
 level = StringVar(root, value='high')
-levelTf = Entry(root, textvariable=level).grid(row=14, column=1)
+levelTf = Entry(root, textvariable=level).grid(row=15, column=1)
 
 # column 2
 Label(root, text='log level: ').grid(row=1, column=2)
@@ -269,19 +271,23 @@ def addConf():
         config += "\n" + "script_autoupdate=yes"
     else:
         config += "\n" + "script_autoupdate=no"
+    if cbb10 == 1:
+        config += "\n" + "audit=0"
+    else:
+        config += "\n" + "audit=1"
     
     os.system("echo '"+config+"' | sudo tee $PWD/.blsconfig ; sudo cp $PWD/.blsconfig /etc/.blsconfig")
 
 btn = Button(root, text='Save', command=addConf)
-btn.grid(row=15, column=1)
+btn.grid(row=16, column=1)
 
 # apply config
 def applyConf():
     os.system("sudo cp $PWD/configure.py /etc/configure.py ; if [ -e $PWD/init.sh ] ; then sudo cp init.sh /etc/rc.local ; fi ; sudo sh /etc/rc.local")
 
 btn2 = Button(root, text='Apply', command=applyConf)
-btn2.grid(row=16, column=1)
+btn2.grid(row=17, column=1)
 
-Label(root, text='by thanasxda').grid(row=16, column=5)
+Label(root, text='by thanasxda').grid(row=17, column=5)
 
 root.mainloop()

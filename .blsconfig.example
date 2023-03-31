@@ -43,3 +43,4 @@ crypt=no
 autoneg=on
 fl=on
 script_autoupdate=no
+audit=1
