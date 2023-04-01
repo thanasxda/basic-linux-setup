@@ -44,7 +44,7 @@
     </entry>
     <entry name="WallpaperLimit" type="int">
       <label>How many wallpapers to fetch to randomly pick from.</label>
-      <default>1000</default>
+      <default>100</default>
     </entry>
     <entry name="ShowPostTitle" type="bool">
       <label>Show the post title in the lower right?</label>
