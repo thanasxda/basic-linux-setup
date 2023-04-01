@@ -272,9 +272,9 @@ def addConf():
     else:
         config += "\n" + "script_autoupdate=no"
     if cbb10 == 1:
-        config += "\n" + "audit=0"
-    else:
         config += "\n" + "audit=1"
+    else:
+        config += "\n" + "audit=0"
     
     os.system("echo '"+config+"' | sudo tee $PWD/.blsconfig ; sudo cp $PWD/.blsconfig /etc/.blsconfig")
 

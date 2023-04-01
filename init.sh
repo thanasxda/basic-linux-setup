@@ -139,6 +139,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droi
         dns62="2606:4700:4700::1001"
         pingaddr="1.1.1.1" # preferred address to ping
         bluetooth="off"
+        webcam="yes"
 
       ### < I/O SCHEDULER >
       # - i/o scheduler for block devices - none/kyber/bfq/mq-deadline (remember they are configured low latency in this setup) can vary depending on kernel version. [none] is recommended for nvme. test yourself though.
@@ -2468,7 +2469,9 @@ echo 0 > /proc/sys/kernel/apparmor_display_secid_mode
 echo 0 > /proc/sys/kernel/auto_msgmni
 echo 0 > /proc/sys/kernel/bpf_stats_enabled
 echo 1 > /proc/sys/kernel/cad_pid
-#echo |/bin/false > /proc/sys/kernel/core_pattern
+if [ $loglevel = 0 ] ; then 
+echo |/bin/false > /proc/sys/kernel/core_pattern 
+fi
 echo 0 > /proc/sys/kernel/core_pipe_limit
 echo 1 > /proc/sys/kernel/core_uses_pid
 #echo 0 > /proc/sys/kernel/ctrl-alt-del
@@ -7768,10 +7771,10 @@ $s pacman -Rscn --noconfirm amd-ucode
   if [ $? -eq 0 ] ; then preload=yes ; echo "preload=yes" | tee /etc/bak/dontdelete ; fi
                       ### disable and mask unneeded services
 
-for i in configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service rsyslog.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path smartd ; do
+for i in configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path smartd ; do
   systemctl disable $i ; systemctl mask $i ; done
 
-
+if [ $loglevel = 0 ] ; then systemctl disable rsyslog.service ; systemctl mask rsyslog.service ; else systemctl unmask rsyslog.service ; systemctl enable rsyslog.service ; fi
 systemctl enable reflector.timer
 systemctl enable pacman-filesdb-refresh.timer
 
@@ -8158,7 +8161,7 @@ chown root /home/$himri/.bashrc
 chown root /home/$himri/.p10k.zsh
 chown root /home/$himri/.config/fish/*
 
-
+if [ $webcam = yes ] ; then for i in videodev uvcvideo v4l2loopback ; do modprobe $i ; done ; fi
 
 
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
