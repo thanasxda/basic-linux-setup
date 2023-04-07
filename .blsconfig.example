@@ -44,3 +44,4 @@ autoneg=on
 fl=on
 script_autoupdate=no
 audit=0
+webcam=yes

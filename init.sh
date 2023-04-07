@@ -196,6 +196,7 @@ if [ ! -z $vars ] ; then echo "$vars" | tee $PWD/.blsconfig ; fi ; if [ -e $droi
         # both wifi and ethernet
         txqueuelen="128"
         mtu="1500"
+        #localip=192.168.0.1/24 # local ip range to allow connecting through ssh
 
       ### < ETHERNET SETTINGS >
       # - ethernet offloading
@@ -584,7 +585,7 @@ if [ $ignoreloglevel = off ] ; then log=" audit=$audit loglevel=$loglevel mminit
 # cpu amd/intel
 xcpu="$(if lscpu | grep -qi AMD ; then echo " amd_iommu=pgtbl_v2 kvm-amd.avic=1 amd_iommu_intr=vapic amd_pstate=passive" ; elif lscpu | grep -qi Intel ; then echo " kvm-intel.nested=1 intel_iommu=on,igfx_off$(if [ $level != medium ] || [ $level != low ] ; then echo " tsx=on" ; fi) intel_pstate=hwp_only" ; fi)"
 #
-xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grep -qi AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=cpu,cpuacct,cpuset,memory$(if [ $level = high ] ; then echo ",io,perf_event,rdma,net_prio,hugetlb,blkio,devices,freezer,net_cls,pids,misc cgroup_no_v1=all noautogroup" ; fi) big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge$(if [ ! -z $additional_cmdline ] ; then echo " $additional_cmdline" ; fi) align_va_addr=on iommu.strict=0 novmcoredd iommu=force,pt$(if [ $extras = on ] && [ $level = high ] ; then echo " init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable acpi=force lapic apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused migration_debug=0 acpi_sleep=s4_hwsig slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages$log$( if [ $ignoreloglevel = on ] ; then echo " ignore_loglevel" ; fi) rcupdate.rcu_expedited=1 workqueue.power_efficient=$(if [ $level = high ] ; then echo "0" ; else echo "1" ; fi) noreplace-smp refscale.loops=$(($(nproc --all)*2))"
+xvarious=" pci=noaer,pcie_bus_perf,realloc$(if lscpu | grep -qi AMD ; then echo ",check_enable_amd_mmconf" ; fi) cgroup_disable=cpu,cpuacct,cpuset,memory$(if [ $level = high ] ; then echo ",io,perf_event,rdma,net_prio,hugetlb,blkio,devices,freezer,net_cls,pids,misc cgroup_no_v1=all noautogroup" ; fi) big_root_window numa=off nowatchdog $rcu irqaffinity=0 slub_merge$(if [ ! -z $additional_cmdline ] ; then echo " $additional_cmdline" ; fi) align_va_addr=on iommu.strict=0 novmcoredd iommu=force,pt$(if [ $extras = on ] && [ $level = high ] ; then echo " init_on_free=0 init_on_alloc=0" ; fi) acpi_enforce_resources=lax edd=on iommu.forcedac=1 idle=$idle preempt=full highres=on hugetlb_free_vmemmap=on clocksource=tsc tsc=reliable noacpi nomodeset apm=on nohz=on psi=0 cec_disable skew_tick=1 vmalloc=$vmalloc cpu_init_udelay=1000 no_debug_objects noirqdebug csdlock_debug=0 kmemleak=off tp_printk_stop_on_boot dma_debug=off gcov_persist=0 kunit.enable=0 printk.devkmsg=off nosoftlockup pnp.debug=0 nohpet ftrace_enabled=0 slub_memcg_sysfs=0 clk_ignore_unused migration_debug=0 acpi_sleep=s4_hwsig slub_min_objects=24 schedstats=0$(if [ $(uname -r | cut -c1-1) -eq 5 ] && lscpu | grep -qi Intel ; then echo ' unsafe_fsgsbase=1' ; fi) mce=dont_log_ce gbpages$log$( if [ $ignoreloglevel = on ] ; then echo " ignore_loglevel" ; fi) rcupdate.rcu_expedited=1 workqueue.power_efficient=$(if [ $level = high ] ; then echo "0" ; else echo "1" ; fi) noreplace-smp refscale.loops=$(($(nproc --all)*2))"
 #
 xrflags=$(if [ $(uname -r | cut -c1-1) -ge 4 ] && grep -q "/ " /etc/fstab | $(! grep -q "btrfs\|zfs" $fstab) ; then echo " rootflags=lazytime,noatime" ; else echo " rootflags=noatime" ; fi)
 #
@@ -1199,8 +1200,64 @@ fi
 
 
 
+ # Flush all existing rules
+iptables -F
+iptables -X      
+       # prevent bruteforce
+ iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
+ --hitcount 4 --rttl -j DROP
+  iptables -A INPUT -p tcp --dport 23 -m recent --update --seconds 60 \
+ --hitcount 4 --rttl -j DROP
 
+# Block incoming NULL packets
+iptables -A INPUT -p tcp --tcp-flags ALL NONE -j DROP
+# Block incoming XMAS packets
+iptables -A INPUT -p tcp --tcp-flags ALL ALL -j DROP
+# Block incoming syn-flood attack
+iptables -A INPUT -p tcp --syn -m limit --limit 1/s -j ACCEPT
+# Enable stateful inspection
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+# Log dropped packets
+iptables -A INPUT -j LOG --log-prefix "iptables dropped: " --log-level 7
+# Enable public key authentication for SSH
+sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/g' /etc/ssh/sshd_config
+#systemctl restart ssh
+# Allow loopback traffic
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+# Allow established and related traffic
+iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+# Allow SSH traffic from specific IP address(es)
+if [ ! -z $localip ] ; then
+iptables -A INPUT -p tcp --dport 22 -s "$localip" -j ACCEPT
+fi
+# Block incoming traffic on all other ports:
+#iptables -A INPUT -p tcp -j DROP
+#iptables -A INPUT -p udp -j DROP
+# Block incoming ICMP (ping) requests:
+iptables -A INPUT -p icmp --icmp-type echo-request -j DROP
+# Log and drop any other incoming traffic
+iptables -A INPUT -j LOG --log-prefix "iptables dropped: " --log-level 7
+iptables -A INPUT -j DROP
+# Log and drop any other outgoing traffic
+iptables -A OUTPUT -j LOG --log-prefix "iptables dropped: " --log-level 7
+iptables -A OUTPUT -j DROP
+# Set default policies to DROP
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT DROP
+# Allow incoming HTTP and HTTPS traffic
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+# Allow incoming DNS traffic
+#iptables -A INPUT -p udp --dport 53 -j ACCEPT
+#iptables -A INPUT -p tcp --dport 53 -j ACCEPT
+# Allow outgoing DNS traffic
+#iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
+#iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
 
+systemctl restart iptables
 
 
   ### pls put repos in /etc/apt/sources.list.d/extras.list idc im removing urs
@@ -1757,11 +1814,8 @@ echo lz4 >> /etc/initramfs-tools/modules
 echo lz4_compress >> /etc/initramfs-tools/modules ; fi
 fi
         #sed -i 's/CONCURRENCY="none"/CONCURRENCY="makefile"/g' "$ifdr"/etc/init.d/rc
-        # prevent bruteforce
- iptables -A INPUT -p tcp --dport 22 -m recent --update --seconds 60 \
- --hitcount 4 --rttl -j DROP
-  iptables -A INPUT -p tcp --dport 23 -m recent --update --seconds 60 \
- --hitcount 4 --rttl -j DROP
+
+
 
 if $arch ; then
 mkdir -p /etc/pacman.d
@@ -4386,6 +4440,70 @@ kernel.split_lock_mitigate = 0
 
 vm.max_map_count=512000
 
+
+# Disable ICMP redirect acceptance for all network interfaces
+net.ipv4.conf.all.accept_redirects = 0
+# Disable source routing for all network interfaces
+net.ipv4.conf.all.accept_source_route = 0
+# Ignore ICMP echo requests sent to broadcast addresses
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+# Ignore certain types of ICMP error messages
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+# Enable TCP SYN cookies
+net.ipv4.tcp_syncookies = 1
+# Enable logging of certain types of network packets
+net.ipv4.conf.all.log_martians = 1
+# Enable reverse path filtering
+net.ipv4.conf.all.rp_filter = 1
+# Enable secure ICMP redirect acceptance
+net.ipv4.conf.all.secure_redirects = 1
+# Disable ICMP redirect acceptance for the default network interface
+net.ipv4.conf.default.accept_redirects = 0
+# Disable source routing for the default network interface
+net.ipv4.conf.default.accept_source_route = 0
+# Limit the maximum number of pending connections in the SYN queue
+net.ipv4.tcp_max_syn_backlog = 128
+# Limit the number of SYN/ACK retries
+net.ipv4.tcp_synack_retries = 2
+# Limit the number of SYN retries
+net.ipv4.tcp_syn_retries = 2
+# Disable ICMP redirect sending for all network interfaces
+net.ipv4.conf.all.send_redirects = 0
+# Disable ICMP redirect sending for the default network interface
+net.ipv4.conf.default.send_redirects = 0
+# Enable full randomization of the address space layout
+kernel.randomize_va_space = 2
+# Disable TCP timestamping
+net.ipv4.tcp_timestamps = 0
+# Disable the SysRq key
+kernel.sysrq = 0
+# Enable TCP sequence number randomization
+net.ipv4.tcp_rfc1337 = 1
+# Deny the ability to change file permissions within a chroot environment
+kernel.grsecurity.chroot_deny_chmod = 1
+# Deny the ability to mount filesystems within a chroot environment
+kernel.grsecurity.chroot_deny_mount = 1
+# Deny the ability to pivot the root directory within a chroot environment
+kernel.grsecurity.chroot_deny_pivot = 1
+# Enforce the use of chroot() with chdir() within a chroot environment
+kernel.grsecurity.chroot_enforce_chdir = 1
+# Restrict access to certain devices within a chroot environment
+kernel.grsecurity.chroot_restrict_dev = 1
+# Restrict access to certain /proc/ files within a chroot environment
+kernel.grsecurity.chroot_restrict_proc = 1
+In addition to these 25 parameters, here are a few more popular sysctl parameters that can help improve Linux security:
+# Restricts access to kernel messages in dmesg to root and members of the "kmsg" group
+kernel.dmesg_restrict = 1
+# Hides kernel pointers from non-root users in various system interfaces
+kernel.kptr_restrict = 2
+# Disables sending of ICMP redirects for all network interfaces.
+net.ipv4.conf.all.send_redirects = 0
+# Disables sending of ICMP redirects for the default network interface
+net.ipv4.conf.default.send_redirects = 0
+# Disables IP forwarding, which can help prevent attacks that rely on packet forwarding
+net.ipv4.ip_forward = 0
+
+
 ' | tee "$ifdr"/etc/sysctl.conf "$ifdr"/etc/sysctl.d/sysctl.conf
 
 if [ $loglevel = 0 ] ; then 
@@ -6333,7 +6451,8 @@ fi
 if [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = arch ] || [ $(awk '/ID=/{print}' /etc/os-release | cut -d '=' -f 2 | head -n1) = debian ] ; then
 posix='LC_ALL=C
 LANG=C
-LC_COLLATE=C'
+LC_COLLATE=C
+POSIXLY_CORRECT=1'
 fi
 
 #if $arch && ldconfig -p | grep -q libmimalloc ; then ld_preload="LD_PRELOAD=$(ldconfig -p | grep libmimalloc | head -n1 | awk -F '>' '{print $2}')" ; fi
@@ -6547,6 +6666,19 @@ radeonsi_enable_nir=true
 EDITOR='"$(which vim)"'
 GCM_CREDENTIAL_STORE=cache
 GCC_SPECS=""
+TMPDIR=/tmp
+TZ=UTC
+KERNEL_KILL_ON_OOM=1
+SYSCTL_NET_IPV4_TCP_FIN_TIMEOUT=30
+HISTTIMEFORMAT="%FT%T%z "
+HISTCONTROL=ignoreboth
+HISTFILESIZE=10000
+HISTSIZE=10000
+KMP_AFFINITY=disabled
+QT_IM_MODULE=xim
+GTK_IM_MODULE=xim
+GCONV_PATH=/usr/lib/gconv
+MALLOC_ARENA_MAX=4
 ' | tee /etc/environment /home/"$himri"/.config/plasma-workspace/env/kwin_env.sh /etc/profile.d/kwin.sh /home/"$himri"/.xsessionrc /root/.xsessionrc /etc/init.d/environment.sh /home/"$himri"/.profile /root/.profile /etc/environment.d/env.conf /home/"$himri"/.xserverrc /root/.xserverrc ; fi
 
 fi
@@ -7772,8 +7904,14 @@ $s pacman -Rscn --noconfirm amd-ucode
   if [ $? -eq 0 ] ; then preload=yes ; echo "preload=yes" | tee /etc/bak/dontdelete ; fi
                       ### disable and mask unneeded services
 
-for i in configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path smartd ; do
+for i in configure-printer@.service exim4.service quotaon.service rdma-load-modules@.service rdma-ndd.servicerdma-ndd.service exim4-base.timer systemd-coredump@.service plymouth-log pulseaudio-enable-autospawn uuidd x11-common bluetooth gdomap smartmontools speech-dispatcher bluetooth.service cron ifupdown-wait-online.service geoclue.service keyboard-setup.service logrotate.service ModemManager.service NetworkManager-wait-online.service plymouth-quit-wait.service plymouth-log.service pulseaudio-enable-autospawn.service remote-fs.service smartmontools.service speech-dispatcher.service speech-dispatcherd.service systemd-networkd-wait-online.service x11-common.service uuidd.service syslog.socket bluetooth.target remote-fs-pre.target remote-fs.target rpcbind.target printer.target cups systemd-pstore.service cups.socket drkonqi-coredump-processor@.service cups.path smartd telnet@ ; do
   systemctl disable $i ; systemctl mask $i ; done
+  
+if $(! grep -qi btrfs /etc/fstab) ; then systemctl disable btrfs-scrub@ ; systemctl mask btrfs-scrub@ ; fi
+
+for i in arptables iptables ; do
+  systemctl unmask $i ; systemctl enable $i ; done
+  
 
 if [ $loglevel = 0 ] ; then systemctl disable rsyslog.service ; systemctl mask rsyslog.service ; else systemctl unmask rsyslog.service ; systemctl enable rsyslog.service ; fi
 systemctl enable reflector.timer
@@ -8162,7 +8300,7 @@ chown root /home/$himri/.bashrc
 chown root /home/$himri/.p10k.zsh
 chown root /home/$himri/.config/fish/*
 
-if [ $webcam = yes ] ; then for i in videodev uvcvideo v4l2loopback ; do modprobe $i ; done ; fi
+if [ $webcam = yes ] ; then for i in videodev uvcvideo v4l2loopback ; do modprobe $i ; done ; elif [ $webcam = no ] ; then for i in videodev uvcvideo v4l2loopback ; do rmmod $i ; done ; fi
 
 
 #######################!!!!!!!!!!!!!!!!!! sync values from basic-linux-setup for openwrt & linux !!!!!!!!!!!#####
