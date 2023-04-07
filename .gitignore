@@ -10,3 +10,5 @@ backup.debian.sources.list
 sources.list.bak
 extras.list.bak
 preferences.bak
+sysctl.conf
+__pycache__

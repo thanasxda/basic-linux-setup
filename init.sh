@@ -4030,7 +4030,7 @@ sysctl -w kernel.sched_schedstats=0
 
 
 
-if [ $level = high ] ; then 
+if [ $level = high ] && [ $firstrun = yes ] ; then 
 
 
 
@@ -4043,6 +4043,7 @@ fi
 if [ $cpumaxcstate = 0 ] ; then
 flat='force_latency = 1'
 fi
+
 
 echo '# sysctl
 

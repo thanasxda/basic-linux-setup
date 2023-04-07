@@ -10,6 +10,7 @@ from tkinter import *
 import os
 import subprocess
 from PIL import Image, ImageTk
+import importlib
 
 # main window
 root = Tk()
@@ -25,6 +26,15 @@ cv = Canvas(root, highlightthickness=0, height=80, width=340)
 cv['bg']='black'
 cv.grid(column=1, columnspan=2)
 cv.create_image(170, 0, image=render, anchor='n')
+
+# sysctl manager
+def run_external_script():
+    if not run_external_script.clicked:
+        run_external_script.clicked = True
+        subprocess.run(["sudo", "python", "sysctl.py"])
+        run_external_script.clicked = False
+
+run_external_script.clicked = False
 
 # checkboxes
 cb0 = IntVar()
@@ -89,6 +99,9 @@ Label(root, text='i/o scheduler: ').grid(row=14, column=2)
 sched = StringVar(root, value='bfq')
 schedTf = Entry(root, textvariable=sched).grid(row=15, column=2)
 Label(root, text=output).grid(row=16, column=2)
+
+btn3 = Button(root, text='Sysctl manager', command=run_external_script)
+btn3.grid(row=17, column=2)
 
 # column 3
 Label(root, text='dns server ipv6 #1: ').grid(row=1, column=3)
