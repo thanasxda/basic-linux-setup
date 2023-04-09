@@ -134,3 +134,4 @@ alias ip='ip -color=auto'
 alias s='sudo'
 alias su='sudo su'
 
+export DISPLAY=:0

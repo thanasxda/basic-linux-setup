@@ -155,7 +155,8 @@ cd $tmp
 cd $tmp
 
 
-            yay -S --noconfirm --needed brave-nightly-bin google-earth-pro
+            yay -S --noconfirm --needed brave-nightly-bin 
+	    #google-earth-pro
             $s pacman -S --noconfirm --needed firefox
 
         git config --global color.diff auto
@@ -226,6 +227,8 @@ if grep -q arch /etc/os-release ; then if ! grep -q 'alias clean' .zshrc ; then 
                     $s rsync -v -K -a --force --include=".*" .kodi ~/
                     $s rsync -v -K -a --force --include=".*" MalakasUniverse /usr/share/wallpapers/
                     $s rsync -v -K -a --force --include=".*" .config/BraveSoftware/Brave-Browser-Nightly/* ~/.config/chromium/
+                    $s rsync -v -K -a --force --include=".*" .gnubg ~/
+                    $s rsync -v -K -a --force --include=".*" .themes ~/
 
                    $s rm -rf $tmp ; $s mkdir -p $tmp ; cd $tmp ; $s mkdir -p /usr/share/fonts/truetype/hack/ ; sudo wget https://github.com/ryanoasis/nerd-fonts/releases/download/v2.2.2/Hack.zip ; sudo unzip Hack.zip -d hackz ; sudo cp hackz/* /usr/share/fonts/truetype/hack/
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/install_manual.sh)"
@@ -264,7 +267,7 @@ cd $basicsetup/.mozilla/firefox/.default-release
 
 fi
                         # fix ~/  home folder permissions
-                            chown -R $(id -u):$(id -g) $HOME
+                           sudo chown -R $(id -u):$(id -g) $HOME
 cd $source
 
             mkdir -p ~/.wine && $s mkdir -p /root/.wine
@@ -480,15 +483,15 @@ $s sed -i -z -e 's/#\[chaotic-aur\]\n#Include = \/etc\/pacman.d\/chaotic-mirrorl
  pkg2="alsa-tools dkms debtap linux-clear-bin linux-clear-headers-bin w3m-imgcat"
  $s pacman -S --noconfirm --needed $pkg2
 
-if
-glxinfo | grep -q Intel ; then
-$s pacman -S --noconfirm --needed intel-compute-runtime intel-graphics-compiler intel-opencl-clang
+#if
+#glxinfo | grep -q Intel ; then
+#$s pacman -S --noconfirm --needed intel-compute-runtime intel-graphics-compiler intel-opencl-clang
 #elif
 #glxinfo | grep -q NVIDIA ; then
 #$s pacman -S --noconfirm --needed  ; elif
 #glxinfo | grep -q AMD ; then
 #$s pacman -S --noconfirm --needed
-fi
+#fi
 
            $s pacman -S --noconfirm --needed kernel-modules-hook find-the-command
            yay -S --noconfirm --needed system76-scheduler
@@ -602,7 +605,7 @@ $s pacman -S --noconfirm --needed eos-sddm-theme eos-plasma-sddm-config eos-sett
 
 
 #yay -S --noconfirm spack
-yay -S --noconfirm --needed vscodium
+#yay -S --noconfirm --needed vscodium
 
 
 
@@ -663,8 +666,9 @@ done
 
 sudo pacman-key --init ; sudo pacman -Syy
 sudo pacman-key --init ; sudo pacman -Syy
-$s wget https://raw.githubusercontent.com/BlackArch/blackarch-site/master/blackarch-mirrorlist ; $s cp -f blackarch-mirrorlist /etc/pacman.d/blackarch-mirrorlist
+$s wget https://raw.githubusercontent.com/BlackArch/blackarch-site/master/blackarch-mirrorlist && sudo \cp -f blackarch-mirrorlist /etc/pacman.d/blackarch-mirrorlist
 $s pacman -S --noconfirm --needed cachy-browser
+cachy-browser & sleep 5 ; $s pkill -f cachy-browser
 sudo wget https://blackarch.org/strap.sh ; sudo sh strap.sh
 sudo cp -f $PWD/init.sh /etc/rc.local
 
@@ -677,6 +681,11 @@ cd $basicsetup/.mozilla/firefox/.default-release
 
                     cd $PWD
                     sudo rm -rf tmp
+                    
+        sudo chown -R $himri /home/$himri
+        sudo chmod -R 0700 /home/$himri
+                    
+                    
 if [ $kernel = true ] ; then
 echo " THE KERNEL WILL SYNC SOURCES ON DEPTH=1 AND COMPILE WITHOUT LTO OR PGO"
 cd $source ; cd .. ; git clone https://github.com/thanasxda/clrxt-x86 --single-branch --depth=1 -j8

@@ -1,6 +1,7 @@
+gtk-cursor-theme-size=24
 gtk-fallback-icon-theme="Flat-Remix-Blue-Dark"
 
-gtk-theme-name="Breeze-Dark"
+gtk-theme-name="Lavanda-Sea-Dark"
 
 gtk-enable-animations=0
 
@@ -12,7 +13,7 @@ gtk-menu-images=1
 
 gtk-button-images=1
 
-gtk-cursor-theme-name="breeze_cursors"
+gtk-cursor-theme-name="Adwaita"
 
 gtk-icon-theme-name="Breeze-Cheerful-Phantasy-Dark"
 

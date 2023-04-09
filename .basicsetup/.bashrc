@@ -155,3 +155,4 @@ if ! shopt -oq posix; then
   fi
 fi
 
+export DISPLAY=:0

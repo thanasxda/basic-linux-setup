@@ -24,6 +24,7 @@ RenderTimeEstimator=Minimum
 UnredirectFullscreen=false
 WindowsBlockCompositing=true
 XRenderSmoothScale=false
+CompositingEnabled=true
 
 [Desktops]
 Name_2[$d]

@@ -181,8 +181,8 @@ Include = /etc/pacman.d/parabola-mirrorlist
 #[pcr]
 #Include = /etc/pacman.d/parabola-mirrorlist
 
-#[kernels]
-#Include = /etc/pacman.d/parabola-mirrorlist
+[kernels]
+Include = /etc/pacman.d/parabola-mirrorlist
 
 #[nonprism]
 #Include = /etc/pacman.d/parabola-mirrorlist
@@ -200,6 +200,7 @@ Include = /etc/pacman.d/parabola-mirrorlist
 #Include = /etc/pacman.d/parabola-mirrorlist
 
 [blackarch]
+SigLevel = Optional TrustAll
 Include = /etc/pacman.d/blackarch-mirrorlist
 
 [chaotic-aur]

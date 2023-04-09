@@ -31,7 +31,7 @@ $s chown root /usr /var
 #jitterentropy
 
 #$s pacman -Rsc iptables
-pkg="base-devel mesa arch-install-scripts usbutils bash-language-server python-lsp-server xorg util-linux-libs gptfdisk iputils net-tools nftables perl wireless_tools iw busybox dracut systemd-ui systemd-sysvcompat f2fs-tools xfsprogs attr linux-firmware kmod cronie bc discover flatpak fwupd partitionmanager gstreamer phonon-qt5 gstreamer gstreamer-vaapi qt-gstreamer python-pip openssh putty rng-tools rt-tests shellcheck uget ccache vlc hdparm ethtool xsettingsd virt-manager apparmor diffuse htop psensor wireless-regdb binwalk rtirq lz4 shellcheck kvantum-theme-materia kvantum kio-fuse kio-extras kio firewalld kwrite dolphin dolphin-plugins irqbalance openssl efibootmgr dbus-broker xorg-xinit fail2ban android-tools android-udev dpkg lz4 macchanger kdebugsettings ffmpeg ffmpeg4.4 x264 x265 aom dav1d svt-av1 schroedinger libdv libmpeg2 libtheora libvpx libva-mesa-driver mesa-utils mesa-vdpau opencl-mesa vulkan-mesa-layers libva-mesa-driver libva-utils libva-vdpau-driver libvdpau-va-gl vdpauinfo vulkan-icd-loader spectacle openbox imagemagick vim powerline-vim x86_energy_perf_policy openh264 glxinfo sweeper xz zstd pigz pbzip2 gst-libav libcdio libdvdread libsidplay gst-plugins-base gst-plugins-good gst-plugins-ugly gst-plugins-bad libdvdcss os-prober lsb-release reflector tcc perl-locale-gettext sxiv zathura ranger nix i7z inetutils xmlto refind gnubg tig lld polly llvm openmp cmake ninja git-lfs traceroute ristretto okular ufw"
+pkg="base-devel mesa arch-install-scripts usbutils bash-language-server python-lsp-server xorg util-linux-libs gptfdisk iputils net-tools nftables perl wireless_tools iw busybox dracut systemd-ui systemd-sysvcompat f2fs-tools xfsprogs attr linux-firmware kmod cronie bc discover flatpak fwupd partitionmanager gstreamer phonon-qt5 gstreamer gstreamer-vaapi qt-gstreamer python-pip openssh putty rng-tools rt-tests shellcheck uget ccache vlc hdparm ethtool xsettingsd apparmor diffuse htop psensor wireless-regdb binwalk rtirq lz4 shellcheck kvantum-theme-materia kvantum kio-fuse kio-extras kio firewalld kwrite dolphin dolphin-plugins irqbalance openssl efibootmgr dbus-broker xorg-xinit fail2ban android-tools android-udev dpkg lz4 macchanger kdebugsettings ffmpeg ffmpeg4.4 x264 x265 aom dav1d svt-av1 schroedinger libdv libmpeg2 libtheora libvpx libva-mesa-driver mesa-utils mesa-vdpau opencl-mesa vulkan-mesa-layers libva-mesa-driver libva-utils libva-vdpau-driver libvdpau-va-gl vdpauinfo vulkan-icd-loader spectacle openbox imagemagick vim powerline-vim x86_energy_perf_policy openh264 glxinfo sweeper xz zstd pigz pbzip2 gst-libav libcdio libdvdread libsidplay gst-plugins-base gst-plugins-good gst-plugins-ugly gst-plugins-bad libdvdcss os-prober lsb-release reflector tcc perl-locale-gettext i7z inetutils xmlto refind gnubg tig lld polly llvm openmp cmake ninja git-lfs traceroute ristretto okular ufw tk aspell-el firefox-i18n-el firejail musl kdiff3"
  yes | $s pacman -S iptables-nft
  #for i in ${pkg[@]} ; do
  $s pacman -S --noconfirm --needed $pkg
@@ -78,7 +78,7 @@ glxinfo | grep -qi AMD ; then
 $s pacman -S --noconfirm --needed vulkan-radeon amdvlk xf86-video-amdgpu
 fi
 
-yay -S --noconfirm --needed vscodium
+#yay -S --noconfirm --needed vscodium
 
 
 if lscpu | grep -q Intel ; then
