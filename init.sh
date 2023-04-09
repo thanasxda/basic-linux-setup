@@ -1244,6 +1244,83 @@ iptables -A INPUT -p tcp --dport 443 -j ACCEPT
 
 systemctl restart iptables
 
+# drop all incoming traffic by default
+nft add rule inet filter input drop
+# drop all outgoing traffic
+nft add rule inet filter output drop
+# allow established and related connections
+nft add rule inet filter input ct state established,related accept
+# block ssh traffic ( mod this to your needs setup is too big )
+nft add rule inet filter input tcp dport 22 drop
+# allow http and https traffic
+nft add rule inet filter input tcp dport 80 accept
+nft add rule inet filter input tcp dport 443 accept
+# log and drop all other incoming traffic
+nft add rule inet filter input log prefix "dropped input packet: " drop
+# drop incoming icmp (ping) traffic
+nft add rule inet filter input icmp type echo-request drop
+
+
+# drop invalid packets
+nft add rule inet filter input ct state invalid drop
+# allow loopback traffic
+nft add rule inet filter input iifname "lo" accept
+# drop incoming traffic with unacceptable flags
+#nft add rule inet filter input tcp flags & (tcp fin + tcp syn + tcp rst + tcp ack) == 0 counter drop# allow dns traffic
+#nft add rule inet filter input tcp dport 53 accept
+#nft add rule inet filter input udp dport 53 accept
+# allow all outgoing traffic
+#nft add rule inet filter output accept
+
+systemctl restart nftables
+
+
+arptables -F     # clear all existing rules
+arptables -X     # clear all existing rules
+
+arptables -P INPUT DROP    # set default policy to drop incoming traffic
+arptables -P FORWARD DROP  # set default policy to drop forwarding traffic
+arptables -P OUTPUT DROP   # set default policy to drop outgoing traffic
+
+arptables -A INPUT -i enp2s0 -j ACCEPT    # allow arp traffic on the local network for incoming traffic
+arptables -A OUTPUT -o enp2s0 -j ACCEPT   # allow arp traffic on the local network for outgoing traffic
+
+arptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT   # allow arp traffic for established connections for incoming traffic
+arptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT  # allow arp traffic for established connections for outgoing traffic
+
+
+systemctl restart arptables
+
+ebtables -F     # clear all existing rules
+ebtables -X     # clear all existing rules
+
+ebtables -P INPUT DROP    # set default policy to drop incoming traffic
+ebtables -P FORWARD DROP  # set default policy to drop forwarding traffic
+ebtables -P OUTPUT DROP   # set default policy to drop outgoing traffic
+
+ebtables -A INPUT -i enp2s0 -j ACCEPT    # allow incoming traffic on eth0 interface
+ebtables -A OUTPUT -o enp2s0 -j ACCEPT   # allow outgoing traffic on eth0 interface
+
+ebtables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT   # allow established connections for incoming traffic
+ebtables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT  # allow established connections for outgoing traffic
+
+systemctl restart ebtables
+
+
+# Reset the firewall to its default state
+#ufw reset
+# Set the default policy to deny incoming traffic
+ufw default deny incoming
+# Allow outgoing traffic by default
+ufw default allow outgoing
+# Allow incoming SSH connections from specific IP addresses
+#ufw allow from $localip to any port 22
+# Allow incoming HTTPS connections
+ufw allow https
+# Enable logging of firewall activity
+ufw logging on
+# Enable the firewall
+ufw enable
 
   ### pls put repos in /etc/apt/sources.list.d/extras.list idc im removing urs
   if [ $clean_sources_list_d = yes ] ; then
@@ -4053,6 +4130,8 @@ done;
 
 wl -i $iface
 ifconfig $iface txqueuelen $txqueuelen
+
+
 
 # skip disk defragment & fstrim on every boot
 #xfs_fsr $rootfs
@@ -7892,7 +7971,7 @@ for i in configure-printer@.service exim4.service quotaon.service rdma-load-modu
   
 if $(! grep -qi btrfs /etc/fstab) ; then systemctl disable btrfs-scrub@ ; systemctl mask btrfs-scrub@ ; fi
 
-for i in arptables iptables firewalld ; do
+for i in arptables iptables firewalld nftables ebtables ufw ; do
   systemctl unmask $i ; systemctl enable $i ; done
   
 

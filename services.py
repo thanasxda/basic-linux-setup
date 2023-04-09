@@ -44,7 +44,7 @@ class ServiceManagerApp:
 
         # Get a list of all services
         try:
-            output = subprocess.check_output(["systemctl", "list-unit-files", "--type", "service", "--no-pager"])
+            output = subprocess.check_output(["systemctl", "list-unit-files"])
             services = output.decode().splitlines()
         except subprocess.CalledProcessError:
             messagebox.showerror("Error", "Failed to list services.")
