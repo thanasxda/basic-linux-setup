@@ -264,7 +264,7 @@ cd $basicsetup/.mozilla/firefox/.default-release
 
 fi
                         # fix ~/  home folder permissions
-                            $s chown -R $(id -u):$(id -g) $HOME
+                            chown -R $(id -u):$(id -g) $HOME
 cd $source
 
             mkdir -p ~/.wine && $s mkdir -p /root/.wine

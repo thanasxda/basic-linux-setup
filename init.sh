@@ -1122,12 +1122,10 @@ echo '# /etc/security/limits.conf - Limits configuration file for the pam_limits
 #
 
 *                soft    core           0
-*                soft    nofile         524288
 *                hard    rss            8192
 *                hard    nproc          65535
 *                hard    stack          8192
 *                hard    nofile         524288
-root             soft    nofile         524288
 root             soft    core           0
 root             hard    rss            8192
 root             hard    nproc          unlimited
@@ -1779,7 +1777,7 @@ journalmatch = _TRANSPORT=kernel' | tee /etc/fail2ban/filter.d/fwdrop.local ; fi
     sed -i 's/# SHA_CRYPT_MAX_ROUNDS 5000/SHA_CRYPT_MAX_ROUNDS 50000/g' "$ifdr"/etc/login.defs
     sed -i 's/^%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/' "$ifdr"/etc/sudoers
     chmod 0600 "$ifdr"/etc/hosts.allow
-    chmod 0600 "$ifdr"/etc/hosts.deny ; chmod 0750 /home/* ; umask 0022 ; fi
+    chmod 0600 "$ifdr"/etc/hosts.deny ; chmod 0700 /home/* ; umask 077 ; fi
     if $(! grep -q rngd "$ifdr"/etc/modules) ; then
     sed -i -r '/^fscache?/D' "$ifdr"/etc/modules
 cat <<EOL>> "$ifdr"/etc/modules
@@ -4458,8 +4456,6 @@ net.ipv4.tcp_syn_retries = 2
 net.ipv4.conf.all.send_redirects = 0
 # Disable ICMP redirect sending for the default network interface
 net.ipv4.conf.default.send_redirects = 0
-# Enable full randomization of the address space layout
-kernel.randomize_va_space = 2
 # Disable TCP timestamping
 net.ipv4.tcp_timestamps = 0
 # Disable the SysRq key
@@ -6335,7 +6331,7 @@ mkdir -p /root/.ccache
 echo 'max_size = 30G
 cache_dir = ~/.ccache
 debug = false
-umask = 0022
+umask = 027
 compiler_check = %compiler% -dumpversion
 cache_dir_levels = 5
 hash_dir = false
@@ -6630,7 +6626,7 @@ COGL_ATLAS_DEFAULT_BLIT_MODE=framebuffer
 CCACHE_SLOPPINESS=locale,time_macros,file_stat_matches,include_file_ctime,include_file_mtime
 CCACHE_DIR=~/.ccache
 PREBUILT_CACHE_DIR=~/.ccache
-CCACHE_UMASK=0022
+CCACHE_UMASK=027
 USE_CCACHE=1
 USE_RECACHE=yes
 #CC=clang'"$cclm"'
@@ -7896,7 +7892,7 @@ for i in configure-printer@.service exim4.service quotaon.service rdma-load-modu
   
 if $(! grep -qi btrfs /etc/fstab) ; then systemctl disable btrfs-scrub@ ; systemctl mask btrfs-scrub@ ; fi
 
-for i in arptables iptables ; do
+for i in arptables iptables firewalld ; do
   systemctl unmask $i ; systemctl enable $i ; done
   
 
@@ -8277,6 +8273,11 @@ rm -rf /home/$himri/.ccache/ccache.conf.tmp*
 
 
 # avoid security flaws
+
+umask 077
+su - $himri chmod -R 700 /home/$himri
+su - $himri chown -R $himri /home/$himri
+
 cp -rf /root/.zshrc /home/$himri/.zshrc
 cp -rf /root/.bashrc /home/$himri/.bashrc
 cp -rf /root/.p10k.zsh /home/$himri/.p10k.zsh
